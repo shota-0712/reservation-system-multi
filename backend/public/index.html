@@ -1,0 +1,3732 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>予約 - Reservation -</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Flatpickr -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            enji: {
+              DEFAULT: 'var(--color-enji)',
+              light: 'var(--color-enji-light)',
+              dark: 'var(--color-enji-dark)',
+            },
+          },
+          fontFamily: {
+            sans: ['"Helvetica Neue"', 'Arial', 'sans-serif'],
+          },
+          animation: {
+            'scale-in': 'scaleIn 0.2s ease-out forwards',
+            'fade-out': 'fadeOut 0.3s ease-in forwards',
+          },
+          keyframes: {
+            scaleIn: {
+              '0%': { transform: 'scale(0.9)', opacity: '0' },
+              '100%': { transform: 'scale(1)', opacity: '1' },
+            },
+            fadeOut: {
+              '0%': { opacity: '1' },
+              '100%': { opacity: '0' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      /* Theme Color Default (Fallback) */
+      --color-enji: #9b1c2c;
+      --color-enji-light: #b92b3d;
+      --color-enji-dark: #7a1522;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    /* Hide scrollbar for clean UI */
+    ::-webkit-scrollbar {
+      width: 0px;
+      background: transparent;
+    }
+
+    /* Skeleton loader animation */
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
+
+    .skeleton {
+      animation: pulse 1.5s ease-in-out infinite;
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+    }
+
+    /* Line clamp utility */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 select-none">
+
+  <!-- App Container -->
+  <div id="app" class="min-h-screen pb-24 hidden">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+      <div class="max-w-md mx-auto px-4 py-3 flex items-center gap-4">
+        <div id="header-logo-container">
+          <div id="header-logo-placeholder"
+            class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-store text-gray-400 text-xl"></i>
+          </div>
+          <img id="header-logo" src="" alt="Salon Logo"
+            class="h-12 w-12 rounded-full object-cover flex-shrink-0 hidden">
+        </div>
+        <div class="flex-1 min-w-0">
+          <h1 id="header-salon-name" class="font-bold text-gray-800 text-sm truncate"></h1>
+          <p id="header-address" class="text-xs text-gray-500 truncate"></p>
+          <p class="text-xs text-gray-400 flex items-center gap-1">
+            <i class="fas fa-train text-xs"></i>
+            <span id="header-station"></span>
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-md mx-auto p-4">
+
+      <!-- HOME VIEW -->
+      <div id="home-view" class="block">
+
+        <!-- Progress Steps Indicator (Compact) - 5 Steps -->
+        <div id="progress-steps" class="bg-white rounded-xl shadow-sm p-3 mb-4">
+          <div class="flex items-center justify-between">
+            <div class="flex flex-col items-center">
+              <div id="step-icon-1"
+                class="w-6 h-6 rounded-full bg-enji text-white flex items-center justify-center text-xs font-bold">1
+              </div>
+              <span class="text-[10px] text-gray-600 mt-1 whitespace-nowrap">メニュー</span>
+            </div>
+            <div class="flex-1 h-0.5 bg-gray-200 mx-1" id="step-line-1"></div>
+            <div class="flex flex-col items-center">
+              <div id="step-icon-2"
+                class="w-6 h-6 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">
+                2</div>
+              <span class="text-[10px] text-gray-400 mt-1 whitespace-nowrap">オプション</span>
+            </div>
+            <div class="flex-1 h-0.5 bg-gray-200 mx-1" id="step-line-2"></div>
+            <div class="flex flex-col items-center">
+              <div id="step-icon-3"
+                class="w-6 h-6 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">
+                3</div>
+              <span class="text-[10px] text-gray-400 mt-1 whitespace-nowrap">日時選択</span>
+            </div>
+            <div class="flex-1 h-0.5 bg-gray-200 mx-1" id="step-line-3"></div>
+            <div class="flex flex-col items-center">
+              <div id="step-icon-4"
+                class="w-6 h-6 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">
+                4</div>
+              <span class="text-[10px] text-gray-400 mt-1 whitespace-nowrap">確認</span>
+            </div>
+            <div class="flex-1 h-0.5 bg-gray-200 mx-1" id="step-line-4"></div>
+            <div class="flex flex-col items-center">
+              <div id="step-icon-5"
+                class="w-6 h-6 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">
+                5</div>
+              <span class="text-[10px] text-gray-400 mt-1 whitespace-nowrap">完了</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 1: Menu Selection -->
+        <div id="step-menu" class="animate-fade-in">
+          <!-- Category Tabs -->
+          <div id="category-tabs" class="flex flex-wrap gap-2 mb-4">
+            <button onclick="filterByCategory('all')"
+              class="category-tab px-3 py-1.5 rounded-full text-sm font-medium bg-enji text-white transition-colors"
+              data-category="all">すべて</button>
+            <!-- Other category tabs will be dynamically added -->
+          </div>
+
+          <!-- Menu Count -->
+          <div class="flex items-center mb-4">
+            <h2 class="text-lg font-bold text-gray-800 border-l-4 border-enji pl-3">メニュー選択</h2>
+            <span id="menu-count" class="ml-2 text-sm text-gray-500"></span>
+          </div>
+
+          <div id="menu-list" class="space-y-4">
+            <div class="animate-pulse space-y-4">
+              <div class="h-24 bg-gray-200 rounded-lg"></div>
+              <div class="h-24 bg-gray-200 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Option Selection -->
+        <div id="step-options" class="hidden animate-fade-in">
+          <button onclick="goBack('step-menu')" class="btn-ghost mb-2 text-gray-500 text-sm flex items-center gap-1">
+            <i class="fas fa-arrow-left"></i> 戻る
+          </button>
+          <h2 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-enji pl-3">オプション選択</h2>
+
+          <!-- Selected Menu Info -->
+          <div class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-gray-100">
+            <p class="text-xs text-gray-400 mb-1">選択中のメニュー</p>
+            <p id="options-selected-menu" class="font-bold text-gray-800"></p>
+          </div>
+
+          <!-- Option List -->
+          <div id="option-list" class="space-y-3 mb-4">
+            <div class="animate-pulse space-y-3">
+              <div class="h-16 bg-gray-200 rounded-lg"></div>
+              <div class="h-16 bg-gray-200 rounded-lg"></div>
+            </div>
+          </div>
+
+          <!-- Selected Options Summary -->
+          <div id="options-summary" class="bg-enji/10 rounded-xl p-4 mb-4 hidden">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="text-xs text-gray-500">追加オプション</p>
+                <p id="options-summary-names" class="font-medium text-gray-800 text-sm"></p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-gray-500">追加時間・料金</p>
+                <p id="options-summary-info" class="font-bold text-enji"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Summary -->
+          <div class="bg-white rounded-xl shadow-sm p-4 mb-4 border-2 border-enji">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="text-xs text-gray-500">合計</p>
+                <p id="total-summary-menu" class="font-bold text-gray-800"></p>
+              </div>
+              <div class="text-right">
+                <p id="total-time" class="text-sm text-gray-600"></p>
+                <p id="total-price" class="font-bold text-enji text-xl"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="space-y-2">
+            <button onclick="proceedWithOptions()"
+              class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg shadow-md transition-colors">
+              <span id="options-button-text">日時選択へ進む</span>
+            </button>
+            <button onclick="skipOptions()"
+              class="w-full bg-white border border-gray-300 text-gray-600 font-medium py-3 rounded-lg hover:bg-gray-50 transition-colors">
+              オプションなしで進む
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Date Selection with Practitioner Pills -->
+        <div id="step-date" class="hidden animate-fade-in">
+          <button onclick="goBackFromDate()" class="btn-ghost mb-2 text-gray-500 text-sm flex items-center gap-1">
+            <i class="fas fa-arrow-left"></i> 戻る
+          </button>
+          <h2 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-enji pl-3">日時選択</h2>
+
+          <!-- Practitioner Pills (Inline) -->
+          <div class="mb-4">
+            <p class="text-sm text-gray-500 mb-2">施術者を指名</p>
+            <div id="practitioner-pills" class="flex flex-wrap gap-2 mb-3">
+              <!-- Pills will be injected here -->
+            </div>
+            <!-- Selected Practitioner Card -->
+            <div id="selected-practitioner-card"
+              class="hidden bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <div class="flex gap-4">
+                <div id="selected-practitioner-image-container" class="flex-shrink-0 hidden">
+                  <img id="selected-practitioner-image" src="" alt=""
+                    class="w-16 h-16 rounded-full object-cover border-2 border-enji">
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h4 id="selected-practitioner-name" class="font-bold text-gray-800"></h4>
+                    <span id="selected-practitioner-fee" class="hidden text-sm text-enji font-bold"></span>
+                  </div>
+                  <p id="selected-practitioner-title" class="text-xs text-gray-500 hidden"></p>
+                  <div class="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                    <span id="selected-practitioner-sns" class="hidden"></span>
+                    <span id="selected-practitioner-experience" class="hidden"></span>
+                  </div>
+                </div>
+              </div>
+              <div id="selected-practitioner-pr" class="mt-3 pt-3 border-t border-gray-100 hidden">
+                <p id="selected-practitioner-prTitle" class="font-bold text-gray-700 text-sm mb-1"></p>
+                <p id="selected-practitioner-description" class="text-xs text-gray-500 leading-relaxed line-clamp-3">
+                </p>
+                <button id="toggle-description-btn" class="hidden text-xs text-enji mt-1 hover:underline">詳細を見る</button>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Weekly Calendar Controls -->
+          <div class="bg-white rounded-xl shadow-sm p-2 mb-4">
+            <div class="flex justify-between items-center mb-2 px-2">
+              <button id="prev-week"
+                class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600 hover:bg-gray-200 transition-colors">
+                <i class="fas fa-chevron-left"></i> 前の週へ
+              </button>
+              <h3 id="calendar-title" class="font-bold text-gray-700"></h3>
+              <button id="next-week"
+                class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600 hover:bg-gray-200 transition-colors">
+                次の週へ <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+
+            <!-- Weekly Grid -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-center text-sm border-collapse">
+                <thead>
+                  <tr id="weekly-header" class="text-gray-500 border-b border-gray-100">
+                    <!-- Header cells will be injected here -->
+                  </tr>
+                </thead>
+                <tbody id="weekly-body">
+                  <!-- Time slots will be injected here -->
+                </tbody>
+              </table>
+            </div>
+            <div id="weekly-loading" class="hidden py-8 text-center text-enji">
+              <i class="fas fa-spinner fa-spin fa-2x"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Confirmation -->
+        <div id="step-confirm" class="hidden animate-fade-in">
+          <button onclick="goBack('step-date')" class="btn-ghost mb-2 text-gray-500 text-sm flex items-center gap-1">
+            <i class="fas fa-arrow-left"></i> 戻る
+          </button>
+          <h2 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-enji pl-3">予約確認</h2>
+
+          <div class="bg-white shadow-lg border border-gray-100 rounded-xl overflow-hidden">
+            <div class="bg-enji text-white p-4">
+              <h3 class="font-bold text-lg">ご予約内容</h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div>
+                <label class="text-xs text-gray-400 block">メニュー</label>
+                <p id="confirm-menu" class="font-bold text-gray-800 text-lg"></p>
+              </div>
+              <div>
+                <label class="text-xs text-gray-400 block">担当施術者</label>
+                <p id="confirm-practitioner" class="font-bold text-gray-800"></p>
+              </div>
+              <div class="flex gap-4">
+                <div>
+                  <label class="text-xs text-gray-400 block">日付</label>
+                  <p id="confirm-date" class="font-bold text-gray-800"></p>
+                </div>
+                <div>
+                  <label class="text-xs text-gray-400 block">時間</label>
+                  <p id="confirm-time" class="font-bold text-gray-800"></p>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs text-gray-400 block">お名前</label>
+                <input type="text" id="user-name-input"
+                  class="w-full mt-1 p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+                  placeholder="お名前を入力">
+              </div>
+            </div>
+            <div class="p-4 bg-gray-50">
+              <button onclick="submitReservation()"
+                class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg shadow-md transition-colors">予約を確定する</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY PAGE VIEW -->
+      <!-- ... (My Page View remains same) ... -->
+      <div id="mypage-view" class="hidden animate-fade-in">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-enji pl-3">マイページ</h2>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 text-center mb-6">
+          <div class="mb-2 flex justify-center">
+            <div
+              class="bg-gray-100 text-gray-400 rounded-full w-16 h-16 flex items-center justify-center overflow-hidden">
+              <img id="user-icon" src="https://placehold.co/100" alt="User" class="w-full h-full object-cover">
+            </div>
+          </div>
+          <h3 id="user-name-display" class="font-bold text-gray-800">ゲスト様</h3>
+        </div>
+
+        <h3 class="font-bold text-gray-700 mb-3">予約履歴 / 確認</h3>
+        <div id="reservation-history" class="space-y-3">
+          <div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+        </div>
+      </div>
+
+      <!-- ADMIN VIEW (管理者のみ表示) -->
+      <div id="admin-view" class="hidden animate-fade-in">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold text-gray-800 border-l-4 border-enji pl-3">管理ダッシュボード</h2>
+          <button onclick="showSettingsModal()" class="text-gray-500 hover:text-enji transition-colors p-2">
+            <i class="fas fa-cog text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Tab Switcher for Admin -->
+        <div class="flex mb-4 bg-white rounded-lg shadow-sm overflow-hidden">
+          <button onclick="switchAdminTab('reservations')" id="admin-tab-reservations"
+            class="flex-1 py-2 text-xs font-bold text-white bg-enji transition-colors">予約一覧</button>
+          <button onclick="switchAdminTab('menus')" id="admin-tab-menus"
+            class="flex-1 py-2 text-xs font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors">メニュー</button>
+          <button onclick="switchAdminTab('options')" id="admin-tab-options"
+            class="flex-1 py-2 text-xs font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors">オプション</button>
+          <button onclick="switchAdminTab('practitioners')" id="admin-tab-practitioners"
+            class="flex-1 py-2 text-xs font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors">施術者</button>
+        </div>
+
+        <!-- Admin: Reservations List -->
+        <div id="admin-reservations" class="block">
+          <div id="admin-reservation-list" class="space-y-3">
+            <div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+          </div>
+        </div>
+
+        <!-- Admin: Menu Management -->
+        <div id="admin-menus" class="hidden">
+          <button onclick="showAddMenuModal()"
+            class="w-full mb-4 bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg shadow-md transition-colors">
+            <i class="fas fa-plus mr-2"></i>新しいメニューを追加
+          </button>
+          <!-- Category Filter Tabs for Admin Menu -->
+          <div id="admin-category-tabs" class="flex flex-wrap gap-2 mb-4">
+            <button onclick="filterAdminMenuByCategory('all')"
+              class="admin-category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji bg-enji text-white transition-colors"
+              data-category="all">すべて</button>
+          </div>
+          <div id="admin-menu-list" class="space-y-3">
+            <div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+          </div>
+        </div>
+
+        <!-- Admin: Options Management (NEW) -->
+        <div id="admin-options" class="hidden">
+          <button onclick="showAddOptionModal()"
+            class="w-full mb-4 bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg shadow-md transition-colors">
+            <i class="fas fa-plus mr-2"></i>新しいオプションを追加
+          </button>
+          <div id="admin-option-list" class="space-y-3">
+            <div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+          </div>
+        </div>
+
+        <!-- Admin: Practitioner Management -->
+        <div id="admin-practitioners" class="hidden">
+          <button onclick="showAddPractitionerModal()"
+            class="w-full mb-4 bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg shadow-md transition-colors">
+            <i class="fas fa-plus mr-2"></i>新しい施術者を追加
+          </button>
+          <div id="admin-practitioner-list" class="space-y-3">
+            <div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-50">
+      <div class="max-w-md mx-auto flex justify-around items-center h-16">
+        <button onclick="switchTab('home')" id="nav-home"
+          class="flex flex-col items-center justify-center w-full h-full text-enji transition-colors">
+          <i class="fas fa-calendar-plus text-xl mb-1"></i>
+          <span class="text-xs font-medium">予約する</span>
+        </button>
+        <button onclick="switchTab('mypage')" id="nav-mypage"
+          class="flex flex-col items-center justify-center w-full h-full text-gray-400 transition-colors">
+          <i class="fas fa-clipboard-list text-xl mb-1"></i>
+          <span class="text-xs font-medium">確認/キャンセル</span>
+        </button>
+        <button onclick="switchTab('admin')" id="nav-admin"
+          class="hidden flex-col items-center justify-center w-full h-full text-gray-400 transition-colors">
+          <i class="fas fa-cog text-xl mb-1"></i>
+          <span class="text-xs font-medium">管理</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirm-modal"
+    class="fixed inset-0 bg-black/50 flex justify-center items-center z-[70] hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300"
+      id="confirm-modal-content">
+      <h3 class="font-bold text-lg text-gray-800 mb-2">確認</h3>
+      <p id="confirm-message" class="text-gray-600 mb-6">本当に実行しますか？</p>
+      <div class="flex justify-end gap-3">
+        <button id="confirm-cancel-btn"
+          class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">キャンセル</button>
+        <button id="confirm-ok-btn"
+          class="px-4 py-2 bg-enji text-white rounded-lg hover:opacity-90 transition-opacity">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading" class="fixed inset-0 bg-white flex justify-center items-center z-50">
+    <div class="text-enji"><i class="fas fa-spinner fa-spin fa-3x"></i></div>
+  </div>
+
+  <!-- Toast Notification -->
+  <!-- Toast Container -->
+  <div id="toast-container"
+    class="fixed top-6 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 pointer-events-none w-full max-w-sm px-4 items-center">
+  </div>
+
+  <!-- Reservation Detail Modal -->
+  <div id="reservation-modal"
+    class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 hidden p-4 animate-fade-in">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-sm overflow-hidden">
+      <div class="bg-enji text-white p-4 flex justify-between items-center">
+        <h3 class="font-bold text-lg">予約詳細</h3>
+        <button onclick="closeModal()" class="text-white hover:text-gray-200"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="text-xs text-gray-400 block">日時</label>
+          <p id="modal-date" class="font-bold text-gray-800 text-lg"></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block">メニュー</label>
+          <p id="modal-menu" class="font-bold text-gray-800"></p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block">担当</label>
+          <p id="modal-practitioner" class="font-bold text-gray-800"></p>
+        </div>
+        <div class="pt-4 border-t border-gray-100 space-y-2">
+          <button id="modal-change-btn"
+            class="w-full bg-enji text-white font-bold py-3 rounded-lg hover:bg-enji-dark transition-colors">
+            <i class="fas fa-calendar-alt mr-2"></i>予約を変更する
+          </button>
+          <button id="modal-cancel-btn"
+            class="w-full border border-red-500 text-red-500 font-bold py-3 rounded-lg hover:bg-red-50 transition-colors">予約をキャンセルする</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reschedule Modal -->
+  <div id="reschedule-modal" class="fixed inset-0 bg-black/50 flex flex-col z-50 hidden animate-fade-in">
+    <div class="bg-white w-full h-full flex flex-col">
+      <!-- Header -->
+      <div class="bg-enji text-white p-4 flex justify-between items-center flex-shrink-0">
+        <button onclick="closeRescheduleModal()" class="text-white hover:text-gray-200">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <h3 class="font-bold text-lg">予約変更</h3>
+        <div class="w-6"></div>
+      </div>
+
+      <!-- Current Reservation Info -->
+      <div class="p-4 bg-gray-50 border-b flex-shrink-0">
+        <p class="text-sm text-gray-600 mb-1">現在の予約</p>
+        <p id="reschedule-current" class="font-bold text-gray-800"></p>
+      </div>
+
+      <!-- Reschedule Steps -->
+      <div class="flex-1 overflow-y-auto">
+        <!-- Step 1: Menu Selection -->
+        <div id="reschedule-step-menu" class="p-4">
+          <h4 class="font-bold text-gray-700 mb-3"><i class="fas fa-spa mr-2 text-enji"></i>メニュー選択</h4>
+          <div id="reschedule-menu-list" class="space-y-2"></div>
+        </div>
+
+        <!-- Step 2: Practitioner Selection -->
+        <div id="reschedule-step-practitioner" class="hidden p-4">
+          <h4 class="font-bold text-gray-700 mb-3"><i class="fas fa-user mr-2 text-enji"></i>施術者選択</h4>
+          <div id="reschedule-practitioner-list" class="space-y-2"></div>
+        </div>
+
+        <!-- Step 3: Date Selection -->
+        <div id="reschedule-step-date" class="hidden p-4">
+          <h4 class="font-bold text-gray-700 mb-3"><i class="fas fa-calendar mr-2 text-enji"></i>日時選択</h4>
+          <div class="bg-white rounded-xl shadow-sm p-2">
+            <div class="flex justify-between items-center mb-2 px-2">
+              <button id="reschedule-prev-week"
+                class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600 hover:bg-gray-200 transition-colors">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <h3 id="reschedule-calendar-title" class="font-bold text-gray-700"></h3>
+              <button id="reschedule-next-week"
+                class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600 hover:bg-gray-200 transition-colors">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-center text-sm border-collapse">
+                <thead>
+                  <tr id="reschedule-weekly-header" class="text-gray-500 border-b border-gray-100"></tr>
+                </thead>
+                <tbody id="reschedule-weekly-body"></tbody>
+              </table>
+            </div>
+            <div id="reschedule-loading" class="hidden py-8 text-center text-enji">
+              <i class="fas fa-spinner fa-spin fa-2x"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Confirm -->
+        <div id="reschedule-step-confirm" class="hidden p-4">
+          <h4 class="font-bold text-gray-700 mb-3"><i class="fas fa-check mr-2 text-enji"></i>変更内容の確認</h4>
+          <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="text-gray-500 text-sm">メニュー</span>
+              <span id="reschedule-confirm-menu" class="font-bold text-gray-800 text-right"></span>
+            </div>
+            <div class="flex justify-between items-start">
+              <span class="text-gray-500 text-sm">オプション</span>
+              <span id="reschedule-confirm-options" class="text-gray-800 text-right"></span>
+            </div>
+            <div class="flex justify-between items-start">
+              <span class="text-gray-500 text-sm">施術者</span>
+              <span id="reschedule-confirm-practitioner" class="font-bold text-gray-800 text-right"></span>
+            </div>
+            <div class="flex justify-between items-start">
+              <span class="text-gray-500 text-sm">日時</span>
+              <span id="reschedule-confirm-datetime" class="font-bold text-gray-800 text-right"></span>
+            </div>
+            <div class="flex justify-between items-start border-t pt-3">
+              <span class="text-gray-500 text-sm">合計時間</span>
+              <span id="reschedule-confirm-minutes" class="font-bold text-gray-800"></span>
+            </div>
+            <div class="flex justify-between items-start">
+              <span class="text-gray-500 text-sm">合計料金</span>
+              <span id="reschedule-confirm-price" class="font-bold text-enji text-lg"></span>
+            </div>
+          </div>
+          <button id="reschedule-submit-btn"
+            class="w-full mt-4 bg-enji text-white font-bold py-3 rounded-lg hover:bg-enji-dark transition-colors">
+            <i class="fas fa-check mr-2"></i>この内容で変更する
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu Edit Modal -->
+  <div id="menu-modal"
+    class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 hidden p-4 animate-fade-in overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-sm overflow-hidden my-auto max-h-[90vh] flex flex-col">
+      <div class="bg-enji text-white p-4 flex justify-between items-center flex-shrink-0">
+        <h3 id="menu-modal-title" class="font-bold text-lg">メニュー編集</h3>
+        <button onclick="closeMenuModal()" class="text-white hover:text-gray-200"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        <input type="hidden" id="menu-edit-id">
+        <input type="hidden" id="menu-edit-imageUrl">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">メニュー名</label>
+          <input type="text" id="menu-edit-name"
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            placeholder="メニュー名を入力">
+        </div>
+        <div class="relative">
+          <label class="text-xs text-gray-400 block mb-1">カテゴリ</label>
+          <input type="text" id="menu-edit-category"
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            placeholder="カテゴリを入力（例：全員、初回限定）" oninput="showCategorySuggestions(this.value)"
+            onfocus="showCategorySuggestions(this.value)">
+          <div id="category-suggestions"
+            class="hidden absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-40 overflow-y-auto">
+          </div>
+        </div>
+        <div class="flex gap-4">
+          <div class="flex-1">
+            <label class="text-xs text-gray-400 block mb-1">施術時間（分）</label>
+            <input type="number" id="menu-edit-minutes"
+              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              placeholder="60">
+          </div>
+          <div class="flex-1">
+            <label class="text-xs text-gray-400 block mb-1">料金（円）</label>
+            <input type="number" id="menu-edit-price"
+              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              placeholder="10000">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">説明</label>
+          <textarea id="menu-edit-description" rows="3"
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji resize-none"
+            placeholder="メニューの説明を入力"></textarea>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">メニュー画像</label>
+          <div id="menu-image-preview" class="mb-2 hidden">
+            <img id="menu-preview-img" src="" alt="Preview"
+              class="w-full h-32 object-cover rounded-lg border border-gray-200">
+          </div>
+          <div class="flex gap-2">
+            <label class="flex-1 cursor-pointer">
+              <input type="file" id="menu-edit-image" accept="image/*" class="hidden" onchange="previewMenuImage(this)">
+              <div
+                class="w-full py-2 text-center border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-enji hover:text-enji transition-colors">
+                <i class="fas fa-camera mr-2"></i>画像を選択
+              </div>
+            </label>
+            <button type="button" onclick="clearMenuImage()" id="menu-clear-image-btn"
+              class="hidden px-4 py-2 border border-red-400 text-red-400 rounded-lg hover:bg-red-50 transition-colors">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <!-- オプション選択 -->
+        <div>
+          <label class="text-xs text-gray-400 block mb-2">利用可能なオプション</label>
+          <div id="menu-options-container"
+            class="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+            <div class="text-gray-400 text-sm">読み込み中...</div>
+          </div>
+          <p class="text-xs text-gray-400 mt-1">※選択したオプションのみ予約時に表示されます</p>
+        </div>
+        <div class="pt-4 border-t border-gray-100 space-y-2">
+          <button onclick="saveMenu()"
+            class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg transition-colors">保存</button>
+          <button id="menu-delete-btn" onclick="deleteMenuFromModal()"
+            class="w-full border border-red-500 text-red-500 font-bold py-3 rounded-lg hover:bg-red-50 transition-colors hidden">削除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Practitioner Edit Modal (NEW) -->
+  <div id="practitioner-modal"
+    class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 hidden p-4 animate-fade-in overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-sm overflow-hidden my-auto max-h-[90vh] flex flex-col">
+      <div class="bg-enji text-white p-4 flex justify-between items-center flex-shrink-0">
+        <h3 id="practitioner-modal-title" class="font-bold text-lg">施術者編集</h3>
+        <button onclick="closePractitionerModal()" class="text-white hover:text-gray-200"><i
+            class="fas fa-times"></i></button>
+      </div>
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        <input type="hidden" id="practitioner-edit-id">
+        <input type="hidden" id="practitioner-edit-imageUrl">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">施術者名 <span class="text-red-400">*</span></label>
+          <input type="text" id="practitioner-edit-name"
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            placeholder="施術者名を入力">
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">役職/肩書き</label>
+          <input type="text" id="practitioner-edit-title"
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            placeholder="例: LinCal【東京】">
+        </div>
+        <div class="flex gap-3">
+          <div class="flex-1">
+            <label class="text-xs text-gray-400 block mb-1">経歴</label>
+            <input type="text" id="practitioner-edit-experience"
+              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              placeholder="例: 歴5年">
+          </div>
+          <div class="flex-1">
+            <label class="text-xs text-gray-400 block mb-1">指名料（円）</label>
+            <input type="number" id="practitioner-edit-nominationFee"
+              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              placeholder="例: 330">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">SNS/Instagram</label>
+          <input type="text" id="practitioner-edit-sns"
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            placeholder="例: @username">
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">PRタイトル</label>
+          <input type="text" id="practitioner-edit-prTitle"
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            placeholder="例: 再現性ヘア◎ 透明感ベージュカラー">
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">詳細コメント（予約画面に表示）</label>
+          <textarea id="practitioner-edit-description" rows="3"
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji resize-none"
+            placeholder="お客様へのメッセージを入力"></textarea>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">GoogleカレンダーID <span class="text-red-400">*</span></label>
+          <input type="text" id="practitioner-edit-calendarId"
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            placeholder="example@gmail.com">
+          <p class="text-xs text-gray-400 mt-1">カレンダーのメールアドレスを入力してください</p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">プロフィール画像</label>
+          <div id="practitioner-image-preview" class="mb-2 hidden">
+            <img id="practitioner-preview-img" src="" alt="Preview"
+              class="w-24 h-24 object-cover rounded-full mx-auto border border-gray-200">
+          </div>
+          <div class="flex gap-2">
+            <label class="flex-1 cursor-pointer">
+              <input type="file" id="practitioner-edit-image" accept="image/*" class="hidden"
+                onchange="previewPractitionerImage(this)">
+              <div
+                class="w-full py-2 text-center border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-enji hover:text-enji transition-colors">
+                <i class="fas fa-camera mr-2"></i>画像を選択
+              </div>
+            </label>
+            <button type="button" onclick="clearPractitionerImage()" id="practitioner-clear-image-btn"
+              class="hidden px-4 py-2 border border-red-400 text-red-400 rounded-lg hover:bg-red-50 transition-colors">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="pt-4 border-t border-gray-100 space-y-2">
+          <button onclick="savePractitioner()"
+            class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg transition-colors">保存</button>
+          <button id="practitioner-delete-btn" onclick="deletePractitionerFromModal()"
+            class="w-full border border-red-500 text-red-500 font-bold py-3 rounded-lg hover:bg-red-50 transition-colors hidden">削除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option Edit Modal (NEW) -->
+  <div id="option-modal"
+    class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 hidden p-4 animate-fade-in overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-sm overflow-hidden my-auto max-h-[90vh] flex flex-col">
+      <div class="bg-enji text-white p-4 flex justify-between items-center flex-shrink-0">
+        <h3 id="option-modal-title" class="font-bold text-lg">オプション編集</h3>
+        <button onclick="closeOptionModal()" class="text-white hover:text-gray-200"><i
+            class="fas fa-times"></i></button>
+      </div>
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        <input type="hidden" id="option-edit-id">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">オプション名</label>
+          <input type="text" id="option-edit-name"
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            placeholder="オプション名を入力">
+        </div>
+        <div class="flex gap-4">
+          <div class="flex-1">
+            <label class="text-xs text-gray-400 block mb-1">追加時間（分）</label>
+            <input type="number" id="option-edit-minutes"
+              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              placeholder="30">
+          </div>
+          <div class="flex-1">
+            <label class="text-xs text-gray-400 block mb-1">追加料金（円）</label>
+            <input type="number" id="option-edit-price"
+              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              placeholder="3000">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">説明</label>
+          <textarea id="option-edit-description" rows="2"
+            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji resize-none"
+            placeholder="オプションの説明を入力"></textarea>
+        </div>
+        <div class="pt-4 border-t border-gray-100 space-y-2">
+          <button onclick="saveOption()"
+            class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg transition-colors">保存</button>
+          <button id="option-delete-btn" onclick="deleteOptionFromModal()"
+            class="w-full border border-red-500 text-red-500 font-bold py-3 rounded-lg hover:bg-red-50 transition-colors hidden">削除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal (NEW) -->
+  <div id="settings-modal"
+    class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 hidden p-4 animate-fade-in overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden my-auto max-h-[90vh] flex flex-col">
+      <div class="bg-enji text-white p-4 flex justify-between items-center flex-shrink-0">
+        <h3 class="font-bold text-lg"><i class="fas fa-cog mr-2"></i>予約システム設定</h3>
+        <button onclick="closeSettingsModal()" class="text-white hover:text-gray-200"><i
+            class="fas fa-times"></i></button>
+      </div>
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        <!-- Header Customization Section -->
+        <div class="pb-4 border-b border-gray-200">
+          <h4 class="font-bold text-gray-700 text-sm mb-3"><i class="fas fa-store mr-2"></i>ヘッダー表示設定</h4>
+
+          <div class="mb-3">
+            <label class="text-xs text-gray-400 block mb-1">ロゴ画像</label>
+            <input type="hidden" id="settings-logoUrl">
+            <div id="settings-logo-preview" class="mb-2 hidden">
+              <img id="settings-logo-img" src="" alt="Logo Preview"
+                class="w-16 h-16 object-cover rounded-full mx-auto border border-gray-200">
+            </div>
+            <div class="flex gap-2">
+              <label class="flex-1 cursor-pointer">
+                <input type="file" id="settings-logo-file" accept="image/*" class="hidden"
+                  onchange="previewSettingsLogo(this)">
+                <div
+                  class="w-full py-2 text-center border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-enji hover:text-enji transition-colors text-sm">
+                  <i class="fas fa-camera mr-2"></i>ロゴを選択
+                </div>
+              </label>
+              <button type="button" onclick="clearSettingsLogo()" id="settings-clear-logo-btn"
+                class="hidden px-4 py-2 border border-red-400 text-red-400 rounded-lg hover:bg-red-50 transition-colors text-sm">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="text-xs text-gray-400 block mb-1">サロン名</label>
+            <input type="text" id="settings-salonName"
+              class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
+              placeholder="demoサロン">
+          </div>
+
+          <div class="mb-3">
+            <label class="text-xs text-gray-400 block mb-1">住所</label>
+            <input type="text" id="settings-address"
+              class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
+              placeholder="〒123-4567 東京都千代田区1-1-1">
+          </div>
+
+          <div class="mb-0">
+            <label class="text-xs text-gray-400 block mb-1">最寄り駅</label>
+            <input type="text" id="settings-station"
+              class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
+              placeholder="東京駅">
+          </div>
+        </div>
+
+        <!-- Business Settings Section -->
+        <div>
+          <h4 class="font-bold text-gray-700 text-sm mb-3"><i class="fas fa-clock mr-2"></i>営業設定</h4>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">営業開始時間</label>
+              <select id="settings-businessStart"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm">
+                <option value="9">9:00</option>
+                <option value="10" selected>10:00</option>
+                <option value="11">11:00</option>
+                <option value="12">12:00</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">営業終了時間</label>
+              <select id="settings-businessEnd"
+                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm">
+                <option value="18">18:00</option>
+                <option value="19">19:00</option>
+                <option value="20" selected>20:00</option>
+                <option value="21">21:00</option>
+                <option value="22">22:00</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="text-xs text-gray-400 block mb-1">定休日</label>
+            <div class="flex flex-wrap gap-2" id="settings-regularHolidays-container">
+              <label
+                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="1" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                <span class="text-sm">月</span>
+              </label>
+              <label
+                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="2" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                <span class="text-sm">火</span>
+              </label>
+              <label
+                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="3" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                <span class="text-sm">水</span>
+              </label>
+              <label
+                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="4" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                <span class="text-sm">木</span>
+              </label>
+              <label
+                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="5" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                <span class="text-sm">金</span>
+              </label>
+              <label
+                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="6" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                <span class="text-sm">土</span>
+              </label>
+              <label
+                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="0" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                <span class="text-sm text-red-500">日</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">臨時休業日（選択してください）</label>
+            <input type="text" id="settings-holidays"
+              class="flatpickr w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm bg-white"
+              placeholder="タップして日付を選択" readonly>
+            <p class="text-xs text-gray-400 mt-1">※複数選択可能です</p>
+          </div>
+
+          <div class="mb-3">
+            <label class="text-xs text-gray-400 block mb-1">臨時営業日</label>
+            <input type="text" id="settings-temporaryBusinessDays"
+              class="flatpickr w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm bg-white"
+              placeholder="タップして日付を選択" readonly>
+            <p class="text-xs text-gray-400 mt-1">※定休日でも営業する場合は選択</p>
+          </div>
+        </div>
+
+        <!-- Reservation Info Section -->
+        <div>
+          <h4 class="font-bold text-gray-700 text-sm mb-3"><i class="fas fa-info-circle mr-2"></i>予約完了時の表示</h4>
+          <div class="mb-3">
+            <label class="text-xs text-gray-400 block mb-1">店舗情報</label>
+            <textarea id="settings-salonInfo" rows="6"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
+              placeholder="【店舗情報】&#10;サロン名: demoサロン&#10;最寄り駅: 千葉駅・東千葉駅&#10;住所: 〒123-4567 東京都千代田区1-1-1&#10;営業時間: 10:00〜19:00 (完全予約制)&#10;定休日: 不定休"></textarea>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">注意事項</label>
+            <textarea id="settings-precautions" rows="6"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
+              placeholder="キャンセルポリシー、注意事項など"></textarea>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100">
+          <button onclick="saveSettings()"
+            class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg transition-colors">
+            <i class="fas fa-save mr-2"></i>保存
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==============================================
+    // Configuration (設定エリア)
+    // ==============================================
+    // Cloud Run API URL (same domain, so using relative path)
+    const API_BASE_URL = "";
+    // For local development, uncomment below:
+    // const API_BASE_URL = "http://localhost:8080";
+    let LIFF_ID = null;
+    const MOCK_ADMIN = true; // ★ ローカルテスト用: trueで管理者モード
+
+    // ==============================================
+    // State
+    // ==============================================
+    let state = {
+      user: null,
+      menu: null,
+      practitioner: null,  // 施術者情報
+      date: null,
+      time: null,
+      currentTab: 'home',
+      isAdmin: false,
+      // オプション関連
+      selectedOptions: [],  // 選択されたオプション配列
+      allOptions: [],       // 全オプション一覧
+      totalMinutes: 0,      // 合計時間
+      totalPrice: 0,        // 合計料金
+      availablePractitioners: null  // 指名なし時の空き施術者リスト
+    };
+
+    // ==============================================
+    // UI Helper Functions (Toast, Loading)
+    // ==============================================
+
+    // Toast notification (replaces alert())
+    // Toast notification (Dynamic Pill Style)
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+
+      // Clear existing toasts to avoid clutter in this style
+      container.innerHTML = '';
+
+      const toast = document.createElement('div');
+      const bgClass = type === 'success' || type === 'info' ? 'bg-white text-gray-800' : 'bg-gray-800 text-white';
+      const icon = type === 'success' || type === 'info'
+        ? '<i class="fas fa-check text-green-500"></i>'
+        : '<i class="fas fa-times text-red-400"></i>';
+
+      toast.className = `${bgClass} shadow-xl px-6 py-3 rounded-full flex items-center gap-3 animate-scale-in border border-gray-100 pointer-events-auto`;
+      toast.innerHTML = `
+      ${icon}
+      <span class="font-bold text-sm text-center">${message}</span>
+      `;
+
+      container.appendChild(toast);
+
+      // Auto remove
+      setTimeout(() => {
+        toast.classList.remove('animate-scale-in');
+        toast.classList.add('animate-fade-out');
+        toast.addEventListener('animationend', () => {
+          if (toast.parentNode) toast.remove();
+        });
+      }, 3000);
+    }
+
+    // Loading spinner
+    function showLoading() {
+      document.getElementById('loading').classList.remove('hidden');
+    }
+
+    // Custom Confirm Modal
+    function showConfirm(message) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('confirm-modal');
+        const content = document.getElementById('confirm-modal-content');
+        const msgEl = document.getElementById('confirm-message');
+        const okBtn = document.getElementById('confirm-ok-btn');
+        const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+        // Set content
+        msgEl.textContent = message;
+
+        // Show modal
+        modal.classList.remove('hidden');
+        // Small delay for transition
+        setTimeout(() => {
+          modal.classList.remove('opacity-0');
+          content.classList.remove('scale-95');
+          content.classList.add('scale-100');
+        }, 10);
+
+        // Handlers
+        const cleanup = () => {
+          modal.classList.add('opacity-0');
+          content.classList.remove('scale-100');
+          content.classList.add('scale-95');
+          setTimeout(() => modal.classList.add('hidden'), 300);
+
+          okBtn.removeEventListener('click', onOk);
+          cancelBtn.removeEventListener('click', onCancel);
+        };
+
+        const onOk = () => {
+          cleanup();
+          resolve(true);
+        };
+
+        const onCancel = () => {
+          cleanup();
+          resolve(false);
+        };
+
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+      });
+    }
+
+    function hideLoading() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+    }
+
+    // ==============================================
+    // Initialization
+    // ==============================================
+    window.onload = async () => {
+      if (!location.hostname || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        state.user = { userId: 'mock_admin', displayName: 'Guest User', pictureUrl: 'https://placehold.co/100' };
+        state.isAdmin = MOCK_ADMIN;
+        updateUserDisplay();
+        if (state.isAdmin) showAdminTab();
+        await loadMenus();
+        hideLoading();
+        return;
+      }
+
+      try {
+        // 設定APIからLIFF_IDとテーマカラーを取得
+        console.log('[DEBUG] Fetching config...');
+        const configRes = await fetch(`${API_BASE_URL}/api/config`);
+        const config = await configRes.json();
+        LIFF_ID = config.liffId;
+
+        // テーマカラーの適用
+        if (config.theme) {
+          const root = document.documentElement;
+          if (config.theme.color) root.style.setProperty('--color-enji', config.theme.color);
+          if (config.theme.light) root.style.setProperty('--color-enji-light', config.theme.light);
+          if (config.theme.dark) root.style.setProperty('--color-enji-dark', config.theme.dark);
+          console.log('[DEBUG] Theme applied:', config.theme);
+        }
+
+        // サイトタイトルの設定
+        if (config.siteTitle) {
+          document.title = config.siteTitle;
+          const headerName = document.getElementById('header-salon-name');
+          if (headerName) headerName.textContent = config.siteTitle;
+        }
+
+        console.log('[DEBUG] Starting LIFF init with ID:', LIFF_ID);
+        await liff.init({ liffId: LIFF_ID });
+        console.log('[DEBUG] LIFF init success, isLoggedIn:', liff.isLoggedIn());
+
+        if (!liff.isLoggedIn()) {
+          console.log('[DEBUG] Not logged in, calling liff.login()');
+          liff.login();
+          return;
+        }
+
+        console.log('[DEBUG] Getting profile...');
+        const profile = await liff.getProfile();
+        console.log('[DEBUG] Profile received:', profile.userId, profile.displayName);
+        state.user = profile;
+        updateUserDisplay();
+
+        // Check if admin
+        console.log('[DEBUG] Checking admin for userId:', profile.userId);
+        const adminRes = await fetch(`${API_BASE_URL}/api/check-admin?userId=${profile.userId}`);
+        const adminData = await adminRes.json();
+        console.log('[DEBUG] Admin check result:', adminData);
+        state.isAdmin = adminData.isAdmin;
+        if (state.isAdmin) {
+          console.log('[DEBUG] User is admin, showing admin tab');
+          showAdminTab();
+        } else {
+          console.log('[DEBUG] User is NOT admin');
+        }
+
+        // Load settings and menus, then show UI
+        await Promise.all([
+          loadAndApplySettings(),
+          loadMenus()
+        ]);
+        hideLoading();
+      } catch (err) {
+        console.error('LIFF Init Error', err);
+        showToast('LIFF Error: ' + err.message, 'error');
+        hideLoading(); // Still show UI on error
+      }
+    };
+
+    function showAdminTab() {
+      document.getElementById('nav-admin').classList.remove('hidden');
+      document.getElementById('nav-admin').classList.add('flex');
+    }
+
+    function updateUserDisplay() {
+      if (state.user) {
+        document.getElementById('user-name-display').innerText = state.user.displayName + '様';
+        if (state.user.pictureUrl) {
+          document.getElementById('user-icon').src = state.user.pictureUrl;
+        }
+      }
+    }
+
+    // Navigation
+    window.switchTab = (tab) => {
+      state.currentTab = tab;
+
+      // Toggle Views
+      document.getElementById('home-view').classList.toggle('hidden', tab !== 'home');
+      document.getElementById('home-view').classList.toggle('block', tab === 'home');
+      document.getElementById('mypage-view').classList.toggle('hidden', tab !== 'mypage');
+      document.getElementById('mypage-view').classList.toggle('block', tab === 'mypage');
+      document.getElementById('admin-view').classList.toggle('hidden', tab !== 'admin');
+      document.getElementById('admin-view').classList.toggle('block', tab === 'admin');
+
+      // Toggle Nav Active State
+      const navHome = document.getElementById('nav-home');
+      const navMypage = document.getElementById('nav-mypage');
+      const navAdmin = document.getElementById('nav-admin');
+
+      // Reset all nav buttons
+      [navHome, navMypage, navAdmin].forEach(btn => {
+        btn.classList.add('text-gray-400');
+        btn.classList.remove('text-enji');
+      });
+
+      if (tab === 'home') {
+        navHome.classList.add('text-enji');
+        navHome.classList.remove('text-gray-400');
+      } else if (tab === 'mypage') {
+        navMypage.classList.add('text-enji');
+        navMypage.classList.remove('text-gray-400');
+        loadHistory();
+      } else if (tab === 'admin') {
+        navAdmin.classList.add('text-enji');
+        navAdmin.classList.remove('text-gray-400');
+        loadAdminReservations();
+      }
+    };
+
+    window.goBack = (stepId) => {
+      document.getElementById('step-options').classList.add('hidden');
+      document.getElementById('step-date').classList.add('hidden');
+      document.getElementById('step-confirm').classList.add('hidden');
+      document.getElementById('step-menu').classList.add('hidden');
+      document.getElementById(stepId).classList.remove('hidden');
+
+      // Update progress steps (now 5 steps)
+      if (stepId === 'step-menu') {
+        updateProgressSteps(1);
+      } else if (stepId === 'step-options') {
+        updateProgressSteps(2);
+      } else if (stepId === 'step-date') {
+        updateProgressSteps(3);
+      } else if (stepId === 'step-confirm') {
+        updateProgressSteps(4);
+      }
+    };
+
+    // 日時選択画面から戻るときの処理
+    window.goBackFromDate = () => {
+      if (state.allOptions.length > 0) {
+        // オプションがある場合はstep-optionsに戻る
+        goBack('step-options');
+      } else {
+        // オプションがない場合はstep-menuに戻る
+        goBack('step-menu');
+      }
+    };
+
+    // Store all menus for filtering
+    let allMenus = [];
+    let currentCategory = 'all';
+
+    // Logic
+    async function loadMenus() {
+      const container = document.getElementById('menu-list');
+      try {
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          allMenus = [
+            { id: '1', category: '【初回カウンセ】', name: 'フェイシャル基本コース', minutes: 60, price: 8000, description: '基本のフェイシャルコースです。' },
+            { id: '2', category: '全員', name: '全身アロマオイル', minutes: 90, price: 12000, description: '全身のリラックス効果が高いアロマオイルマッサージです。' },
+            { id: '3', category: '全員', name: 'クイックマッサージ', minutes: 30, price: 4000, description: 'お急ぎの方におすすめのクイックコース。' }
+          ];
+        } else {
+          const res = await fetch(`${API_BASE_URL}/api/menus`);
+          allMenus = await res.json();
+        }
+
+        // Generate category tabs
+        generateCategoryTabs(allMenus);
+
+        // Render menus
+        renderMenus(allMenus);
+      } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div class="text-center text-red-400">メニュー読み込みエラー</div>';
+      }
+    }
+
+    function generateCategoryTabs(menus) {
+      const tabsContainer = document.getElementById('category-tabs');
+      const categories = [...new Set(menus.map(m => m.category).filter(c => c))];
+
+      let tabsHtml = `<button onclick="filterByCategory('all')" class="category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji !bg-enji !text-white transition-colors" data-category="all">すべて</button>`;
+
+      categories.forEach(cat => {
+        tabsHtml += `<button onclick="filterByCategory('${cat}')" class="category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji bg-white text-enji hover:bg-gray-50 transition-colors" data-category="${cat}">${cat}</button>`;
+      });
+
+      tabsContainer.innerHTML = tabsHtml;
+    }
+
+    window.filterByCategory = (category) => {
+      currentCategory = category;
+
+      // Update tab styles - use className replacement for reliable styling
+      document.querySelectorAll('.category-tab').forEach(tab => {
+        const baseClasses = 'category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji transition-colors';
+        if (tab.dataset.category === category) {
+          tab.className = `${baseClasses} bg-enji text-white`;
+        } else {
+          tab.className = `${baseClasses} bg-white text-enji hover:bg-pink-50`;
+        }
+      });
+
+      // Filter and render menus
+      const filteredMenus = category === 'all'
+        ? allMenus
+        : allMenus.filter(m => m.category === category);
+      renderMenus(filteredMenus);
+    };
+
+    function renderMenus(menus) {
+      const container = document.getElementById('menu-list');
+
+      // Update menu count
+      document.getElementById('menu-count').innerText = `${menus.length}件`;
+
+      container.innerHTML = menus.map(menu => {
+        const imageHtml = menu.imageUrl
+          ? `<div class="w-20 h-20 flex-shrink-0"><img src="${menu.imageUrl}" alt="${menu.name}" class="w-20 h-20 object-cover rounded-lg"></div>`
+          : '';
+        const categoryBadge = menu.category
+          ? `<span class="inline-block px-2 py-0.5 bg-pink-100 text-pink-600 text-xs rounded-full mb-1">${menu.category}</span>`
+          : '';
+        return `
+      <div onclick="selectMenu(${JSON.stringify(menu).replace(/"/g, '&quot;')})" class="bg-white shadow-sm border border-gray-100 rounded-xl cursor-pointer hover:border-enji transition-all active:scale-95 overflow-hidden">
+      <div class="p-4 flex gap-4">
+        ${imageHtml}
+        <div class="flex-1 flex flex-col">
+          ${categoryBadge}
+          <h3 class="font-bold text-gray-800">${menu.name}</h3>
+          <p class="text-xs text-gray-500 mt-1 flex-1">${menu.description || ''}</p>
+          <div class="flex justify-between items-center mt-2">
+            <p class="text-sm text-gray-400"><i class="far fa-clock"></i> ${menu.minutes}分</p>
+            <div class="text-enji font-bold text-lg">¥${menu.price.toLocaleString()}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    `}).join('');
+    }
+
+    // Update progress steps indicator (now 5 steps)
+    function updateProgressSteps(currentStep) {
+      for (let i = 1; i <= 5; i++) {
+        const icon = document.getElementById(`step-icon-${i}`);
+        const line = document.getElementById(`step-line-${i}`);
+
+        if (i < currentStep) {
+          // Completed step
+          icon.classList.remove('bg-gray-200', 'text-gray-400');
+          icon.classList.add('bg-enji', 'text-white');
+          icon.innerHTML = '<i class="fas fa-check text-xs"></i>';
+          if (line) {
+            line.classList.remove('bg-gray-200');
+            line.classList.add('bg-enji');
+          }
+        } else if (i === currentStep) {
+          // Current step
+          icon.classList.remove('bg-gray-200', 'text-gray-400');
+          icon.classList.add('bg-enji', 'text-white');
+          icon.innerHTML = i;
+        } else {
+          // Future step
+          icon.classList.remove('bg-enji', 'text-white');
+          icon.classList.add('bg-gray-200', 'text-gray-400');
+          icon.innerHTML = i;
+          if (line) {
+            line.classList.remove('bg-enji');
+            line.classList.add('bg-gray-200');
+          }
+        }
+      }
+    }
+
+    window.selectMenu = async (menu) => {
+      state.menu = menu;
+      state.practitioner = null;
+      state.date = null;
+      state.time = null;
+      state.selectedOptions = [];
+      state.totalMinutes = menu.minutes;
+      state.totalPrice = parseInt(menu.price) || 0;
+
+      // オプションを読み込む
+      await loadOptions();
+
+      if (state.allOptions.length > 0) {
+        // オプションがある場合はstep-optionsに遷移
+        document.getElementById('step-menu').classList.add('hidden');
+        document.getElementById('step-options').classList.remove('hidden');
+        document.getElementById('options-selected-menu').textContent = `${menu.name} (${menu.minutes}分 / ¥${parseInt(menu.price).toLocaleString()})`;
+        updateOptionsSummary();
+        updateProgressSteps(2);
+      } else {
+        // オプションがない場合は直接step-dateに遷移
+        document.getElementById('step-menu').classList.add('hidden');
+        document.getElementById('step-date').classList.remove('hidden');
+        updateProgressSteps(3);
+        await loadPractitionerPills();
+        initWeeklyCalendar();
+      }
+    };
+
+    // ====================
+    // オプション選択機能
+    // ====================
+
+    async function loadOptions() {
+      try {
+        let allOptions = [];
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          // Mock Data for local testing
+          allOptions = [
+            { id: '1', name: 'ヘッドスパ', minutes: 15, price: 2000, description: 'リラックス効果抜群' },
+            { id: '2', name: 'ハンドマッサージ', minutes: 10, price: 1500, description: '手のケア' },
+            { id: '3', name: '眉カット', minutes: 5, price: 500, description: '眉を整えます' }
+          ];
+        } else {
+          const res = await fetch(`${API_BASE_URL}/api/options`);
+          allOptions = await res.json();
+        }
+
+        // メニューに紐付いたオプションのみフィルタリング
+        const linkedOptionIds = state.menu.optionIds ? state.menu.optionIds.split(',').filter(id => id) : [];
+        if (linkedOptionIds.length > 0) {
+          state.allOptions = allOptions.filter(opt => linkedOptionIds.includes(String(opt.id)));
+        } else {
+          // メニューにオプションが設定されていない場合は空配列
+          state.allOptions = [];
+        }
+      } catch (err) {
+        console.error('Failed to load options:', err);
+        state.allOptions = [];
+      }
+      renderOptionList();
+    }
+
+    function renderOptionList() {
+      const container = document.getElementById('option-list');
+      if (state.allOptions.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-4">オプションがありません</p>';
+        return;
+      }
+
+      container.innerHTML = state.allOptions.map(opt => {
+        const isSelected = state.selectedOptions.some(o => o.id === opt.id);
+        return `
+          <div onclick="toggleOption('${opt.id}')" class="bg-white shadow-sm border ${isSelected ? 'border-enji border-2' : 'border-gray-100'} rounded-xl cursor-pointer hover:border-enji transition-all active:scale-95 p-4">
+            <div class="flex items-center gap-3">
+              <div class="w-6 h-6 rounded-full border-2 ${isSelected ? 'border-enji bg-enji' : 'border-gray-300'} flex items-center justify-center flex-shrink-0">
+                ${isSelected ? '<i class="fas fa-check text-white text-xs"></i>' : ''}
+              </div>
+              <div class="flex-1">
+                <h4 class="font-bold text-gray-800">${opt.name}</h4>
+                <p class="text-xs text-gray-500">${opt.description || ''}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-gray-400">+${opt.minutes}分</p>
+                <p class="text-enji font-bold">+¥${opt.price.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.toggleOption = (optionId) => {
+      const option = state.allOptions.find(o => o.id === optionId);
+      if (!option) return;
+
+      const index = state.selectedOptions.findIndex(o => o.id === optionId);
+      if (index >= 0) {
+        // 選択解除
+        state.selectedOptions.splice(index, 1);
+      } else {
+        // 選択追加
+        state.selectedOptions.push(option);
+      }
+      renderOptionList();
+      updateOptionsSummary();
+    };
+
+    function updateOptionsSummary() {
+      const optionMinutes = state.selectedOptions.reduce((sum, o) => sum + o.minutes, 0);
+      const optionPrice = state.selectedOptions.reduce((sum, o) => sum + o.price, 0);
+      state.totalMinutes = state.menu.minutes + optionMinutes;
+      state.totalPrice = (parseInt(state.menu.price) || 0) + optionPrice;
+
+      // オプションサマリー表示
+      const summaryEl = document.getElementById('options-summary');
+      if (state.selectedOptions.length > 0) {
+        summaryEl.classList.remove('hidden');
+        document.getElementById('options-summary-names').textContent = state.selectedOptions.map(o => o.name).join(', ');
+        document.getElementById('options-summary-info').textContent = `+${optionMinutes}分 / +¥${optionPrice.toLocaleString()}`;
+      } else {
+        summaryEl.classList.add('hidden');
+      }
+
+      // 合計表示
+      document.getElementById('total-summary-menu').textContent = state.menu.name;
+      document.getElementById('total-time').textContent = `${state.totalMinutes}分`;
+      document.getElementById('total-price').textContent = `¥${state.totalPrice.toLocaleString()}`;
+    }
+
+    window.proceedWithOptions = async () => {
+      document.getElementById('step-options').classList.add('hidden');
+      document.getElementById('step-date').classList.remove('hidden');
+      updateProgressSteps(3);
+      await loadPractitionerPills();
+      initWeeklyCalendar();
+    };
+
+    window.skipOptions = async () => {
+      state.selectedOptions = [];
+      updateOptionsSummary();
+      await proceedWithOptions();
+    };
+    // ====================
+    let allPractitioners = [];
+
+    async function loadPractitionerPills() {
+      const container = document.getElementById('practitioner-pills');
+      container.innerHTML = '<span class="text-gray-400 text-sm">読み込み中...</span>';
+
+      try {
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          // Mock Data
+          allPractitioners = [
+            { id: '1', name: '田中 花子', calendarId: 'ichibi2025@gmail.com', imageUrl: '' },
+            { id: '2', name: '山田 太郎', calendarId: 'satellite0712@gmail.com', imageUrl: '' }
+          ];
+        } else {
+          const res = await fetch(`${API_BASE_URL}/api/practitioners`);
+          allPractitioners = await res.json();
+        }
+
+        renderPractitionerPills(allPractitioners);
+      } catch (e) {
+        console.error(e);
+        container.innerHTML = '<span class="text-red-400 text-sm">読み込み失敗</span>';
+      }
+    }
+
+    function renderPractitionerPills(practitioners) {
+      const container = document.getElementById('practitioner-pills');
+
+      if (practitioners.length === 0) {
+        container.innerHTML = '<span class="text-gray-400 text-sm">施術者が登録されていません</span>';
+        document.getElementById('selected-practitioner-card').classList.add('hidden');
+        return;
+      }
+
+      // 「指名なし」を先頭に追加（IDがnullのダミー施術者）
+      const noPreference = { id: null, name: '指名なし', calendarId: practitioners[0].calendarId };
+
+      // Set "指名なし" as default if not already selected
+      if (state.practitioner === undefined || state.practitioner === null) {
+        state.practitioner = noPreference;
+      }
+
+      // 「指名なし」+ 施術者リスト
+      const allOptions = [noPreference, ...practitioners];
+
+      container.innerHTML = allOptions.map(p => {
+        const isSelected = (state.practitioner && state.practitioner.id === p.id) ||
+          (state.practitioner === null && p.id === null) ||
+          (state.practitioner && state.practitioner.id === null && p.id === null);
+        const selectedClass = isSelected
+          ? 'bg-enji text-white border-enji'
+          : 'bg-white text-gray-700 border-gray-300 hover:border-enji';
+        const checkIcon = isSelected ? '<i class="fas fa-check mr-1"></i>' : '';
+
+        return `
+        <button onclick="selectPractitionerPill(${JSON.stringify(p).replace(/"/g, '&quot;')})"
+          class="flex items-center px-3 py-2 rounded-full border text-sm font-medium transition-all ${selectedClass}">
+          ${checkIcon}${p.name}
+        </button>
+      `}).join('');
+
+      // Update the selected practitioner card
+      updateSelectedPractitionerCard(state.practitioner);
+    }
+
+    function updateSelectedPractitionerCard(p) {
+      const card = document.getElementById('selected-practitioner-card');
+
+      // 「指名なし」または施術者がない場合はカードを非表示
+      if (!p || p.id === null) {
+        card.classList.add('hidden');
+        return;
+      }
+
+      // Check if practitioner has any detail info to show
+      const hasDetails = p.title || p.sns || p.experience || p.nominationFee || p.prTitle || p.description;
+      if (!hasDetails) {
+        card.classList.add('hidden');
+        return;
+      }
+
+      card.classList.remove('hidden');
+
+      // Image (長方形)
+      const imgContainer = document.getElementById('selected-practitioner-image-container');
+      const imgEl = document.getElementById('selected-practitioner-image');
+      if (p.imageUrl) {
+        imgEl.src = p.imageUrl;
+        imgEl.alt = p.name;
+        imgContainer.classList.remove('hidden');
+      } else {
+        imgEl.src = '';
+        imgContainer.classList.add('hidden');
+      }
+
+      // Name
+      document.getElementById('selected-practitioner-name').innerText = p.name;
+
+      // Title
+      const titleEl = document.getElementById('selected-practitioner-title');
+      if (p.title) {
+        titleEl.innerText = p.title;
+        titleEl.classList.remove('hidden');
+      } else {
+        titleEl.classList.add('hidden');
+      }
+
+      // SNS
+      const snsEl = document.getElementById('selected-practitioner-sns');
+      if (p.sns) {
+        const username = p.sns.replace(/^@/, '');
+        snsEl.innerHTML = `<a href="https://www.instagram.com/${username}" target="_blank" class="hover:text-enji transition-colors flex items-center"><i class="fab fa-instagram mr-1"></i>${p.sns}</a>`;
+        snsEl.classList.remove('hidden');
+      } else {
+        snsEl.classList.add('hidden');
+      }
+
+      // Experience
+      const expEl = document.getElementById('selected-practitioner-experience');
+      if (p.experience) {
+        expEl.innerText = `（${p.experience}）`;
+        expEl.classList.remove('hidden');
+      } else {
+        expEl.classList.add('hidden');
+      }
+
+      // Nomination Fee
+      const feeEl = document.getElementById('selected-practitioner-fee');
+      if (p.nominationFee) {
+        feeEl.innerText = `指名料: ¥${Number(p.nominationFee).toLocaleString()}`;
+        feeEl.classList.remove('hidden');
+      } else {
+        feeEl.classList.add('hidden');
+      }
+
+      // PR Section
+      const prSection = document.getElementById('selected-practitioner-pr');
+      const prTitleEl = document.getElementById('selected-practitioner-prTitle');
+      const descEl = document.getElementById('selected-practitioner-description');
+      const toggleBtn = document.getElementById('toggle-description-btn');
+
+      if (p.prTitle || p.description) {
+        prSection.classList.remove('hidden');
+        prTitleEl.innerText = p.prTitle || '';
+        descEl.innerText = p.description || '';
+        descEl.classList.add('line-clamp-2');
+
+        if (p.description && p.description.length > 60) {
+          toggleBtn.classList.remove('hidden');
+          toggleBtn.innerText = '詳細を見る';
+          toggleBtn.onclick = () => {
+            if (descEl.classList.contains('line-clamp-2')) {
+              descEl.classList.remove('line-clamp-2');
+              toggleBtn.innerText = '閉じる';
+            } else {
+              descEl.classList.add('line-clamp-2');
+              toggleBtn.innerText = '詳細を見る';
+            }
+          };
+        } else {
+          toggleBtn.classList.add('hidden');
+        }
+      } else {
+        prSection.classList.add('hidden');
+      }
+    }
+
+    window.selectPractitionerPill = (practitioner) => {
+      state.practitioner = practitioner;
+      renderPractitionerPills(allPractitioners);
+      // Reload calendar with new practitioner
+      renderWeeklyCalendar();
+    };
+
+    // Weekly Calendar Logic
+    let currentWeekStart = new Date();
+    let currentWeeklyData = []; // 週間データを保存（指名なし時のavailablePractitioners用）
+
+    function initWeeklyCalendar() {
+      // Reset to today/start of week
+      currentWeekStart = new Date();
+
+      document.getElementById('prev-week').onclick = () => {
+        currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+        renderWeeklyCalendar();
+      };
+      document.getElementById('next-week').onclick = () => {
+        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+        renderWeeklyCalendar();
+      };
+
+      renderWeeklyCalendar();
+    }
+
+    async function renderWeeklyCalendar() {
+      const startDateStr = formatDate(currentWeekStart);
+      const title = `${currentWeekStart.getFullYear()}年 ${currentWeekStart.getMonth() + 1}月`;
+      document.getElementById('calendar-title').innerText = title;
+
+      const headerRow = document.getElementById('weekly-header');
+      const body = document.getElementById('weekly-body');
+      const loading = document.getElementById('weekly-loading');
+      const table = document.querySelector('#step-date table');
+
+      // Show loading
+      loading.classList.remove('hidden');
+      table.classList.add('hidden');
+
+      try {
+        let weeklyData = [];
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          // Mock Data
+          await new Promise(r => setTimeout(r, 500));
+          weeklyData = generateMockWeeklyData(currentWeekStart);
+        } else {
+          // 「指名なし」の場合は 'all' を送信して全施術者の統合カレンダーを取得
+          const practitionerId = state.practitioner?.id || 'all';
+          const res = await fetch(`${API_BASE_URL}/api/weekly-availability?startDate=${startDateStr}&minutes=${state.menu.minutes}&practitionerId=${practitionerId}`);
+          weeklyData = await res.json();
+        }
+
+        // 週間データを保存（スロット選択時に参照）
+        currentWeeklyData = weeklyData;
+
+        // Render Header
+        headerRow.innerHTML = '<th class="py-2 w-12 bg-gray-50 sticky left-0 z-10 border-r border-gray-100">日時</th>';
+        weeklyData.forEach(day => {
+          const isSat = day.day === '土';
+          const isSun = day.day === '日';
+          const colorClass = isSat ? 'text-blue-500' : (isSun ? 'text-red-500' : 'text-gray-700');
+          // Extract day number from date string (yyyy/MM/dd)
+          const dayNum = day.date.split('/')[2];
+          headerRow.innerHTML += `
+            <th class="py-1 px-1">
+              <div class="text-xs ${colorClass}">${dayNum}</div>
+              <div class="text-xs ${colorClass}">(${day.day})</div>
+            </th>
+          `;
+        });
+
+        // Render Body
+        body.innerHTML = '';
+        // Assuming all days have same time slots, take the first day's slots to generate rows
+        const timeSlots = weeklyData[0].slots.map(s => s.time);
+
+        timeSlots.forEach((time, index) => {
+          let rowHtml = `<tr class="border-b border-gray-50">`;
+          // Time Column
+          rowHtml += `<td class="py-3 text-xs font-bold text-gray-600 bg-gray-50 sticky left-0 z-10 border-r border-gray-100">${time}</td>`;
+
+          // Data Columns
+          weeklyData.forEach(day => {
+            const slot = day.slots[index];
+            let cellContent = '';
+            let cellClass = '';
+
+            if (slot.status === '○') {
+              cellContent = '<i class="far fa-circle text-enji text-lg"></i>'; // Using FontAwesome circle for better look, or just text
+              cellClass = 'cursor-pointer hover:bg-red-50 transition-colors';
+            } else if (slot.status === '×') {
+              cellContent = '<i class="fas fa-times text-gray-400 text-lg"></i>';
+              cellClass = 'bg-gray-100';
+            } else {
+              cellContent = '<span class="text-gray-300 font-bold">－</span>';
+              cellClass = 'bg-gray-50';
+            }
+
+            // Onclick only for available slots
+            const clickHandler = slot.status === '○' ? `onclick="selectWeeklySlot('${day.date}', '${time}')"` : '';
+
+            rowHtml += `<td class="py-2 ${cellClass}" ${clickHandler}>${cellContent}</td>`;
+          });
+
+          rowHtml += `</tr>`;
+          body.innerHTML += rowHtml;
+        });
+
+      } catch (e) {
+        console.error(e);
+        body.innerHTML = '<tr><td colspan="8" class="text-red-500 py-4">読み込みエラー</td></tr>';
+      } finally {
+        loading.classList.add('hidden');
+        table.classList.remove('hidden');
+      }
+    }
+
+    function selectWeeklySlot(date, time) {
+      state.date = date;
+      state.time = time;
+
+      // 「指名なし」の場合、選択したスロットの空き施術者リストを保存
+      if (!state.practitioner?.id) {
+        const dayData = currentWeeklyData.find(d => d.date === date);
+        if (dayData) {
+          const slotData = dayData.slots.find(s => s.time === time);
+          state.availablePractitioners = slotData?.availablePractitioners || [];
+        }
+      } else {
+        state.availablePractitioners = null; // 指名ありの場合はnull
+      }
+      document.getElementById('step-date').classList.add('hidden');
+      document.getElementById('step-confirm').classList.remove('hidden');
+      updateProgressSteps(3);  // Confirmation is step 3
+
+      document.getElementById('confirm-menu').innerText = state.menu.name;
+      // 「指名なし」の場合は自動割り当てと表示
+      const practitionerDisplay = state.practitioner?.id ? state.practitioner.name : '指名なし（自動割り当て）';
+      document.getElementById('confirm-practitioner').innerText = practitionerDisplay;
+      document.getElementById('confirm-date').innerText = state.date;
+
+      // Calculate end time
+      console.log('Time calculation debug:', {
+        startTime: time,
+        menuMinutes: state.menu.minutes,
+        typeOfMinutes: typeof state.menu.minutes
+      });
+
+      const [hours, minutes] = time.split(':').map(Number);
+      const endDate = new Date();
+      endDate.setHours(hours, minutes + parseInt(state.menu.minutes));
+      const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+
+      console.log('Calculated endTime:', endTime);
+
+      document.getElementById('confirm-time').innerText = `${state.time} 〜 ${endTime}`;
+    }
+
+    function formatDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}/${m}/${d}`;
+    }
+
+    function generateMockWeeklyData(startDate) {
+      const result = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        const dateStr = formatDate(d);
+        const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
+
+        const slots = [];
+        let current = new Date(d);
+        current.setHours(10, 0, 0, 0);
+        const end = new Date(d);
+        end.setHours(20, 0, 0, 0);
+
+        while (current < end) {
+          const time = `${String(current.getHours()).padStart(2, '0')}:${String(current.getMinutes()).padStart(2, '0')}`;
+          // Random status
+          const rand = Math.random();
+          let status = '○';
+          if (rand < 0.3) status = '×';
+          if (rand < 0.1) status = '-';
+
+          slots.push({ time, status });
+          current.setMinutes(current.getMinutes() + 30);
+        }
+
+        result.push({ date: dateStr, day: dayOfWeek, slots });
+      }
+      return result;
+    }
+
+    window.submitReservation = async () => {
+      const name = document.getElementById('user-name-input').value;
+      if (!name) { showToast('お名前を入力してください'); return; }
+
+      document.getElementById('loading').classList.remove('hidden');
+      try {
+        const payload = {
+          userId: state.user.userId,
+          name: name,
+          menu: {
+            name: state.menu.name,
+            minutes: state.menu.minutes,
+            price: state.menu.price
+          },
+          phone: document.getElementById('user-phone-input')?.value || '',
+          date: state.date,
+          time: state.time,
+          // オプション情報
+          selectedOptions: state.selectedOptions || [],
+          totalMinutes: state.totalMinutes || state.menu.minutes,
+          totalPrice: state.totalPrice || state.menu.price
+        };
+
+        // 「指名なし」の場合は availablePractitioners を送信（バックエンドでランダム選択）
+        // 指名ありの場合は practitionerId を送信
+        if (state.practitioner?.id) {
+          payload.practitionerId = state.practitioner.id;
+        } else if (state.availablePractitioners && state.availablePractitioners.length > 0) {
+          payload.availablePractitioners = state.availablePractitioners;
+        } else {
+          // フォールバック: 最初の施術者を使用
+          if (allPractitioners.length > 0) {
+            payload.practitionerId = allPractitioners[0].id;
+          }
+        }
+
+        let result = { status: 'success' };
+        if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          const res = await fetch(`${API_BASE_URL}/api/reservations`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          result = await res.json();
+        } else {
+          await new Promise(r => setTimeout(r, 1000)); // Mock delay
+        }
+
+        if (result.status === 'success') {
+          showToast('予約が完了しました！');
+          switchTab('mypage');
+        } else {
+          showToast('エラー: ' + (result.message || JSON.stringify(result)));
+        }
+      } catch (e) {
+        showToast('通信エラー');
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    };
+
+    async function loadHistory() {
+      const container = document.getElementById('reservation-history');
+      container.innerHTML = '<div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+      try {
+        let history = [];
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          history = [
+            { id: 'mock1', date: '2023/12/01', time: '10:00', menu: 'フェイシャル基本コース' }
+          ];
+        } else {
+          const res = await fetch(`${API_BASE_URL}/api/history?userId=${state.user.userId}`);
+          history = await res.json();
+        }
+
+        if (history.length === 0) {
+          container.innerHTML = `<div class="text-center text-gray-400 py-8">予約履歴はありません</div>`;
+          return;
+        }
+
+        container.innerHTML = history.map(item => `
+          <div onclick="showReservationDetails(${JSON.stringify(item).replace(/"/g, '&quot;')})" class="bg-white shadow-sm border-l-4 border-enji p-4 rounded-r-lg cursor-pointer active:bg-gray-50 transition-colors">
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="font-bold text-gray-800 mb-1">${item.date} ${item.time}</div>
+                <div class="text-sm text-gray-600">${item.menu}</div>
+              </div>
+              <div class="text-gray-400"><i class="fas fa-chevron-right"></i></div>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        container.innerHTML = `<div class="text-center text-red-400 py-8">読み込みエラー</div>`;
+      }
+    }
+
+    window.showReservationDetails = (item) => {
+      document.getElementById('modal-date').innerText = `${item.date} ${item.time}`;
+      document.getElementById('modal-menu').innerText = item.menu;
+      document.getElementById('modal-practitioner').innerText = item.practitionerName || '指名なし';
+
+      // 24時間前チェック
+      const reservationDateTime = new Date(`${item.date.replace(/\//g, '-')}T${item.time}:00+09:00`);
+      const now = new Date();
+      const hoursUntilReservation = (reservationDateTime - now) / (1000 * 60 * 60);
+      const canChange = hoursUntilReservation >= 24;
+
+      // 変更ボタン
+      const changeBtn = document.getElementById('modal-change-btn');
+      if (canChange) {
+        changeBtn.disabled = false;
+        changeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        changeBtn.onclick = () => {
+          closeModal();
+          showRescheduleModal(item);
+        };
+      } else {
+        changeBtn.disabled = true;
+        changeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        changeBtn.innerHTML = '<i class="fas fa-calendar-alt mr-2"></i>変更期限を過ぎています（24時間前まで）';
+        changeBtn.onclick = null;
+      }
+
+      // キャンセルボタン
+      const cancelBtn = document.getElementById('modal-cancel-btn');
+      cancelBtn.onclick = () => {
+        cancelReservation(item.id);
+        closeModal();
+      };
+
+      document.getElementById('reservation-modal').classList.remove('hidden');
+    };
+
+    window.closeModal = () => {
+      document.getElementById('reservation-modal').classList.add('hidden');
+    };
+
+    window.cancelReservation = async (reservationId) => {
+      const isConfirmed = await showConfirm('本当にキャンセルしますか？');
+      if (!isConfirmed) return;
+
+      document.getElementById('loading').classList.remove('hidden');
+      try {
+        let result = { status: 'success' };
+        if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          const res = await fetch(`${API_BASE_URL}/api/reservations/${reservationId}?userId=${state.user.userId}`, {
+            method: 'DELETE'
+          });
+          result = await res.json();
+        } else {
+          await new Promise(r => setTimeout(r, 1000));
+        }
+
+        if (result.status === 'success') {
+          showToast('キャンセルしました');
+          loadHistory();
+        } else {
+          showToast('エラー: ' + result.message);
+        }
+      } catch (e) {
+        showToast('通信エラー');
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    };
+
+    // ==============================================
+    // 予約変更機能
+    // ==============================================
+
+    // 予約変更の状態管理
+    let rescheduleState = {
+      originalReservation: null,
+      menu: null,
+      selectedOptions: [],
+      practitioner: null,
+      date: null,
+      time: null,
+      totalMinutes: 0,
+      totalPrice: 0,
+      weekStart: new Date(),
+      weeklyData: [],
+      allMenus: [],
+      allOptions: [],
+      allPractitioners: []
+    };
+
+    // 予約変更モーダルを表示
+    async function showRescheduleModal(reservation) {
+      rescheduleState.originalReservation = reservation;
+      rescheduleState.weekStart = new Date();
+
+      // 現在の予約情報を表示
+      document.getElementById('reschedule-current').innerText =
+        `${reservation.date} ${reservation.time} / ${reservation.menu} / ${reservation.practitionerName || '指名なし'}`;
+
+      // データ取得
+      document.getElementById('loading').classList.remove('hidden');
+      try {
+        // メニュー一覧取得
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          rescheduleState.allMenus = [
+            { id: '1', name: 'フェイシャル基本コース', minutes: 60, price: 8000 },
+            { id: '2', name: 'ボディケア60分', minutes: 60, price: 10000 }
+          ];
+          rescheduleState.allOptions = [
+            { id: '1', name: 'ヘッドスパ', minutes: 15, price: 2000 }
+          ];
+          rescheduleState.allPractitioners = [
+            { id: '1', name: '山田', calendarId: 'cal1' },
+            { id: '2', name: '田中', calendarId: 'cal2' }
+          ];
+        } else {
+          const [menusRes, optionsRes, practitionersRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/api/menus`),
+            fetch(`${API_BASE_URL}/api/options`),
+            fetch(`${API_BASE_URL}/api/practitioners`)
+          ]);
+          rescheduleState.allMenus = await menusRes.json();
+          rescheduleState.allOptions = await optionsRes.json();
+          rescheduleState.allPractitioners = await practitionersRes.json();
+        }
+
+        // メニュー一覧を表示
+        renderRescheduleMenus();
+
+        // モーダル表示
+        document.getElementById('reschedule-modal').classList.remove('hidden');
+        showRescheduleStep('menu');
+      } catch (e) {
+        showToast('データ取得エラー');
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    }
+
+    // ステップ切り替え
+    function showRescheduleStep(step) {
+      const steps = ['menu', 'practitioner', 'date', 'confirm'];
+      steps.forEach(s => {
+        document.getElementById(`reschedule-step-${s}`).classList.add('hidden');
+      });
+      document.getElementById(`reschedule-step-${step}`).classList.remove('hidden');
+    }
+
+    // メニュー一覧を描画
+    function renderRescheduleMenus() {
+      const container = document.getElementById('reschedule-menu-list');
+      container.innerHTML = rescheduleState.allMenus.map(menu => `
+        <div onclick="selectRescheduleMenu('${menu.id}')"
+          class="bg-white shadow-sm border border-gray-200 p-4 rounded-lg cursor-pointer hover:border-enji transition-colors">
+          <div class="font-bold text-gray-800">${menu.name}</div>
+          <div class="text-sm text-gray-500 mt-1">${menu.minutes}分 / ¥${Number(menu.price).toLocaleString()}</div>
+        </div>
+      `).join('');
+    }
+
+    // メニュー選択
+    window.selectRescheduleMenu = (menuId) => {
+      const menu = rescheduleState.allMenus.find(m => String(m.id) === String(menuId));
+      if (!menu) return;
+      rescheduleState.menu = menu;
+      rescheduleState.selectedOptions = [];
+      rescheduleState.totalMinutes = menu.minutes;
+      rescheduleState.totalPrice = menu.price;
+
+      // オプションがある場合はオプション選択、なければ施術者選択へ
+      const menuOptions = rescheduleState.allOptions.filter(opt => {
+        if (menu.optionIds) {
+          const ids = menu.optionIds.split(',').map(id => id.trim());
+          return ids.includes(String(opt.id));
+        }
+        return true; // オプションIDがなければ全オプション表示
+      });
+
+      if (menuOptions.length > 0) {
+        renderRescheduleOptions(menuOptions);
+        showRescheduleStep('practitioner'); // オプション選択をスキップして施術者選択へ（簡略化）
+      } else {
+        renderReschedulePractitioners();
+        showRescheduleStep('practitioner');
+      }
+      renderReschedulePractitioners();
+      showRescheduleStep('practitioner');
+    };
+
+    // 施術者一覧を描画
+    function renderReschedulePractitioners() {
+      const container = document.getElementById('reschedule-practitioner-list');
+
+      // 「指名なし」オプションを追加
+      let html = `
+        <div onclick="selectReschedulePractitioner(null)"
+          class="bg-white shadow-sm border border-gray-200 p-4 rounded-lg cursor-pointer hover:border-enji transition-colors">
+          <div class="font-bold text-gray-800">指名なし</div>
+          <div class="text-sm text-gray-500">空いている施術者が担当</div>
+        </div>
+      `;
+
+      html += rescheduleState.allPractitioners.map(p => `
+        <div onclick="selectReschedulePractitioner('${p.id}')"
+          class="bg-white shadow-sm border border-gray-200 p-4 rounded-lg cursor-pointer hover:border-enji transition-colors">
+          <div class="font-bold text-gray-800">${p.name}</div>
+          ${p.title ? `<div class="text-sm text-gray-500">${p.title}</div>` : ''}
+        </div>
+      `).join('');
+
+      container.innerHTML = html;
+    }
+
+    // 施術者選択
+    window.selectReschedulePractitioner = (practitionerId) => {
+      if (practitionerId) {
+        rescheduleState.practitioner = rescheduleState.allPractitioners.find(p => String(p.id) === String(practitionerId));
+      } else {
+        rescheduleState.practitioner = null; // 指名なし
+      }
+      initRescheduleCalendar();
+      showRescheduleStep('date');
+    };
+
+    // カレンダー初期化
+    function initRescheduleCalendar() {
+      document.getElementById('reschedule-prev-week').onclick = () => {
+        rescheduleState.weekStart.setDate(rescheduleState.weekStart.getDate() - 7);
+        renderRescheduleCalendar();
+      };
+      document.getElementById('reschedule-next-week').onclick = () => {
+        rescheduleState.weekStart.setDate(rescheduleState.weekStart.getDate() + 7);
+        renderRescheduleCalendar();
+      };
+      renderRescheduleCalendar();
+    }
+
+    // カレンダー描画
+    async function renderRescheduleCalendar() {
+      const startDateStr = formatDate(rescheduleState.weekStart);
+      const title = `${rescheduleState.weekStart.getFullYear()}年 ${rescheduleState.weekStart.getMonth() + 1}月`;
+      document.getElementById('reschedule-calendar-title').innerText = title;
+
+      const headerRow = document.getElementById('reschedule-weekly-header');
+      const body = document.getElementById('reschedule-weekly-body');
+      const loading = document.getElementById('reschedule-loading');
+      const table = document.querySelector('#reschedule-step-date table');
+
+      loading.classList.remove('hidden');
+      table.classList.add('hidden');
+
+      try {
+        let weeklyData = [];
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          await new Promise(r => setTimeout(r, 500));
+          weeklyData = generateMockWeeklyData(rescheduleState.weekStart);
+        } else {
+          const practitionerId = rescheduleState.practitioner?.id || 'all';
+          const res = await fetch(`${API_BASE_URL}/api/weekly-availability?startDate=${startDateStr}&minutes=${rescheduleState.totalMinutes}&practitionerId=${practitionerId}`);
+          weeklyData = await res.json();
+        }
+
+        rescheduleState.weeklyData = weeklyData;
+
+        // ヘッダー描画
+        headerRow.innerHTML = '<th class="py-2 w-12 bg-gray-50 sticky left-0 z-10 border-r border-gray-100">日時</th>';
+        weeklyData.forEach(day => {
+          const isSat = day.day === '土';
+          const isSun = day.day === '日';
+          const colorClass = isSat ? 'text-blue-500' : (isSun ? 'text-red-500' : 'text-gray-700');
+          const dayNum = day.date.split('/')[2];
+          headerRow.innerHTML += `
+            <th class="py-1 px-1">
+              <div class="text-xs ${colorClass}">${dayNum}</div>
+              <div class="text-xs ${colorClass}">(${day.day})</div>
+            </th>
+          `;
+        });
+
+        // ボディ描画
+        body.innerHTML = '';
+        const timeSlots = weeklyData[0].slots.map(s => s.time);
+
+        timeSlots.forEach((time, index) => {
+          let rowHtml = `<tr class="border-b border-gray-50">`;
+          rowHtml += `<td class="py-3 text-xs font-bold text-gray-600 bg-gray-50 sticky left-0 z-10 border-r border-gray-100">${time}</td>`;
+
+          weeklyData.forEach(day => {
+            const slot = day.slots[index];
+            let cellContent = '';
+            let cellClass = '';
+
+            if (slot.status === '○') {
+              cellContent = '<i class="far fa-circle text-enji text-lg"></i>';
+              cellClass = 'cursor-pointer hover:bg-red-50 transition-colors';
+            } else if (slot.status === '×') {
+              cellContent = '<i class="fas fa-times text-gray-400 text-lg"></i>';
+              cellClass = 'bg-gray-100';
+            } else {
+              cellContent = '<span class="text-gray-300 font-bold">－</span>';
+              cellClass = 'bg-gray-50';
+            }
+
+            const clickHandler = slot.status === '○' ? `onclick="selectRescheduleSlot('${day.date}', '${time}')"` : '';
+            rowHtml += `<td class="py-2 ${cellClass}" ${clickHandler}>${cellContent}</td>`;
+          });
+
+          rowHtml += `</tr>`;
+          body.innerHTML += rowHtml;
+        });
+
+      } catch (e) {
+        console.error(e);
+        body.innerHTML = '<tr><td colspan="8" class="text-red-500 py-4">読み込みエラー</td></tr>';
+      } finally {
+        loading.classList.add('hidden');
+        table.classList.remove('hidden');
+      }
+    }
+
+    // スロット選択
+    window.selectRescheduleSlot = (date, time) => {
+      rescheduleState.date = date;
+      rescheduleState.time = time;
+
+      // 「指名なし」の場合、空き施術者リストを保存
+      if (!rescheduleState.practitioner?.id) {
+        const dayData = rescheduleState.weeklyData.find(d => d.date === date);
+        if (dayData) {
+          const slotData = dayData.slots.find(s => s.time === time);
+          rescheduleState.availablePractitioners = slotData?.availablePractitioners || [];
+        }
+      }
+
+      // 確認画面へ
+      showRescheduleConfirm();
+    };
+
+    // 確認画面表示
+    function showRescheduleConfirm() {
+      document.getElementById('reschedule-confirm-menu').innerText = rescheduleState.menu.name;
+      document.getElementById('reschedule-confirm-options').innerText =
+        rescheduleState.selectedOptions.length > 0
+          ? rescheduleState.selectedOptions.map(o => o.name).join('、')
+          : 'なし';
+      document.getElementById('reschedule-confirm-practitioner').innerText =
+        rescheduleState.practitioner?.name || '指名なし（自動割り当て）';
+
+      // 終了時刻計算
+      const [h, m] = rescheduleState.time.split(':').map(Number);
+      const endMinutes = h * 60 + m + rescheduleState.totalMinutes;
+      const endH = Math.floor(endMinutes / 60);
+      const endM = endMinutes % 60;
+      const endTime = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+
+      document.getElementById('reschedule-confirm-datetime').innerText =
+        `${rescheduleState.date} ${rescheduleState.time}〜${endTime}`;
+      document.getElementById('reschedule-confirm-minutes').innerText = `${rescheduleState.totalMinutes}分`;
+      document.getElementById('reschedule-confirm-price').innerText = `¥${Number(rescheduleState.totalPrice).toLocaleString()}`;
+
+      // 送信ボタン
+      document.getElementById('reschedule-submit-btn').onclick = submitReschedule;
+
+      showRescheduleStep('confirm');
+    }
+
+    // 予約変更を送信
+    async function submitReschedule() {
+      const isConfirmed = await showConfirm('この内容で予約を変更しますか？');
+      if (!isConfirmed) return;
+
+      document.getElementById('loading').classList.remove('hidden');
+      try {
+        let practitionerId = rescheduleState.practitioner?.id;
+
+        // 「指名なし」の場合、空き施術者からランダムに選択
+        if (!practitionerId && rescheduleState.availablePractitioners && rescheduleState.availablePractitioners.length > 0) {
+          const randomIndex = Math.floor(Math.random() * rescheduleState.availablePractitioners.length);
+          practitionerId = rescheduleState.availablePractitioners[randomIndex].id;
+        }
+
+        if (!practitionerId) {
+          // フォールバック: 最初の施術者
+          practitionerId = rescheduleState.allPractitioners[0]?.id;
+        }
+
+        const payload = {
+          userId: state.user.userId,
+          menu: rescheduleState.menu,
+          selectedOptions: rescheduleState.selectedOptions,
+          newDate: rescheduleState.date,
+          newTime: rescheduleState.time,
+          practitionerId: practitionerId,
+          totalMinutes: rescheduleState.totalMinutes,
+          totalPrice: rescheduleState.totalPrice
+        };
+
+        let result = { status: 'success' };
+        if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          const res = await fetch(`${API_BASE_URL}/api/reservations/${rescheduleState.originalReservation.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          result = await res.json();
+        } else {
+          await new Promise(r => setTimeout(r, 1000));
+        }
+
+        if (result.status === 'success') {
+          showToast('予約を変更しました');
+          closeRescheduleModal();
+          loadHistory();
+        } else {
+          showToast('エラー: ' + (result.message || '変更に失敗しました'));
+        }
+      } catch (e) {
+        showToast('通信エラー');
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    }
+
+    // 予約変更モーダルを閉じる
+    window.closeRescheduleModal = () => {
+      document.getElementById('reschedule-modal').classList.add('hidden');
+      rescheduleState = {
+        originalReservation: null,
+        menu: null,
+        selectedOptions: [],
+        practitioner: null,
+        date: null,
+        time: null,
+        totalMinutes: 0,
+        totalPrice: 0,
+        weekStart: new Date(),
+        weeklyData: [],
+        allMenus: [],
+        allOptions: [],
+        allPractitioners: []
+      };
+    };
+
+    // オプション一覧を描画（将来の拡張用）
+    function renderRescheduleOptions(options) {
+      // 現在はスキップしていますが、オプション選択UIを追加可能
+    }
+
+    // ==============================================
+    // 管理者機能
+    // ==============================================
+
+    window.switchAdminTab = (tab) => {
+      const tabReservations = document.getElementById('admin-tab-reservations');
+      const tabMenus = document.getElementById('admin-tab-menus');
+      const tabOptions = document.getElementById('admin-tab-options');
+      const tabPractitioners = document.getElementById('admin-tab-practitioners');
+      const sectionReservations = document.getElementById('admin-reservations');
+      const sectionMenus = document.getElementById('admin-menus');
+      const sectionOptions = document.getElementById('admin-options');
+      const sectionPractitioners = document.getElementById('admin-practitioners');
+
+      const activeClasses = 'flex-1 py-2 text-xs font-bold text-white bg-enji transition-colors';
+      const inactiveClasses = 'flex-1 py-2 text-xs font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors';
+
+      // Reset all tabs
+      [tabReservations, tabMenus, tabOptions, tabPractitioners].forEach(t => t.className = inactiveClasses);
+      [sectionReservations, sectionMenus, sectionOptions, sectionPractitioners].forEach(s => s.classList.add('hidden'));
+
+      if (tab === 'reservations') {
+        tabReservations.className = activeClasses;
+        sectionReservations.classList.remove('hidden');
+        loadAdminReservations();
+      } else if (tab === 'menus') {
+        tabMenus.className = activeClasses;
+        sectionMenus.classList.remove('hidden');
+        loadAdminMenus();
+      } else if (tab === 'options') {
+        tabOptions.className = activeClasses;
+        sectionOptions.classList.remove('hidden');
+        loadAdminOptions();
+      } else if (tab === 'practitioners') {
+        tabPractitioners.className = activeClasses;
+        sectionPractitioners.classList.remove('hidden');
+        loadAdminPractitioners();
+      }
+    };
+
+    // ====================
+    // Admin Option Management
+    // ====================
+
+    let allAdminOptions = [];
+
+    async function loadAdminOptions() {
+      const container = document.getElementById('admin-option-list');
+      container.innerHTML = '<div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+      try {
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          await new Promise(r => setTimeout(r, 500));
+          allAdminOptions = [
+            { id: '1', name: 'ヘッドスパ', minutes: 15, price: 2000, description: 'リラックス効果抜群', isActive: true },
+            { id: '2', name: 'ハンドマッサージ', minutes: 10, price: 1500, description: '手のケア', isActive: true },
+            { id: '3', name: '眉カット', minutes: 5, price: 500, description: '眉を整えます', isActive: true }
+          ];
+        } else {
+          const res = await fetch(`${API_BASE_URL}/api/options`);
+          allAdminOptions = await res.json();
+        }
+
+        if (allAdminOptions.length === 0) {
+          container.innerHTML = '<div class="text-center text-gray-400 py-8">オプションが登録されていません</div>';
+          return;
+        }
+
+        container.innerHTML = allAdminOptions.map(opt => `
+          <div onclick="showEditOptionModal('${opt.id}')" class="bg-white shadow-sm border border-gray-100 rounded-xl p-4 cursor-pointer hover:border-enji transition-all">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <h4 class="font-bold text-gray-800">${opt.name}</h4>
+                <p class="text-xs text-gray-500 mt-1">${opt.description || ''}</p>
+              </div>
+              <div class="text-right ml-4">
+                <p class="text-xs text-gray-400">+${opt.minutes}分</p>
+                <p class="text-enji font-bold">+¥${opt.price.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Failed to load admin options:', err);
+        container.innerHTML = '<div class="text-center text-red-500 py-8">読み込みエラー</div>';
+      }
+    }
+
+    window.showAddOptionModal = () => {
+      document.getElementById('option-modal-title').textContent = 'オプション追加';
+      document.getElementById('option-edit-id').value = '';
+      document.getElementById('option-edit-name').value = '';
+      document.getElementById('option-edit-minutes').value = '';
+      document.getElementById('option-edit-price').value = '';
+      document.getElementById('option-edit-description').value = '';
+      document.getElementById('option-delete-btn').classList.add('hidden');
+      document.getElementById('option-modal').classList.remove('hidden');
+    };
+
+    window.showEditOptionModal = (optionId) => {
+      const opt = allAdminOptions.find(o => String(o.id) === String(optionId));
+      if (!opt) return;
+
+      document.getElementById('option-modal-title').textContent = 'オプション編集';
+      document.getElementById('option-edit-id').value = opt.id;
+      document.getElementById('option-edit-name').value = opt.name;
+      document.getElementById('option-edit-minutes').value = opt.minutes;
+      document.getElementById('option-edit-price').value = opt.price;
+      document.getElementById('option-edit-description').value = opt.description || '';
+      document.getElementById('option-delete-btn').classList.remove('hidden');
+      document.getElementById('option-modal').classList.remove('hidden');
+    };
+
+    window.closeOptionModal = () => {
+      document.getElementById('option-modal').classList.add('hidden');
+    };
+
+    window.saveOption = async () => {
+      const optionId = document.getElementById('option-edit-id').value;
+      const name = document.getElementById('option-edit-name').value;
+      const minutes = parseInt(document.getElementById('option-edit-minutes').value) || 0;
+      const price = parseInt(document.getElementById('option-edit-price').value) || 0;
+      const description = document.getElementById('option-edit-description').value;
+
+      if (!name) {
+        showToast('オプション名を入力してください');
+        return;
+      }
+
+      showLoading();
+
+      try {
+        const option = { name, minutes, price, description };
+        const endpoint = optionId ? `/api/options/${optionId}` : '/api/options';
+        const method = optionId ? 'PUT' : 'POST';
+
+        const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ adminId: state.user?.userId, option })
+        });
+
+        const result = await res.json();
+        if (result.status === 'success') {
+          showToast(optionId ? 'オプションを更新しました' : 'オプションを追加しました');
+          closeOptionModal();
+          await loadAdminOptions();
+        } else {
+          showToast(result.message || 'エラーが発生しました');
+        }
+      } catch (err) {
+        console.error('Failed to save option:', err);
+        showToast('保存に失敗しました');
+      }
+      hideLoading();
+    };
+
+    window.deleteOptionFromModal = async () => {
+      const optionId = document.getElementById('option-edit-id').value;
+      if (!optionId) return;
+
+      const isConfirmed = await showConfirm('このオプションを削除しますか？');
+      if (!isConfirmed) return;
+
+      showLoading();
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/options/${optionId}?adminId=${state.user?.userId}`, {
+          method: 'DELETE'
+        });
+        const result = await res.json();
+        if (result.status === 'success') {
+          showToast('オプションを削除しました');
+          closeOptionModal();
+          await loadAdminOptions();
+        } else {
+          showToast(result.message || 'エラーが発生しました');
+        }
+      } catch (err) {
+        console.error('Failed to delete option:', err);
+        showToast('削除に失敗しました');
+      }
+      hideLoading();
+    };
+
+    // ====================
+    // Admin Practitioner Management
+    // ====================
+
+    async function loadAdminPractitioners() {
+      const container = document.getElementById('admin-practitioner-list');
+      container.innerHTML = '<div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+      try {
+        let practitioners = [];
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          await new Promise(r => setTimeout(r, 500));
+          practitioners = [
+            { id: '1', name: '田中 花子', calendarId: 'ichibi2025@gmail.com' },
+            { id: '2', name: '山田 太郎', calendarId: 'satellite0712@gmail.com' }
+          ];
+        } else {
+          const res = await fetch(`${API_BASE_URL}/api/practitioners`);
+          practitioners = await res.json();
+        }
+
+        if (practitioners.length === 0) {
+          container.innerHTML = '<div class="text-center text-gray-400 py-8">施術者が登録されていません</div>';
+          return;
+        }
+
+        container.innerHTML = practitioners.map(p => {
+          const avatarHtml = p.imageUrl
+            ? `<img src="${p.imageUrl}" alt="${p.name}" class="w-12 h-12 rounded-full object-cover border-2 border-gray-100">`
+            : `<div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div>`;
+
+          const titleHtml = p.title ? `<span class="text-xs text-gray-400">${p.title}</span>` : '';
+          const expHtml = p.experience ? `<span class="text-xs text-gray-400">（${p.experience}）</span>` : '';
+          const feeHtml = p.nominationFee ? `<span class="text-xs text-enji font-bold ml-2">指名料 ¥${Number(p.nominationFee).toLocaleString()}</span>` : '';
+
+          return `
+          <div class="bg-white shadow-sm border border-gray-100 rounded-xl p-4">
+            <div class="flex justify-between items-start">
+              <div class="flex items-start gap-3">
+                ${avatarHtml}
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="font-bold text-gray-800">${p.name}</h3>
+                    ${feeHtml}
+                  </div>
+                  <div class="flex items-center gap-1 flex-wrap">
+                    ${titleHtml}${expHtml}
+                  </div>
+                  <p class="text-xs text-gray-400 mt-1 truncate">${p.calendarId}</p>
+                  ${p.prTitle ? `<p class="text-xs text-gray-500 mt-1 truncate">${p.prTitle}</p>` : ''}
+                </div>
+              </div>
+              <button onclick="showEditPractitionerModal(${JSON.stringify(p).replace(/"/g, '&quot;')})" class="text-enji hover:text-enji-dark flex-shrink-0 ml-2">
+                <i class="fas fa-edit"></i>
+              </button>
+            </div>
+          </div>
+        `}).join('');
+      } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div class="text-center text-red-400 py-8">読み込みエラー</div>';
+      }
+    }
+
+    window.showAddPractitionerModal = () => {
+      document.getElementById('practitioner-modal-title').innerText = '施術者追加';
+      document.getElementById('practitioner-edit-id').value = '';
+      document.getElementById('practitioner-edit-name').value = '';
+      document.getElementById('practitioner-edit-title').value = '';
+      document.getElementById('practitioner-edit-experience').value = '';
+      document.getElementById('practitioner-edit-nominationFee').value = '';
+      document.getElementById('practitioner-edit-sns').value = '';
+      document.getElementById('practitioner-edit-prTitle').value = '';
+      document.getElementById('practitioner-edit-description').value = '';
+      document.getElementById('practitioner-edit-calendarId').value = '';
+      document.getElementById('practitioner-edit-imageUrl').value = '';
+      document.getElementById('practitioner-edit-image').value = '';
+      document.getElementById('practitioner-image-preview').classList.add('hidden');
+      document.getElementById('practitioner-clear-image-btn').classList.add('hidden');
+      document.getElementById('practitioner-delete-btn').classList.add('hidden');
+      document.getElementById('practitioner-modal').classList.remove('hidden');
+    };
+
+    window.showEditPractitionerModal = (practitioner) => {
+      document.getElementById('practitioner-modal-title').innerText = '施術者編集';
+      document.getElementById('practitioner-edit-id').value = practitioner.id;
+      document.getElementById('practitioner-edit-name').value = practitioner.name;
+      document.getElementById('practitioner-edit-title').value = practitioner.title || '';
+      document.getElementById('practitioner-edit-experience').value = practitioner.experience || '';
+      document.getElementById('practitioner-edit-nominationFee').value = practitioner.nominationFee || '';
+      document.getElementById('practitioner-edit-sns').value = practitioner.sns || '';
+      document.getElementById('practitioner-edit-prTitle').value = practitioner.prTitle || '';
+      document.getElementById('practitioner-edit-description').value = practitioner.description || '';
+      document.getElementById('practitioner-edit-calendarId').value = practitioner.calendarId;
+      document.getElementById('practitioner-edit-imageUrl').value = practitioner.imageUrl || '';
+      document.getElementById('practitioner-edit-image').value = '';
+
+      // Show existing image if available
+      if (practitioner.imageUrl) {
+        document.getElementById('practitioner-preview-img').src = practitioner.imageUrl;
+        document.getElementById('practitioner-image-preview').classList.remove('hidden');
+        document.getElementById('practitioner-clear-image-btn').classList.remove('hidden');
+      } else {
+        document.getElementById('practitioner-image-preview').classList.add('hidden');
+        document.getElementById('practitioner-clear-image-btn').classList.add('hidden');
+      }
+
+      document.getElementById('practitioner-delete-btn').classList.remove('hidden');
+      document.getElementById('practitioner-modal').classList.remove('hidden');
+    };
+
+    window.closePractitionerModal = () => {
+      document.getElementById('practitioner-modal').classList.add('hidden');
+    };
+
+    // Practitioner image preview
+    window.previewPractitionerImage = (input) => {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById('practitioner-preview-img').src = e.target.result;
+          document.getElementById('practitioner-image-preview').classList.remove('hidden');
+          document.getElementById('practitioner-clear-image-btn').classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    };
+
+    window.clearPractitionerImage = () => {
+      document.getElementById('practitioner-edit-image').value = '';
+      document.getElementById('practitioner-edit-imageUrl').value = '';
+      document.getElementById('practitioner-image-preview').classList.add('hidden');
+      document.getElementById('practitioner-clear-image-btn').classList.add('hidden');
+    };
+
+    window.savePractitioner = async () => {
+      const id = document.getElementById('practitioner-edit-id').value;
+      const name = document.getElementById('practitioner-edit-name').value;
+      const title = document.getElementById('practitioner-edit-title').value;
+      const experience = document.getElementById('practitioner-edit-experience').value;
+      const nominationFee = document.getElementById('practitioner-edit-nominationFee').value;
+      const sns = document.getElementById('practitioner-edit-sns').value;
+      const prTitle = document.getElementById('practitioner-edit-prTitle').value;
+      const description = document.getElementById('practitioner-edit-description').value;
+      const calendarId = document.getElementById('practitioner-edit-calendarId').value;
+      let imageUrl = document.getElementById('practitioner-edit-imageUrl').value;
+      const imageInput = document.getElementById('practitioner-edit-image');
+
+      if (!name || !calendarId) {
+        showToast('名前とカレンダーIDを入力してください');
+        return;
+      }
+
+      document.getElementById('loading').classList.remove('hidden');
+      try {
+        // Upload image if a new file is selected
+        if (imageInput.files && imageInput.files[0]) {
+          const reader = new FileReader();
+          const imageData = await new Promise((resolve) => {
+            reader.onload = (e) => resolve(e.target.result);
+            reader.readAsDataURL(imageInput.files[0]);
+          });
+
+          const uploadRes = await fetch(`${API_BASE_URL}/api/upload-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              adminId: state.user.userId,
+              imageData: imageData,
+              fileName: `practitioner_${Date.now()}.jpg`
+            })
+          });
+          const uploadResult = await uploadRes.json();
+          if (uploadResult.status === 'success') {
+            imageUrl = uploadResult.imageUrl;
+          } else {
+            throw new Error(uploadResult.message || '画像アップロードに失敗しました');
+          }
+        }
+
+        const practitioner = {
+          name,
+          calendarId,
+          imageUrl,
+          title,
+          sns,
+          experience,
+          nominationFee,
+          prTitle,
+          description,
+        };
+
+        if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          if (id) {
+            await fetch(`${API_BASE_URL}/api/practitioners/${id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ adminId: state.user.userId, practitioner })
+            });
+          } else {
+            await fetch(`${API_BASE_URL}/api/practitioners`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ adminId: state.user.userId, practitioner })
+            });
+          }
+        }
+
+        closePractitionerModal();
+        loadAdminPractitioners();
+        showToast('保存しました');
+      } catch (e) {
+        console.error(e);
+        showToast('保存に失敗しました: ' + e.message);
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    };
+
+    window.deletePractitionerFromModal = async () => {
+      const isConfirmed = await showConfirm('この施術者を削除しますか？');
+      if (!isConfirmed) return;
+
+      const id = document.getElementById('practitioner-edit-id').value;
+      document.getElementById('loading').classList.remove('hidden');
+
+      try {
+        if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          await fetch(`${API_BASE_URL}/api/practitioners/${id}?adminId=${state.user.userId}`, {
+            method: 'DELETE'
+          });
+        }
+
+        closePractitionerModal();
+        loadAdminPractitioners();
+        showToast('削除しました');
+      } catch (e) {
+        console.error(e);
+        showToast('削除に失敗しました');
+      } finally {
+        document.getElementById('loading').classList.remove('hidden');
+      }
+    };
+
+    // ====================
+    // Settings Modal (設定モーダル)
+    // ====================
+
+    // Load settings and apply to header on page load
+    async function loadAndApplySettings() {
+      try {
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+
+        const res = await fetch(`${API_BASE_URL}/api/settings?adminId=public`);
+        if (res.ok) {
+          const settings = await res.json();
+          applySettingsToHeader(settings);
+        }
+      } catch (e) {
+        console.log('Settings not loaded (might be first run)');
+      }
+    }
+
+    function applySettingsToHeader(settings) {
+      if (settings.logoUrl) {
+        document.getElementById('header-logo').src = settings.logoUrl;
+        document.getElementById('header-logo').classList.remove('hidden');
+        document.getElementById('header-logo-placeholder').classList.add('hidden');
+      }
+      if (settings.salonName) {
+        document.getElementById('header-salon-name').innerText = settings.salonName;
+      }
+      if (settings.address) {
+        document.getElementById('header-address').innerText = settings.address;
+      }
+      if (settings.station) {
+        document.getElementById('header-station').innerText = settings.station;
+      }
+    }
+
+    window.showSettingsModal = async () => {
+      document.getElementById('settings-modal').classList.remove('hidden');
+      document.getElementById('loading').classList.remove('hidden');
+
+      // Reset logo preview
+      document.getElementById('settings-logo-file').value = '';
+      document.getElementById('settings-logo-preview').classList.add('hidden');
+      document.getElementById('settings-clear-logo-btn').classList.add('hidden');
+
+      try {
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          // Mock data
+          document.getElementById('settings-salonName').value = 'LinCal【東京】';
+          document.getElementById('settings-address').value = '〒123-4567 東京都千代田区1-1-1';
+          document.getElementById('settings-station').value = '東京駅';
+          document.getElementById('settings-salonInfo').value = '【店舗情報】\nサロン名: LinCal【東京】';
+          document.getElementById('settings-precautions').value = '【注意事項】\nテスト注意事項';
+        } else {
+          const res = await fetch(`${API_BASE_URL}/api/settings?adminId=${state.user.userId}`);
+          const settings = await res.json();
+
+          // Header customization
+          document.getElementById('settings-logoUrl').value = settings.logoUrl || '';
+          document.getElementById('settings-salonName').value = settings.salonName || '';
+          document.getElementById('settings-address').value = settings.address || '';
+          document.getElementById('settings-station').value = settings.station || '';
+
+          // Show existing logo if available
+          if (settings.logoUrl) {
+            document.getElementById('settings-logo-img').src = settings.logoUrl;
+            document.getElementById('settings-logo-preview').classList.remove('hidden');
+            document.getElementById('settings-clear-logo-btn').classList.remove('hidden');
+          }
+
+          // Business settings
+          document.getElementById('settings-businessStart').value = settings.businessStartHour || '10';
+          document.getElementById('settings-businessEnd').value = settings.businessEndHour || '20';
+
+          // Temporary holidays (Flatpickr)
+          const holidaysStr = settings.holidays || '';
+          document.getElementById('settings-holidays').value = holidaysStr;
+
+          // Initialize Flatpickr for Holidays
+          flatpickr("#settings-holidays", {
+            mode: "multiple",
+            dateFormat: "Y/m/d",
+            defaultDate: holidaysStr ? holidaysStr.split(',').map(d => d.trim()) : [],
+            locale: "ja"
+          });
+
+          // Temporary Business Days (Flatpickr)
+          const temporaryBusinessDaysStr = settings.temporaryBusinessDays || '';
+          document.getElementById('settings-temporaryBusinessDays').value = temporaryBusinessDaysStr;
+
+          // Initialize Flatpickr for Temporary Business Days
+          flatpickr("#settings-temporaryBusinessDays", {
+            mode: "multiple",
+            dateFormat: "Y/m/d",
+            defaultDate: temporaryBusinessDaysStr ? temporaryBusinessDaysStr.split(',').map(d => d.trim()) : [],
+            locale: "ja"
+          });
+
+          // Regular holidays
+          const regularHolidays = settings.regularHolidays || [];
+          document.querySelectorAll('#settings-regularHolidays-container input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = regularHolidays.includes(parseInt(checkbox.value));
+          });
+
+          // Reservation info
+          document.getElementById('settings-salonInfo').value = settings.salonInfo || '';
+          document.getElementById('settings-precautions').value = settings.precautions || '';
+        }
+      } catch (e) {
+        console.error(e);
+        showToast('設定の読み込みに失敗しました');
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    };
+
+    window.closeSettingsModal = () => {
+      document.getElementById('settings-modal').classList.add('hidden');
+    };
+
+    // Logo preview
+    window.previewSettingsLogo = (input) => {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById('settings-logo-img').src = e.target.result;
+          document.getElementById('settings-logo-preview').classList.remove('hidden');
+          document.getElementById('settings-clear-logo-btn').classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    };
+
+    window.clearSettingsLogo = () => {
+      document.getElementById('settings-logo-file').value = '';
+      document.getElementById('settings-logoUrl').value = '';
+      document.getElementById('settings-logo-preview').classList.add('hidden');
+      document.getElementById('settings-clear-logo-btn').classList.add('hidden');
+    };
+
+    window.saveSettings = async () => {
+      const salonName = document.getElementById('settings-salonName').value;
+      const address = document.getElementById('settings-address').value;
+      const station = document.getElementById('settings-station').value;
+      let logoUrl = document.getElementById('settings-logoUrl').value;
+      const logoInput = document.getElementById('settings-logo-file');
+      const businessStartHour = document.getElementById('settings-businessStart').value;
+      const businessEndHour = document.getElementById('settings-businessEnd').value;
+      const holidays = document.getElementById('settings-holidays').value;
+      const temporaryBusinessDays = document.getElementById('settings-temporaryBusinessDays').value;
+      const salonInfo = document.getElementById('settings-salonInfo').value;
+      const precautions = document.getElementById('settings-precautions').value;
+
+      // Regular holidays
+      const regularHolidays = Array.from(document.querySelectorAll('#settings-regularHolidays-container input[type="checkbox"]:checked'))
+        .map(cb => parseInt(cb.value));
+
+      document.getElementById('loading').classList.remove('hidden');
+
+      try {
+        // Upload logo if a new file is selected
+        if (logoInput.files && logoInput.files[0]) {
+          const reader = new FileReader();
+          const imageData = await new Promise((resolve) => {
+            reader.onload = (e) => resolve(e.target.result);
+            reader.readAsDataURL(logoInput.files[0]);
+          });
+
+          const uploadRes = await fetch(`${API_BASE_URL}/api/upload-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              adminId: state.user.userId,
+              imageData: imageData,
+              fileName: `logo_${Date.now()}.jpg`
+            })
+          });
+          const uploadResult = await uploadRes.json();
+          if (uploadResult.status === 'success') {
+            logoUrl = uploadResult.imageUrl;
+          } else {
+            throw new Error(uploadResult.message || 'ロゴアップロードに失敗しました');
+          }
+        }
+
+        // Localhostでもバックエンドに保存を試みる (API_BASE_URLが設定されている、または相対パスの場合)
+        await fetch(`${API_BASE_URL}/api/settings`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            adminId: state.user.userId,
+            settings: { salonName, address, station, logoUrl, businessStartHour, businessEndHour, holidays, temporaryBusinessDays, regularHolidays, salonInfo, precautions }
+          })
+        });
+
+        // Apply changes to header immediately
+        applySettingsToHeader({ salonName, address, station, logoUrl });
+
+        closeSettingsModal();
+        showToast('設定を保存しました');
+      } catch (e) {
+        console.error(e);
+        showToast('設定の保存に失敗しました: ' + e.message);
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    };
+
+    async function loadAdminReservations() {
+      const container = document.getElementById('admin-reservation-list');
+      container.innerHTML = '<div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+      try {
+        let reservations = [];
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          // Mock data
+          await new Promise(r => setTimeout(r, 500));
+          reservations = [
+            { id: '1', name: '堀江祥汰', menu: 'フォトフェイシャル', date: '2025/12/15', time: '10:00', status: 'reserved', optionNames: 'ヘッドスパ,トリートメント', totalMinutes: 75, totalPrice: 12800, practitionerName: '田中花子' },
+            { id: '2', name: '山田花子', menu: 'フォト+イオン導入', date: '2025/12/14', time: '14:00', status: 'reserved', optionNames: '', totalMinutes: 60, totalPrice: 11000, practitionerName: '山田太郎' },
+            { id: '3', name: '田中太郎', menu: '美肌ケア', date: '2025/12/13', time: '11:30', status: 'canceled', optionNames: '', totalMinutes: 45, totalPrice: 8800, practitionerName: '田中花子' },
+          ];
+        } else {
+          const res = await fetch(`${API_BASE_URL}/api/reservations?adminId=${state.user.userId}`);
+          reservations = await res.json();
+        }
+
+        if (reservations.length === 0) {
+          container.innerHTML = '<div class="text-center text-gray-400 py-8">予約がありません</div>';
+          return;
+        }
+
+        container.innerHTML = reservations.map(item => {
+          // 予約日時が過去かどうかを判定
+          const now = new Date();
+          const reservationDateTime = new Date(`${item.date.replace(/\//g, '-')}T${item.time}:00+09:00`);
+          const isPast = reservationDateTime < now;
+
+          // ステータス判定: キャンセル済み / 来店済み（過去の予約中） / 予約中（未来の予約中）
+          let statusColor, statusText;
+          if (item.status === 'canceled') {
+            statusColor = 'bg-gray-100 text-gray-500';
+            statusText = 'キャンセル';
+          } else if (isPast && item.status === 'reserved') {
+            statusColor = 'bg-blue-100 text-blue-700';
+            statusText = '来店済';
+          } else {
+            statusColor = 'bg-green-100 text-green-700';
+            statusText = '予約中';
+          }
+
+          const optionInfo = item.optionNames ? `<div class="text-xs text-enji mt-1">+ ${item.optionNames.replace(/,/g, '、')}</div>` : '';
+          const totalInfo = item.totalMinutes ? `<div class="text-xs text-gray-500 mt-1">${item.totalMinutes}分 / ¥${Number(item.totalPrice).toLocaleString()}</div>` : '';
+          const practitionerInfo = item.practitionerName ? `<div class="text-xs text-gray-400">担当: ${item.practitionerName}</div>` : '';
+
+          // キャンセルボタンは未来の予約中のみ表示
+          const cancelBtn = (!isPast && item.status === 'reserved') ? `
+            <button onclick="event.stopPropagation(); adminCancelReservation('${item.id}', '${item.name}')"
+              class="mt-2 px-3 py-1.5 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium flex items-center gap-1">
+              <i class="fas fa-times-circle"></i> キャンセル
+            </button>` : '';
+
+          return `
+          <div class="bg-white shadow-sm border border-gray-100 p-4 rounded-xl">
+            <div class="flex justify-between items-start gap-2">
+              <div class="min-w-0 flex-1">
+                <div class="font-bold text-gray-800">${item.name} 様</div>
+                <div class="text-sm text-gray-600 mt-1">${item.date} ${item.time}</div>
+                <div class="text-xs text-gray-500 mt-1">${item.menu}</div>
+                ${optionInfo}
+                ${totalInfo}
+                ${practitionerInfo}
+                ${cancelBtn}
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap flex-shrink-0 ${statusColor}">${statusText}</span>
+            </div>
+          </div>
+        `;
+        }).join('');
+      } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div class="text-center text-red-400 py-8">読み込みエラー</div>';
+      }
+    }
+
+    // 管理者用: 予約キャンセル
+    window.adminCancelReservation = async (reservationId, customerName) => {
+      if (!await showConfirm(`${customerName}様の予約をキャンセルしますか？\n\nお客様にLINEでキャンセル通知が送信されます。`)) {
+        return;
+      }
+
+      document.getElementById('loading').classList.remove('hidden');
+      try {
+        let result = { status: 'success' };
+        if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          const res = await fetch(`${API_BASE_URL}/api/admin/reservations/${reservationId}?adminId=${state.user.userId}`, {
+            method: 'DELETE'
+          });
+          result = await res.json();
+        } else {
+          // Mock: ローカルでは0.5秒待つだけ
+          await new Promise(r => setTimeout(r, 500));
+        }
+
+        if (result.status === 'success') {
+          showToast('予約をキャンセルしました', 'success');
+          loadAdminReservations(); // リストを再読み込み
+        } else {
+          showToast('キャンセルに失敗しました: ' + (result.message || ''), 'error');
+        }
+      } catch (e) {
+        console.error(e);
+        showToast('通信エラーが発生しました', 'error');
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    };
+
+    // Admin menu management with category filter
+    let allAdminMenus = [];
+    let currentAdminCategory = 'all';
+
+    async function loadAdminMenus() {
+      const container = document.getElementById('admin-menu-list');
+      container.innerHTML = '<div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+      try {
+        let menus = [];
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          await new Promise(r => setTimeout(r, 500));
+          menus = [
+            { id: 1, category: '全員', name: 'フォトフェイシャル', minutes: 45, price: 8800, description: 'クレンジング・洗顔・鎮静美容パック付き', optionIds: '1,3' },
+            { id: 2, category: '初回限定', name: 'フォト+イオン導入', minutes: 60, price: 11000, description: 'クレンジング・洗顔・ビタミンパック', optionIds: '2' },
+          ];
+        } else {
+          const res = await fetch(`${API_BASE_URL}/api/menus`);
+          menus = await res.json();
+        }
+
+        allAdminMenus = menus;
+
+        // Generate category tabs
+        generateAdminCategoryTabs(menus);
+
+        // Render menus
+        renderAdminMenus(menus);
+      } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div class="text-center text-red-400 py-8">読み込みエラー</div>';
+      }
+    }
+
+    function generateAdminCategoryTabs(menus) {
+      const tabsContainer = document.getElementById('admin-category-tabs');
+      const categories = [...new Set(menus.map(m => m.category).filter(c => c))];
+
+      let tabsHtml = `<button onclick="filterAdminMenuByCategory('all')" class="admin-category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji bg-enji text-white transition-colors" data-category="all">すべて</button>`;
+
+      categories.forEach(cat => {
+        tabsHtml += `<button onclick="filterAdminMenuByCategory('${cat}')" class="admin-category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji bg-white text-enji hover:bg-pink-50 transition-colors" data-category="${cat}">${cat}</button>`;
+      });
+
+      tabsContainer.innerHTML = tabsHtml;
+    }
+
+    window.filterAdminMenuByCategory = (category) => {
+      currentAdminCategory = category;
+
+      // Update tab styles
+      document.querySelectorAll('.admin-category-tab').forEach(tab => {
+        const baseClasses = 'admin-category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji transition-colors';
+        if (tab.dataset.category === category) {
+          tab.className = `${baseClasses} bg-enji text-white`;
+        } else {
+          tab.className = `${baseClasses} bg-white text-enji hover:bg-pink-50`;
+        }
+      });
+
+      // Filter and render menus
+      const filteredMenus = category === 'all'
+        ? allAdminMenus
+        : allAdminMenus.filter(m => m.category === category);
+      renderAdminMenus(filteredMenus);
+    };
+
+    function renderAdminMenus(menus) {
+      const container = document.getElementById('admin-menu-list');
+
+      if (menus.length === 0) {
+        container.innerHTML = '<div class="text-center text-gray-400 py-8">メニューがありません</div>';
+        return;
+      }
+
+      const isAllCategory = currentAdminCategory === 'all';
+
+      container.innerHTML = menus.map((menu, index) => {
+        const categoryBadge = menu.category
+          ? `<span class="inline-block px-2 py-0.5 bg-pink-100 text-pink-600 text-xs rounded-full mb-1">${menu.category}</span>`
+          : '';
+
+        // Arrows HTML
+        let arrowsHtml = '';
+        if (isAllCategory) {
+          arrowsHtml = `
+            <div class="flex flex-col gap-2 ml-2">
+              <button onclick="event.stopPropagation(); moveMenu('${menu.id}', -1)" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center transition-colors">
+                <i class="fas fa-chevron-up"></i>
+              </button>
+              <button onclick="event.stopPropagation(); moveMenu('${menu.id}', 1)" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center transition-colors">
+                <i class="fas fa-chevron-down"></i>
+              </button>
+            </div>
+          `;
+        }
+
+        return `
+          <div onclick="showEditMenuModal(${JSON.stringify(menu).replace(/"/g, '&quot;')})" class="bg-white shadow-sm border border-gray-100 p-4 rounded-xl cursor-pointer hover:border-enji transition-all active:scale-95">
+            <div class="flex items-center gap-4">
+              ${menu.imageUrl ? `<img src="${menu.imageUrl}" class="w-16 h-16 rounded-lg object-cover bg-gray-100 shrink-0">` : ''}
+              <div class="flex-1 min-w-0">
+                ${categoryBadge}
+                <h3 class="font-bold text-gray-800 truncate">${menu.name}</h3>
+                <p class="text-xs text-gray-500 mt-1 mb-1 truncate">${menu.description || ''}</p>
+                <p class="text-sm text-gray-400 mt-1"><i class="far fa-clock"></i> ${menu.minutes}分</p>
+              </div>
+              <div class="flex items-center">
+                <span class="font-bold text-enji">¥${parseInt(menu.price).toLocaleString()}</span>
+                ${arrowsHtml}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Menu Reordering Logic
+    window.moveMenu = (menuId, direction) => {
+      const currentIndex = allAdminMenus.findIndex(m => String(m.id) === String(menuId));
+      if (currentIndex === -1) return;
+
+      const newIndex = currentIndex + direction;
+      // Check bounds
+      if (newIndex < 0 || newIndex >= allAdminMenus.length) return;
+
+      // Swap
+      const temp = allAdminMenus[currentIndex];
+      allAdminMenus[currentIndex] = allAdminMenus[newIndex];
+      allAdminMenus[newIndex] = temp;
+
+      // Re-render immediately
+      renderAdminMenus(allAdminMenus);
+
+      // Debounce save
+      if (window.saveOrderTimeout) clearTimeout(window.saveOrderTimeout);
+      window.saveOrderTimeout = setTimeout(saveMenuOrder, 1000);
+    };
+
+    async function saveMenuOrder() {
+      const orderedIds = allAdminMenus.map(m => m.id);
+      console.log('Saving order:', orderedIds);
+
+      try {
+        if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          await fetch(`${API_BASE_URL}/api/menus/reorder`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              adminId: state.user.userId,
+              orderedIds: orderedIds
+            })
+          });
+        } else {
+          console.log('Mock save order');
+        }
+      } catch (e) {
+        console.error('Failed to save order', e);
+        showToast('並び順の保存に失敗しました');
+      }
+    }
+
+    window.showAddMenuModal = async () => {
+      document.getElementById('menu-modal-title').innerText = '新しいメニューを追加';
+      document.getElementById('menu-edit-id').value = '';
+      document.getElementById('menu-edit-name').value = '';
+      document.getElementById('menu-edit-category').value = '';
+      document.getElementById('menu-edit-minutes').value = '';
+      document.getElementById('menu-edit-price').value = '';
+      document.getElementById('menu-edit-description').value = '';
+      document.getElementById('menu-edit-imageUrl').value = '';
+      document.getElementById('menu-edit-image').value = '';
+      document.getElementById('menu-image-preview').classList.add('hidden');
+      document.getElementById('menu-clear-image-btn').classList.add('hidden');
+      document.getElementById('menu-delete-btn').classList.add('hidden');
+      document.getElementById('category-suggestions').classList.add('hidden');
+      await loadMenuOptionsCheckboxes([]);  // デフォルトで全て未選択
+      document.getElementById('menu-modal').classList.remove('hidden');
+    };
+
+    window.showEditMenuModal = async (menu) => {
+      document.getElementById('menu-modal-title').innerText = 'メニューを編集';
+      document.getElementById('menu-edit-id').value = menu.id;
+      document.getElementById('menu-edit-name').value = menu.name;
+      document.getElementById('menu-edit-category').value = menu.category || '';
+      document.getElementById('menu-edit-minutes').value = menu.minutes;
+      document.getElementById('menu-edit-price').value = menu.price;
+      document.getElementById('menu-edit-description').value = menu.description || '';
+      document.getElementById('menu-edit-imageUrl').value = menu.imageUrl || '';
+      document.getElementById('menu-edit-image').value = '';
+
+      // Show/hide image preview
+      if (menu.imageUrl) {
+        document.getElementById('menu-preview-img').src = menu.imageUrl;
+        document.getElementById('menu-image-preview').classList.remove('hidden');
+        document.getElementById('menu-clear-image-btn').classList.remove('hidden');
+      } else {
+        document.getElementById('menu-image-preview').classList.add('hidden');
+        document.getElementById('menu-clear-image-btn').classList.add('hidden');
+      }
+
+      document.getElementById('category-suggestions').classList.add('hidden');
+      document.getElementById('menu-delete-btn').classList.remove('hidden');
+
+      // オプションチェックボックスを読み込み
+      const linkedOptionIds = menu.optionIds ? menu.optionIds.split(',').filter(id => id) : [];
+      await loadMenuOptionsCheckboxes(linkedOptionIds);
+
+      document.getElementById('menu-modal').classList.remove('hidden');
+    };
+
+    // メニュー編集モーダル用のオプションチェックボックスを読み込み
+    async function loadMenuOptionsCheckboxes(selectedIds) {
+      const container = document.getElementById('menu-options-container');
+      container.innerHTML = '<div class="text-gray-400 text-sm">読み込み中...</div>';
+
+      try {
+        let options = [];
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          options = [
+            { id: '1', name: 'ヘッドスパ', minutes: 15, price: 2000 },
+            { id: '2', name: 'ハンドマッサージ', minutes: 10, price: 1500 },
+            { id: '3', name: '眉カット', minutes: 5, price: 500 }
+          ];
+        } else {
+          const res = await fetch(`${API_BASE_URL}/api/options`);
+          options = await res.json();
+        }
+
+        if (options.length === 0) {
+          container.innerHTML = '<div class="text-gray-400 text-sm">オプションが登録されていません</div>';
+          return;
+        }
+
+        container.innerHTML = options.map(opt => {
+          const isChecked = selectedIds.includes(String(opt.id));
+          return `
+            <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+              <input type="checkbox" class="menu-option-checkbox w-4 h-4 text-enji border-gray-300 rounded focus:ring-enji"
+                value="${opt.id}" ${isChecked ? 'checked' : ''}>
+              <span class="text-sm text-gray-700">${opt.name}</span>
+              <span class="text-xs text-gray-400">(+${opt.minutes}分 / ¥${opt.price.toLocaleString()})</span>
+            </label>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Failed to load options for menu modal:', err);
+        container.innerHTML = '<div class="text-red-400 text-sm">読み込みエラー</div>';
+      }
+    }
+
+    // 選択されたオプションIDを取得
+    function getSelectedMenuOptionIds() {
+      const checkboxes = document.querySelectorAll('.menu-option-checkbox:checked');
+      return Array.from(checkboxes).map(cb => cb.value).join(',');
+    }
+
+    window.closeMenuModal = () => {
+      document.getElementById('menu-modal').classList.add('hidden');
+      document.getElementById('category-suggestions').classList.add('hidden');
+    };
+
+    // Category suggestion functions
+    window.showCategorySuggestions = (inputValue) => {
+      const suggestionsDiv = document.getElementById('category-suggestions');
+      const existingCategories = [...new Set(allAdminMenus.map(m => m.category).filter(c => c))];
+
+      // Filter categories that match input
+      const filteredCategories = existingCategories.filter(cat =>
+        cat.toLowerCase().includes(inputValue.toLowerCase())
+      );
+
+      if (filteredCategories.length === 0) {
+        suggestionsDiv.classList.add('hidden');
+        return;
+      }
+
+      suggestionsDiv.innerHTML = filteredCategories.map(cat => `
+        <div onclick="selectCategory('${cat}')" class="px-3 py-2 hover:bg-pink-50 cursor-pointer text-sm text-gray-700 border-b border-gray-100 last:border-0">
+          ${cat}
+        </div>
+      `).join('');
+      suggestionsDiv.classList.remove('hidden');
+    };
+
+    window.selectCategory = (category) => {
+      document.getElementById('menu-edit-category').value = category;
+      document.getElementById('category-suggestions').classList.add('hidden');
+    };
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#menu-edit-category') && !e.target.closest('#category-suggestions')) {
+        document.getElementById('category-suggestions')?.classList.add('hidden');
+      }
+    });
+
+    // Image preview and upload helper functions
+    window.previewMenuImage = (input) => {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById('menu-preview-img').src = e.target.result;
+          document.getElementById('menu-image-preview').classList.remove('hidden');
+          document.getElementById('menu-clear-image-btn').classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    };
+
+    window.clearMenuImage = () => {
+      document.getElementById('menu-edit-image').value = '';
+      document.getElementById('menu-edit-imageUrl').value = '';
+      document.getElementById('menu-image-preview').classList.add('hidden');
+      document.getElementById('menu-clear-image-btn').classList.add('hidden');
+    };
+
+    async function uploadMenuImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const base64Data = e.target.result;
+            const res = await fetch(`${API_BASE_URL}/api/upload-image`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                adminId: state.user.userId,
+                imageData: base64Data,
+                fileName: file.name
+              })
+            });
+            const result = await res.json();
+            if (result.status === 'success') {
+              resolve(result.imageUrl);
+            } else {
+              reject(new Error(result.message));
+            }
+          } catch (err) {
+            reject(err);
+          }
+        };
+        reader.onerror = () => reject(new Error('ファイルの読み込みに失敗しました'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    window.saveMenu = async () => {
+      const id = document.getElementById('menu-edit-id').value;
+      const name = document.getElementById('menu-edit-name').value;
+      const category = document.getElementById('menu-edit-category').value.trim();
+      const minutes = parseInt(document.getElementById('menu-edit-minutes').value);
+      const price = parseInt(document.getElementById('menu-edit-price').value);
+      const description = document.getElementById('menu-edit-description').value;
+      let imageUrl = document.getElementById('menu-edit-imageUrl').value;
+      const imageFile = document.getElementById('menu-edit-image').files[0];
+
+      if (!name || !minutes || !price) {
+        showToast('メニュー名、施術時間、料金は必須です');
+        return;
+      }
+
+      document.getElementById('loading').classList.remove('hidden');
+      try {
+        // Upload new image if selected
+        if (imageFile && !(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          imageUrl = await uploadMenuImage(imageFile);
+        }
+
+        const menuData = { name, category, minutes, price, description, imageUrl, optionIds: getSelectedMenuOptionIds() };
+        let result = { status: 'success' };
+
+        if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          if (id) {
+            // Update existing menu
+            const res = await fetch(`${API_BASE_URL}/api/menus/${id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ adminId: state.user.userId, menu: menuData })
+            });
+            result = await res.json();
+          } else {
+            // Add new menu
+            const res = await fetch(`${API_BASE_URL}/api/menus`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ adminId: state.user.userId, menu: menuData })
+            });
+            result = await res.json();
+          }
+        } else {
+          await new Promise(r => setTimeout(r, 500));
+        }
+
+        if (result.status === 'success') {
+          showToast(id ? 'メニューを更新しました' : 'メニューを追加しました');
+          closeMenuModal();
+          loadAdminMenus();
+          loadMenus(); // Refresh public menu list
+        } else {
+          showToast('エラー: ' + result.message);
+        }
+      } catch (e) {
+        console.error('saveMenu error:', e);
+        showToast('通信エラー: ' + e.message);
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    };
+
+    window.deleteMenuFromModal = async () => {
+      const id = document.getElementById('menu-edit-id').value;
+      if (!id) return;
+
+      const isConfirmed = await showConfirm('このメニューを削除しますか？');
+      if (!isConfirmed) return;
+
+      document.getElementById('loading').classList.remove('hidden');
+      try {
+        let result = { status: 'success' };
+
+        if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          const res = await fetch(`${API_BASE_URL}/api/menus/${id}?adminId=${state.user.userId}`, {
+            method: 'DELETE'
+          });
+          result = await res.json();
+        } else {
+          await new Promise(r => setTimeout(r, 500));
+        }
+
+        if (result.status === 'success') {
+          showToast('メニューを削除しました');
+          closeMenuModal();
+          loadAdminMenus();
+          loadMenus(); // Refresh public menu list
+        } else {
+          showToast('エラー: ' + result.message);
+        }
+      } catch (e) {
+        showToast('通信エラー');
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    };
+  </script>
+</body>
+
+</html>

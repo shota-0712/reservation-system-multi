@@ -1,0 +1,74 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
+  REGION: asia-northeast1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+      GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+      LINE_ACCESS_TOKEN: ${{ secrets.LINE_ACCESS_TOKEN }}
+      LIFF_ID: ${{ secrets.LIFF_ID }}
+      ADMIN_LINE_ID: ${{ secrets.ADMIN_LINE_ID }}
+      SCHEDULER_SECRET: ${{ secrets.SCHEDULER_SECRET }}
+      THEME_COLOR: ${{ secrets.THEME_COLOR }}
+      THEME_COLOR_LIGHT: ${{ secrets.THEME_COLOR_LIGHT }}
+      THEME_COLOR_DARK: ${{ secrets.THEME_COLOR_DARK }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+      
+
+      - name: Build and Push Container
+        run: |
+          cd backend
+          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }} .
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+      
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --service-account reservation-system-api@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
+            --set-env-vars "GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID}" \
+            --set-env-vars "GOOGLE_DRIVE_FOLDER_ID=${GOOGLE_DRIVE_FOLDER_ID}" \
+            --set-env-vars "LINE_ACCESS_TOKEN=${LINE_ACCESS_TOKEN}" \
+            --set-env-vars "LIFF_ID=${LIFF_ID}" \
+            --set-env-vars "ADMIN_LINE_ID=${ADMIN_LINE_ID}" \
+            --set-env-vars "SCHEDULER_SECRET=${SCHEDULER_SECRET}" \
+            --set-env-vars "GCS_BUCKET_NAME=${{ env.PROJECT_ID }}-images" \
+            --set-env-vars "TZ=Asia/Tokyo" \
+            --set-env-vars "THEME_COLOR=${THEME_COLOR}" \
+            --set-env-vars "THEME_COLOR_LIGHT=${THEME_COLOR_LIGHT}" \
+            --set-env-vars "THEME_COLOR_DARK=${THEME_COLOR_DARK}" \
+            --set-env-vars "SERVICE_NAME=${{ env.SERVICE_NAME }}"

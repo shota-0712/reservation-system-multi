@@ -1,0 +1,6 @@
+node_modules/
+.env
+.env.local
+.DS_Store
+backend/service-account.json
+reservation-system-specific-b46b9cd93887.json

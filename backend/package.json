@@ -1,0 +1,32 @@
+{
+  "name": "en-salon-reservation-api",
+  "version": "1.0.0",
+  "description": "En Salon Reservation System API - Cloud Run Backend",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "reservation",
+    "salon",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.18.0",
+    "async-mutex": "^0.5.0",
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "googleapis": "^166.0.0",
+    "uuid": "^11.0.3"
+  }
+}
