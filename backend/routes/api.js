@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const sheetsService = require('../services/sheets');
+const reservationSheetsService = require('../services/sheets');
 const calendarService = require('../services/calendar');
 const lineService = require('../services/line');
 const storageService = require('../services/storage');  // Google Cloud Storage
@@ -89,6 +89,164 @@ function formatTimeJST(value) {
     const date = new Date(value);
     const jst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
     return jst.toISOString().slice(11, 16);
+}
+
+async function withDbClient(callback) {
+    return withClient(db.getPool(), callback);
+}
+
+function parseJsonArraySetting(value, fallback = []) {
+    if (Array.isArray(value)) {
+        return value;
+    }
+
+    if (!value) {
+        return fallback;
+    }
+
+    try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : fallback;
+    } catch (err) {
+        return fallback;
+    }
+}
+
+function csvSetting(value) {
+    if (Array.isArray(value)) {
+        return value.map(item => String(item).trim()).filter(Boolean);
+    }
+
+    return value ? String(value).split(',').map(item => item.trim()).filter(Boolean) : [];
+}
+
+function businessSettingsFrom(settings) {
+    return {
+        startHour: parseInt(settings.businessStartHour ?? settings.startHour, 10) || 10,
+        endHour: parseInt(settings.businessEndHour ?? settings.endHour, 10) || 20,
+        holidays: csvSetting(settings.holidays),
+        regularHolidays: parseJsonArraySetting(settings.regularHolidays),
+        temporaryBusinessDays: csvSetting(settings.temporaryBusinessDays),
+    };
+}
+
+function formatMenu(row) {
+    return {
+        id: row.id,
+        category: row.category || '',
+        name: row.name,
+        minutes: row.minutes,
+        price: row.price,
+        description: row.description || '',
+        imageUrl: row.image_url || '',
+        sortOrder: row.sort_order,
+        optionIds: row.option_ids || '',
+        isActive: row.is_active,
+    };
+}
+
+function formatOption(row) {
+    return {
+        id: row.id,
+        name: row.name,
+        minutes: row.additional_minutes,
+        price: row.additional_price,
+        additionalMinutes: row.additional_minutes,
+        additionalPrice: row.additional_price,
+        description: row.description || '',
+        isActive: row.is_active,
+        sortOrder: row.sort_order,
+    };
+}
+
+function formatPractitioner(row) {
+    return {
+        id: row.id,
+        name: row.name || '',
+        calendarId: row.calendar_id || '',
+        imageUrl: row.image_url || '',
+        active: row.is_active,
+        isActive: row.is_active,
+        title: row.title || '',
+        sns: row.sns || '',
+        experience: row.experience || '',
+        nominationFee: row.nomination_fee || '',
+        prTitle: row.pr_title || '',
+        description: row.description || '',
+        sortOrder: row.sort_order,
+    };
+}
+
+function calendarPractitioner(row) {
+    const practitioner = formatPractitioner(row);
+    return {
+        id: practitioner.id,
+        name: practitioner.name,
+        calendarId: practitioner.calendarId,
+    };
+}
+
+function hasField(object, key) {
+    return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+function normalizeMenuInput(menu = {}, { partial = false } = {}) {
+    const input = {};
+
+    if (!partial || hasField(menu, 'category')) input.category = menu.category || '';
+    if (!partial || hasField(menu, 'name')) input.name = menu.name;
+    if (!partial || hasField(menu, 'minutes')) input.minutes = Number(menu.minutes);
+    if (!partial || hasField(menu, 'price')) input.price = Number(menu.price ?? 0);
+    if (!partial || hasField(menu, 'description')) input.description = menu.description || null;
+    if (!partial || hasField(menu, 'imageUrl')) input.imageUrl = menu.imageUrl || null;
+    if (hasField(menu, 'isActive') || hasField(menu, 'active')) input.isActive = menu.isActive ?? menu.active;
+    if (hasField(menu, 'sortOrder')) input.sortOrder = menu.sortOrder;
+    if (hasField(menu, 'optionIds')) input.optionIds = menu.optionIds;
+
+    return input;
+}
+
+function normalizeOptionInput(option = {}, { partial = false } = {}) {
+    const input = {};
+
+    if (!partial || hasField(option, 'name')) input.name = option.name;
+    if (!partial || hasField(option, 'additionalMinutes') || hasField(option, 'minutes')) {
+        input.additionalMinutes = Number(option.additionalMinutes ?? option.minutes ?? 0);
+    }
+    if (!partial || hasField(option, 'additionalPrice') || hasField(option, 'price')) {
+        input.additionalPrice = Number(option.additionalPrice ?? option.price ?? 0);
+    }
+    if (!partial || hasField(option, 'description')) input.description = option.description || null;
+    if (hasField(option, 'isActive')) input.isActive = option.isActive;
+    if (hasField(option, 'sortOrder')) input.sortOrder = option.sortOrder;
+
+    return input;
+}
+
+function normalizePractitionerInput(practitioner = {}, { partial = false } = {}) {
+    const input = {};
+
+    if (!partial || hasField(practitioner, 'name')) input.name = practitioner.name;
+    if (!partial || hasField(practitioner, 'calendarId')) input.calendarId = practitioner.calendarId || null;
+    if (!partial || hasField(practitioner, 'title')) input.title = practitioner.title || null;
+    if (!partial || hasField(practitioner, 'imageUrl')) input.imageUrl = practitioner.imageUrl || null;
+    if (!partial || hasField(practitioner, 'description')) input.description = practitioner.description || null;
+    if (!partial || hasField(practitioner, 'sns')) input.sns = practitioner.sns || null;
+    if (!partial || hasField(practitioner, 'experience')) input.experience = practitioner.experience || null;
+    if (!partial || hasField(practitioner, 'nominationFee')) {
+        input.nominationFee = Number(practitioner.nominationFee || 0);
+    }
+    if (!partial || hasField(practitioner, 'prTitle')) input.prTitle = practitioner.prTitle || null;
+    if (hasField(practitioner, 'isActive') || hasField(practitioner, 'active')) {
+        input.isActive = practitioner.isActive ?? practitioner.active;
+    }
+    if (hasField(practitioner, 'sortOrder')) input.sortOrder = practitioner.sortOrder;
+
+    return input;
+}
+
+async function getSettingsFromDb() {
+    return withDbClient((client) => repositories.settings.getAllSettings(client));
 }
 
 function explicitPractitionerFrom(data) {
@@ -705,8 +863,8 @@ router.get('/config', (req, res) => {
 // GET /api/menus - メニュー一覧取得
 router.get('/menus', async (req, res, next) => {
     try {
-        const menus = await sheetsService.getMenus();
-        res.json(menus);
+        const menus = await withDbClient((client) => repositories.menus.findActiveMenus(client));
+        res.json(menus.map(formatMenu));
     } catch (err) {
         next(err);
     }
@@ -719,8 +877,10 @@ router.post('/menus', async (req, res, next) => {
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
-        const result = await sheetsService.addMenu(menu);
-        res.json(result);
+        const created = await db.withTransaction((client) => (
+            repositories.menus.createMenu(client, normalizeMenuInput(menu))
+        ));
+        res.json({ status: 'success', menuId: created.id, menu: formatMenu(created) });
     } catch (err) {
         next(err);
     }
@@ -734,8 +894,10 @@ router.put('/menus/reorder', async (req, res, next) => {
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
-        const result = await sheetsService.reorderMenus(orderedIds);
-        res.json(result);
+        const result = await db.withTransaction((client) => (
+            repositories.menus.reorderMenus(client, orderedIds || [])
+        ));
+        res.json({ status: 'success', ...result });
     } catch (err) {
         next(err);
     }
@@ -749,8 +911,16 @@ router.put('/menus/:id', async (req, res, next) => {
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
-        const result = await sheetsService.updateMenu(menuId, menu);
-        res.json(result);
+        const updated = await db.withTransaction((client) => (
+            repositories.menus.updateMenu(client, {
+                id: menuId,
+                ...normalizeMenuInput(menu, { partial: true }),
+            })
+        ));
+        if (!updated) {
+            return res.json({ status: 'error', message: 'メニューが見つかりませんでした' });
+        }
+        res.json({ status: 'success', menu: formatMenu(updated) });
     } catch (err) {
         next(err);
     }
@@ -764,8 +934,11 @@ router.delete('/menus/:id', async (req, res, next) => {
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
-        const result = await sheetsService.deleteMenu(menuId);
-        res.json(result);
+        const deleted = await db.withTransaction((client) => repositories.menus.deactivateMenu(client, menuId));
+        if (!deleted) {
+            return res.json({ status: 'error', message: 'メニューが見つかりませんでした' });
+        }
+        res.json({ status: 'success' });
     } catch (err) {
         next(err);
     }
@@ -779,8 +952,8 @@ router.delete('/menus/:id', async (req, res, next) => {
 router.get('/settings', async (req, res, next) => {
     try {
         const adminId = req.query.adminId;
-        const settings = await sheetsService.getSettings();
-        console.log('[Debug] Settings loaded from sheet:', JSON.stringify(settings));
+        const settings = await getSettingsFromDb();
+        console.log('[Debug] Settings loaded from DB:', JSON.stringify(settings));
 
         // Public access - header customization only
         if (adminId === 'public') {
@@ -805,10 +978,10 @@ router.get('/settings', async (req, res, next) => {
             address: settings.address || '',
             station: settings.station || '',
             // Business settings
-            businessStartHour: settings.businessStartHour || '10',
-            businessEndHour: settings.businessEndHour || '20',
+            businessStartHour: settings.businessStartHour || settings.startHour || '10',
+            businessEndHour: settings.businessEndHour || settings.endHour || '20',
             holidays: settings.holidays || '',
-            regularHolidays: JSON.parse(settings.regularHolidays || '[]'),
+            regularHolidays: parseJsonArraySetting(settings.regularHolidays),
             temporaryBusinessDays: settings.temporaryBusinessDays || '',
             // Reservation info (空の場合は空のまま、フォールバックしない)
             salonInfo: settings.salonInfo || '',
@@ -830,8 +1003,8 @@ router.put('/settings', async (req, res, next) => {
             return res.status(403).json({ status: 'error', message: '管理者権限が必要です' });
         }
 
-        const result = await sheetsService.updateSettings(settings);
-        res.json(result);
+        await db.withTransaction((client) => repositories.settings.upsertSettings(client, settings || {}));
+        res.json({ status: 'success' });
     } catch (err) {
         next(err);
     }
@@ -844,8 +1017,8 @@ router.put('/settings', async (req, res, next) => {
 // GET /api/practitioners - 施術者一覧取得
 router.get('/practitioners', async (req, res, next) => {
     try {
-        const practitioners = await sheetsService.getPractitioners();
-        res.json(practitioners);
+        const practitioners = await withDbClient((client) => repositories.practitioners.findAllPractitioners(client));
+        res.json(practitioners.map(formatPractitioner));
     } catch (err) {
         next(err);
     }
@@ -858,8 +1031,10 @@ router.post('/practitioners', async (req, res, next) => {
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
-        const result = await sheetsService.addPractitioner(practitioner);
-        res.json(result);
+        const created = await db.withTransaction((client) => (
+            repositories.practitioners.createPractitioner(client, normalizePractitionerInput(practitioner))
+        ));
+        res.json({ status: 'success', practitionerId: created.id, practitioner: formatPractitioner(created) });
     } catch (err) {
         next(err);
     }
@@ -873,8 +1048,16 @@ router.put('/practitioners/:id', async (req, res, next) => {
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
-        const result = await sheetsService.updatePractitioner(practitionerId, practitioner);
-        res.json(result);
+        const updated = await db.withTransaction((client) => (
+            repositories.practitioners.updatePractitioner(client, {
+                id: practitionerId,
+                ...normalizePractitionerInput(practitioner, { partial: true }),
+            })
+        ));
+        if (!updated) {
+            return res.json({ status: 'error', message: '施術者が見つかりませんでした' });
+        }
+        res.json({ status: 'success', practitioner: formatPractitioner(updated) });
     } catch (err) {
         next(err);
     }
@@ -888,8 +1071,13 @@ router.delete('/practitioners/:id', async (req, res, next) => {
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
-        const result = await sheetsService.deletePractitioner(practitionerId);
-        res.json(result);
+        const deleted = await db.withTransaction((client) => (
+            repositories.practitioners.deactivatePractitioner(client, practitionerId)
+        ));
+        if (!deleted) {
+            return res.json({ status: 'error', message: '施術者が見つかりませんでした' });
+        }
+        res.json({ status: 'success' });
     } catch (err) {
         next(err);
     }
@@ -902,8 +1090,8 @@ router.delete('/practitioners/:id', async (req, res, next) => {
 // GET /api/options - オプション一覧取得
 router.get('/options', async (req, res, next) => {
     try {
-        const options = await sheetsService.getOptions();
-        res.json(options);
+        const options = await withDbClient((client) => repositories.options.findActiveOptions(client));
+        res.json(options.map(formatOption));
     } catch (err) {
         next(err);
     }
@@ -916,8 +1104,10 @@ router.post('/options', async (req, res, next) => {
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
-        const result = await sheetsService.addOption(option);
-        res.json(result);
+        const created = await db.withTransaction((client) => (
+            repositories.options.createOption(client, normalizeOptionInput(option))
+        ));
+        res.json({ status: 'success', optionId: created.id, option: formatOption(created) });
     } catch (err) {
         next(err);
     }
@@ -931,8 +1121,16 @@ router.put('/options/:id', async (req, res, next) => {
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
-        const result = await sheetsService.updateOption(optionId, option);
-        res.json(result);
+        const updated = await db.withTransaction((client) => (
+            repositories.options.updateOption(client, {
+                id: optionId,
+                ...normalizeOptionInput(option, { partial: true }),
+            })
+        ));
+        if (!updated) {
+            return res.json({ status: 'error', message: 'オプションが見つかりませんでした' });
+        }
+        res.json({ status: 'success', option: formatOption(updated) });
     } catch (err) {
         next(err);
     }
@@ -946,8 +1144,11 @@ router.delete('/options/:id', async (req, res, next) => {
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
-        const result = await sheetsService.deleteOption(optionId);
-        res.json(result);
+        const deleted = await db.withTransaction((client) => repositories.options.deactivateOption(client, optionId));
+        if (!deleted) {
+            return res.json({ status: 'error', message: 'オプションが見つかりませんでした' });
+        }
+        res.json({ status: 'success' });
     } catch (err) {
         next(err);
     }
@@ -964,11 +1165,13 @@ router.get('/slots', async (req, res, next) => {
         if (!practitionerId) {
             return res.status(400).json({ error: '施術者を選択してください' });
         }
-        const practitioner = await sheetsService.getPractitionerById(practitionerId);
+        const practitioner = await withDbClient((client) => (
+            repositories.practitioners.findPractitionerById(client, practitionerId)
+        ));
         if (!practitioner) {
             return res.status(404).json({ error: '施術者が見つかりません' });
         }
-        const slots = await calendarService.getAvailableSlots(date, parseInt(minutes), practitioner.calendarId);
+        const slots = await calendarService.getAvailableSlots(date, parseInt(minutes), practitioner.calendar_id);
         res.json(slots);
     } catch (err) {
         next(err);
@@ -984,29 +1187,35 @@ router.get('/weekly-availability', async (req, res, next) => {
         }
 
         // Get business settings
-        const settings = await sheetsService.getSettings();
-        const businessSettings = {
-            startHour: parseInt(settings.businessStartHour) || 10,
-            endHour: parseInt(settings.businessEndHour) || 20,
-            holidays: settings.holidays ? settings.holidays.split(',').map(d => d.trim()) : [],
-            regularHolidays: JSON.parse(settings.regularHolidays || '[]'),
-            temporaryBusinessDays: settings.temporaryBusinessDays ? settings.temporaryBusinessDays.split(',').map(d => d.trim()) : [],
-        };
+        const settings = await getSettingsFromDb();
+        const businessSettings = businessSettingsFrom(settings);
 
         // 「指名なし」の場合は全施術者のカレンダーを統合
         if (practitionerId === 'all') {
-            const practitioners = await sheetsService.getPractitioners();
+            const practitioners = await withDbClient((client) => repositories.practitioners.findActivePractitioners(client));
             if (practitioners.length === 0) {
                 return res.status(404).json({ error: '施術者が登録されていません' });
             }
-            const availability = await calendarService.getMergedWeeklyAvailability(startDate, parseInt(minutes), practitioners, businessSettings);
+            const availability = await calendarService.getMergedWeeklyAvailability(
+                startDate,
+                parseInt(minutes),
+                practitioners.map(calendarPractitioner),
+                businessSettings
+            );
             res.json(availability);
         } else {
-            const practitioner = await sheetsService.getPractitionerById(practitionerId);
+            const practitioner = await withDbClient((client) => (
+                repositories.practitioners.findPractitionerById(client, practitionerId)
+            ));
             if (!practitioner) {
                 return res.status(404).json({ error: '施術者が見つかりません' });
             }
-            const availability = await calendarService.getWeeklyAvailability(startDate, parseInt(minutes), practitioner.calendarId, businessSettings);
+            const availability = await calendarService.getWeeklyAvailability(
+                startDate,
+                parseInt(minutes),
+                practitioner.calendar_id,
+                businessSettings
+            );
             res.json(availability);
         }
     } catch (err) {
@@ -1022,7 +1231,7 @@ router.get('/weekly-availability', async (req, res, next) => {
 router.get('/history', requireLineUser, rejectMismatchedLineUser, async (req, res, next) => {
     try {
         const userId = req.lineUser.lineUserId;
-        const history = await sheetsService.getUserReservations(userId);
+        const history = await reservationSheetsService.getUserReservations(userId);
         res.json(history);
     } catch (err) {
         next(err);
@@ -1036,7 +1245,7 @@ router.get('/reservations', async (req, res, next) => {
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
-        const reservations = await sheetsService.getAllReservations();
+        const reservations = await reservationSheetsService.getAllReservations();
         res.json(reservations);
     } catch (err) {
         next(err);
@@ -1141,7 +1350,7 @@ router.put('/reservations/:id', requireLineUser, rejectMismatchedLineUser, async
         const reservationId = req.params.id;
 
         // 1. 現在の予約情報を取得
-        const reservation = await sheetsService.getReservationById(reservationId, userId);
+        const reservation = await reservationSheetsService.getReservationById(reservationId, userId);
         if (!reservation) {
             return res.json({ status: 'error', message: '予約が見つかりませんでした' });
         }
@@ -1155,7 +1364,9 @@ router.put('/reservations/:id', requireLineUser, rejectMismatchedLineUser, async
         }
 
         // 3. 施術者情報を取得
-        const practitioner = await sheetsService.getPractitionerById(practitionerId);
+        const practitioner = await withDbClient((client) => (
+            repositories.practitioners.findPractitionerById(client, practitionerId)
+        ));
         if (!practitioner) {
             return res.json({ status: 'error', message: '施術者が見つかりません' });
         }
@@ -1166,16 +1377,18 @@ router.put('/reservations/:id', requireLineUser, rejectMismatchedLineUser, async
 
         // 同じ施術者の場合は自身のイベントを除外してチェック
         const excludeEventId = String(reservation.practitionerId) === String(practitionerId) ? reservation.eventId : null;
-        const hasConflict = await calendarService.checkConflict(newDateTime, newEndTime, practitioner.calendarId, excludeEventId);
+        const hasConflict = await calendarService.checkConflict(newDateTime, newEndTime, practitioner.calendar_id, excludeEventId);
         if (hasConflict) {
             return res.json({ status: 'error', message: '指定された時間は既に予約が入っています' });
         }
 
         // 5. 旧カレンダーイベント削除
         if (reservation.eventId && reservation.practitionerId) {
-            const oldPractitioner = await sheetsService.getPractitionerById(reservation.practitionerId);
+            const oldPractitioner = await withDbClient((client) => (
+                repositories.practitioners.findPractitionerById(client, reservation.practitionerId)
+            ));
             if (oldPractitioner) {
-                await calendarService.deleteEvent(reservation.eventId, oldPractitioner.calendarId);
+                await calendarService.deleteEvent(reservation.eventId, oldPractitioner.calendar_id);
             }
         }
 
@@ -1197,14 +1410,14 @@ router.put('/reservations/:id', requireLineUser, rejectMismatchedLineUser, async
             newDateTime,
             newEndTime,
             eventDescription,
-            practitioner.calendarId
+            practitioner.calendar_id
         );
 
         // 7. スプレッドシート更新
         const optionIds = selectedOptions ? selectedOptions.map(o => o.id).join(',') : '';
         const optionNamesStr = selectedOptions ? selectedOptions.map(o => o.name).join(',') : '';
 
-        await sheetsService.updateReservation(reservationId, userId, {
+        await reservationSheetsService.updateReservation(reservationId, userId, {
             menu: menu.name,
             date: newDate,
             time: newTime,
@@ -1828,11 +2041,11 @@ router.post('/batch/reminders', async (req, res, next) => {
         console.log('[Batch] Starting reminder batch...');
 
         // スプレッドシートから保存された設定を取得 (空の場合は空のまま)
-        const settings = await sheetsService.getSettings();
+        const settings = await getSettingsFromDb();
         const salonInfo = settings.salonInfo || '';
         const precautions = settings.precautions || '';
 
-        const reservations = await sheetsService.getTomorrowReservations();
+        const reservations = await reservationSheetsService.getTomorrowReservations();
         console.log(`[Batch] Found ${reservations.length} reservations for tomorrow`);
 
         let sentCount = 0;
