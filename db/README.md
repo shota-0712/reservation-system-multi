@@ -8,7 +8,27 @@ Run migrations against an empty database:
 
 ```sh
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/001_initial_schema.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/002_master_tables.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/003_calendar_sync_schema.sql
 ```
+
+## Calendar Sync Schema
+
+`calendar_sync_states` stores the per-practitioner Google Calendar watch
+channel, webhook validation token, and incremental `syncToken` state.
+`calendar_sync_states.channel_token` is a webhook verification secret and
+must not be logged.
+
+`calendar_sync_conflicts` stores unresolved Calendar block ingestion conflicts
+so operators can inspect sync lag or reservation collisions without changing
+existing reservations automatically.
+
+Google Calendar unavailable blocks are ingested as `staff_blocks` with
+`source = 'google_calendar'`. The existing partial unique index on
+`staff_blocks(calendar_id, external_event_id)` is the idempotency guard for
+duplicate Calendar events. Events created by this system are expected to carry
+`extendedProperties.private.source = reservation_system`; later sync workers
+must skip those events instead of importing them as staff blocks.
 
 ## Smoke Tests
 
