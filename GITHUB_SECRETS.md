@@ -11,6 +11,18 @@
 
 `.github/workflows/deploy.yml` は `workflow_dispatch` で `salon_id`、`environment`、`dry_run` を受け取り、`tenants/<salon_id>.salon.yaml` を読んでdeploy対象を決めます。次の扱いを前提にしています。
 
+通常の `main` push / pull request では `.github/workflows/ci.yml` だけを実行します。CIは `backend` の `npm ci`、JavaScript構文チェック、`npm test` に限定し、GCP Secrets / Variables やSecret Managerの事前作成を必要としません。
+
+Cloud Run deployは `Deploy to Cloud Run` workflowを手動実行した時だけ走ります。`dry_run` の既定値は `true` なので、本番設定がそろう前でもtenant設定の解決とdeployコマンド確認に使えます。実deployする場合だけ `dry_run=false` を選び、下記のGitHub Secret / VariablesとSecret Manager secretを用意します。
+
+手動deploy input:
+
+| input | 必須 | 説明 |
+|---|---:|---|
+| `salon_id` | 必須 | `tenants/<salon_id>.salon.yaml` と一致するサロンID。 |
+| `environment` | 必須 | deploy認証情報やVariablesを参照するGitHub Environment。既定は `production`。 |
+| `dry_run` | 必須 | `true` では設定解決とコマンド表示だけを行い、GCP認証、image push、Cloud Run deployは行わない。 |
+
 | 値 | 管理場所 | Cloud Runでの扱い | 備考 |
 |---|---|---|---|
 | `DATABASE_URL` | Secret Manager | `--set-secrets` | 本番DB接続URL。GitHub Secretsには置かない。 |
