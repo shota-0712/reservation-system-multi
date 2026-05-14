@@ -3,6 +3,7 @@ const crypto = require('node:crypto');
 const router = express.Router();
 const reservationSheetsService = require('../services/sheets');
 const calendarService = require('../services/calendar');
+const calendarSyncService = require('../services/calendarSync');
 const lineService = require('../services/line');
 const storageService = require('../services/storage');  // Google Cloud Storage
 const db = require('../services/db');
@@ -1909,6 +1910,54 @@ function buildCalendarDescription(p) {
     ].join('\n');
 }
 
+function parseCalendarSyncStateIds(body = {}) {
+    const raw = body.calendarSyncStateIds
+        ?? body.calendar_sync_state_ids
+        ?? body.stateIds
+        ?? body.state_ids
+        ?? body.calendarSyncStateId
+        ?? body.calendar_sync_state_id
+        ?? body.stateId
+        ?? body.id
+        ?? null;
+
+    if (raw === null || raw === undefined || raw === '') {
+        return [];
+    }
+
+    const values = Array.isArray(raw)
+        ? raw
+        : String(raw).split(',').map(id => id.trim());
+    const nonEmptyValues = values.map(value => String(value || '').trim()).filter(Boolean);
+    const ids = [];
+    const seen = new Set();
+
+    for (const id of nonEmptyValues) {
+        if (!isUuid(id)) {
+            throw badRequest('calendar_sync_state.id の形式が不正です');
+        }
+        if (!seen.has(id)) {
+            seen.add(id);
+            ids.push(id);
+        }
+    }
+
+    return ids;
+}
+
+function parseCalendarSyncLimit(value) {
+    if (value === undefined || value === null || value === '') {
+        return undefined;
+    }
+
+    const limit = Number(value);
+    if (!Number.isInteger(limit) || limit <= 0 || limit > 100) {
+        throw badRequest('limit は1から100の整数で指定してください');
+    }
+
+    return limit;
+}
+
 async function handleCalendarCreate(event) {
     const p = event.payload;
     if (!p.calendarId) {
@@ -1945,6 +1994,27 @@ async function handleCalendarCancel(event) {
     const calEventId = p.calendarEventId || ('r' + p.reservationId.replace(/-/g, ''));
     await calendarService.deleteEvent(calEventId, p.calendarId);
 }
+
+router.post('/batch/calendar-sync', async (req, res, next) => {
+    try {
+        const secret = req.headers['x-scheduler-secret'];
+        const expectedSecret = process.env.SCHEDULER_SECRET;
+
+        if (!expectedSecret || secret !== expectedSecret) {
+            console.log('[CalendarSync] Unauthorized access attempt');
+            return res.status(403).json({ status: 'error', message: 'Forbidden' });
+        }
+
+        const result = await calendarSyncService.syncCalendarStates({
+            stateIds: parseCalendarSyncStateIds(req.body || {}),
+            limit: parseCalendarSyncLimit(req.body?.limit),
+        });
+
+        return res.json({ status: 'ok', ...result });
+    } catch (err) {
+        next(err);
+    }
+});
 
 function formatOptionNames(optionNames) {
     if (Array.isArray(optionNames) && optionNames.length > 0) {

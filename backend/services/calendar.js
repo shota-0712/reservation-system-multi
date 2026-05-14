@@ -418,6 +418,7 @@ function selectRandomPractitioner(availablePractitioners) {
 }
 
 module.exports = {
+    getCalendarClient,
     getWeeklyAvailability,
     getMergedWeeklyAvailability,
     getAvailableSlots,
