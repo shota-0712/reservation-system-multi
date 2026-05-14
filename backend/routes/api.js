@@ -1430,6 +1430,148 @@ router.delete('/admin/reservations/:id', async (req, res, next) => {
 });
 
 // ====================
+// スタッフブロック管理
+// ====================
+
+// POST /api/admin/staff-blocks - スタッフブロック登録
+router.post('/admin/staff-blocks', async (req, res, next) => {
+    try {
+        const data = req.body || {};
+        const { adminId } = data;
+
+        if (!isAdmin(adminId)) {
+            return res.status(403).json({ status: 'error', message: '権限がありません' });
+        }
+
+        if (!isUuid(data.practitionerId)) {
+            return res.status(400).json({ status: 'error', message: '施術者IDが不正です' });
+        }
+
+        if (!data.startAt || Number.isNaN(Date.parse(data.startAt))) {
+            return res.status(400).json({ status: 'error', message: 'startAt が不正です' });
+        }
+
+        if (!data.endAt || Number.isNaN(Date.parse(data.endAt))) {
+            return res.status(400).json({ status: 'error', message: 'endAt が不正です' });
+        }
+
+        if (Date.parse(data.endAt) <= Date.parse(data.startAt)) {
+            return res.status(400).json({ status: 'error', message: 'endAt は startAt より後にしてください' });
+        }
+
+        const result = await db.withTransaction(async (client) => {
+            const staffBlock = await repositories.staffBlocks.createStaffBlock(client, {
+                practitionerId: data.practitionerId,
+                startAt: data.startAt,
+                endAt: data.endAt,
+                reason: data.reason,
+                source: data.source || 'admin',
+            });
+
+            await repositories.auditLogs.createAuditLog(client, {
+                actorType: 'admin',
+                actorId: adminId,
+                action: 'staff_block.create',
+                entityType: 'staff_block',
+                entityId: staffBlock.id,
+                staffBlockId: staffBlock.id,
+                afterData: staffBlock,
+            });
+
+            return { staffBlock };
+        });
+
+        res.status(201).json({ status: 'success', staffBlock: result.staffBlock });
+    } catch (err) {
+        if (isBusyRangeConflict(err)) {
+            return res.status(409).json({ status: 'error', message: '指定時間帯に予約またはブロックがすでに存在します' });
+        }
+
+        if (err.statusCode) {
+            return res.status(err.statusCode).json({ status: 'error', message: err.message });
+        }
+
+        next(err);
+    }
+});
+
+// DELETE /api/admin/staff-blocks/:id - スタッフブロック取消
+router.delete('/admin/staff-blocks/:id', async (req, res, next) => {
+    try {
+        const adminId = req.query.adminId || (req.body && req.body.adminId);
+        const staffBlockId = req.params.id;
+
+        if (!isAdmin(adminId)) {
+            return res.status(403).json({ status: 'error', message: '権限がありません' });
+        }
+
+        const result = await db.withTransaction(async (client) => {
+            const existing = await repositories.staffBlocks.findById(client, staffBlockId);
+            if (!existing) {
+                throw notFound('スタッフブロックが見つかりません');
+            }
+
+            if (existing.status === 'released') {
+                return { staffBlock: existing };
+            }
+
+            const staffBlock = await repositories.staffBlocks.releaseStaffBlock(client, staffBlockId);
+            await repositories.staffBlocks.releaseStaffBlockBusyRange(client, staffBlockId);
+
+            await repositories.auditLogs.createAuditLog(client, {
+                actorType: 'admin',
+                actorId: adminId,
+                action: 'staff_block.release',
+                entityType: 'staff_block',
+                entityId: staffBlockId,
+                staffBlockId,
+                beforeData: existing,
+                afterData: staffBlock,
+            });
+
+            return { staffBlock };
+        });
+
+        res.status(200).json({ status: 'success', staffBlock: result.staffBlock });
+    } catch (err) {
+        if (err.statusCode) {
+            return res.status(err.statusCode).json({ status: 'error', message: err.message });
+        }
+
+        next(err);
+    }
+});
+
+// GET /api/admin/staff-blocks - スタッフブロック一覧取得
+router.get('/admin/staff-blocks', async (req, res, next) => {
+    try {
+        const adminId = req.query.adminId;
+
+        if (!isAdmin(adminId)) {
+            return res.status(403).json({ status: 'error', message: '権限がありません' });
+        }
+
+        const { practitionerId, from, to } = req.query;
+
+        const staffBlocks = await db.withTransaction(async (client) => {
+            return repositories.staffBlocks.findByPractitioner(client, {
+                practitionerId: practitionerId || undefined,
+                from: from || undefined,
+                to: to || undefined,
+            });
+        });
+
+        res.json({ status: 'success', staffBlocks });
+    } catch (err) {
+        if (err.statusCode) {
+            return res.status(err.statusCode).json({ status: 'error', message: err.message });
+        }
+
+        next(err);
+    }
+});
+
+// ====================
 // 画像アップロード
 // ====================
 
