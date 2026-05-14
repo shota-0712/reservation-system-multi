@@ -16,6 +16,8 @@ function createDefaultCalls() {
         findReservationByIdForUpdate: [],
         findReservationByIdempotencyKey: [],
         findPractitionerById: [],
+        findActivePractitioners: [],
+        findMenuById: [],
         createReservation: [],
         cancelReservationRecord: [],
         releaseReservationBusyRange: [],
@@ -29,6 +31,7 @@ function createDefaultCalls() {
 }
 
 const PRACTITIONER_ID = '11111111-1111-4111-8111-111111111111';
+const SECOND_PRACTITIONER_ID = '11111111-1111-4111-8111-222222222222';
 const MENU_ID = '22222222-2222-4222-8222-222222222222';
 const RESERVATION_ID = '33333333-3333-4333-8333-333333333333';
 
@@ -168,6 +171,29 @@ function createDefaultServices(calls, options = {}) {
                         calendar_id: 'calendar-1',
                     };
                 },
+                async findActivePractitioners(client, practitionerIds) {
+                    calls.findActivePractitioners.push(practitionerIds || null);
+                    const practitioners = options.practitioners || [
+                        {
+                            id: PRACTITIONER_ID,
+                            name: 'Staff',
+                            calendar_id: 'calendar-1',
+                        },
+                    ];
+
+                    if (!practitionerIds) {
+                        return practitioners;
+                    }
+
+                    const requested = new Set(practitionerIds.map(id => String(id)));
+                    return practitioners.filter(practitioner => requested.has(String(practitioner.id)));
+                },
+            },
+            menus: {
+                async findMenuById(client, menuId) {
+                    calls.findMenuById.push(menuId);
+                    return options.menuRow || null;
+                },
             },
             reservations: {
                 async findReservationByIdForUpdate(client, reservationId) {
@@ -184,6 +210,9 @@ function createDefaultServices(calls, options = {}) {
                 },
                 async createReservation(client, input) {
                     calls.createReservation.push(input);
+                    if (options.createReservation) {
+                        return options.createReservation({ client, input, calls });
+                    }
                     if (options.createReservationError) {
                         throw options.createReservationError;
                     }
@@ -366,6 +395,33 @@ function reservationPayload(overrides = {}) {
     };
 }
 
+function unrequestedReservationPayload(overrides = {}) {
+    return reservationPayload({
+        practitionerId: undefined,
+        practitionerName: undefined,
+        availablePractitioners: [
+            { id: PRACTITIONER_ID, name: 'Staff A', calendarId: 'calendar-a' },
+            { id: SECOND_PRACTITIONER_ID, name: 'Staff B', calendarId: 'calendar-b' },
+        ],
+        ...overrides,
+    });
+}
+
+function activePractitionerRows() {
+    return [
+        {
+            id: PRACTITIONER_ID,
+            name: 'Staff A',
+            calendar_id: 'calendar-a',
+        },
+        {
+            id: SECOND_PRACTITIONER_ID,
+            name: 'Staff B',
+            calendar_id: 'calendar-b',
+        },
+    ];
+}
+
 test('customer API returns 401 when ID token is missing', async () => {
     await withApiServer({}, async ({ baseUrl, calls }) => {
         const response = await fetch(`${baseUrl}/api/history`);
@@ -484,6 +540,203 @@ test('reservation creation rolls back and returns 409 when busy range conflicts'
         assert.equal(calls.createReservation.length, 1);
         assert.equal(calls.createOutboxEvent.length, 0);
     });
+});
+
+test('unrequested reservation assigns one active candidate and returns the assigned practitioner', async () => {
+    await withApiServer({
+        verifyResponse: { sub: 'Uverified' },
+        practitioners: activePractitionerRows(),
+    }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/reservations`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+            body: JSON.stringify(unrequestedReservationPayload()),
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 201);
+        assert.equal(body.status, 'success');
+        assert.equal(body.existing, false);
+        assert.ok([PRACTITIONER_ID, SECOND_PRACTITIONER_ID].includes(body.reservation.practitionerId));
+        assert.equal(body.reservation.practitioner_id, body.reservation.practitionerId);
+        assert.equal(body.reservation.practitioner.id, body.reservation.practitionerId);
+        assert.deepEqual(calls.findActivePractitioners, [[PRACTITIONER_ID, SECOND_PRACTITIONER_ID]]);
+        assert.equal(calls.findPractitionerById.length, 0);
+        assert.equal(calls.createReservation.length, 1);
+        assert.equal(calls.createOutboxEvent.length, 3);
+        assert.equal(calls.addReservation.length, 0);
+        assert.equal(calls.checkConflict.length, 0);
+        assert.equal(calls.createEvent.length, 0);
+        assert.equal(calls.pushMessage.length, 0);
+    });
+});
+
+test('unrequested reservation retries the next candidate after a busy range conflict', async () => {
+    const createReservation = async ({ input, calls }) => {
+        if (calls.createReservation.length === 1) {
+            const err = new Error('exclusion violation');
+            err.code = '23P01';
+            throw err;
+        }
+
+        return createdReservationRow(input);
+    };
+
+    await withApiServer({
+        verifyResponse: { sub: 'Uverified' },
+        practitioners: activePractitionerRows(),
+        createReservation,
+    }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/reservations`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+            body: JSON.stringify(unrequestedReservationPayload()),
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 201);
+        assert.equal(body.status, 'success');
+        assert.equal(calls.createReservation.length, 2);
+        assert.notEqual(calls.createReservation[0].practitionerId, calls.createReservation[1].practitionerId);
+        assert.equal(body.reservation.practitionerId, calls.createReservation[1].practitionerId);
+        assert.equal(calls.createOutboxEvent.length, 3);
+        assert.equal(calls.withTransaction.filter(entry => entry === 'ROLLBACK').length, 1);
+    });
+});
+
+test('unrequested reservation returns 409 when every candidate is busy', async () => {
+    const createReservation = async () => {
+        const err = new Error('exclusion violation');
+        err.code = '23P01';
+        throw err;
+    };
+
+    await withApiServer({
+        verifyResponse: { sub: 'Uverified' },
+        practitioners: activePractitionerRows(),
+        createReservation,
+    }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/reservations`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+            body: JSON.stringify(unrequestedReservationPayload()),
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 409);
+        assert.equal(body.status, 'error');
+        assert.equal(body.message, '指定された時間は満席です');
+        assert.equal(calls.createReservation.length, 2);
+        assert.equal(calls.createOutboxEvent.length, 0);
+    });
+});
+
+test('unrequested reservation idempotency resend returns the existing assignment', async () => {
+    const existingReservation = createdReservationRow(
+        {
+            lineUserId: 'Uverified',
+            idempotencyKey: 'reservation-key-1',
+            customerName: 'Customer',
+            customerPhone: '090-0000-0000',
+            practitionerId: SECOND_PRACTITIONER_ID,
+            practitionerNameSnapshot: 'Staff B',
+            menuNameSnapshot: 'Menu',
+            startAt: new Date('2099-01-01T01:00:00.000Z'),
+            endAt: new Date('2099-01-01T02:00:00.000Z'),
+            status: 'reserved',
+            totalMinutes: 60,
+            totalPrice: 10000,
+        }
+    );
+
+    await withApiServer({
+        verifyResponse: { sub: 'Uverified' },
+        existingReservation,
+        practitioners: activePractitionerRows(),
+    }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/reservations`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+                'Idempotency-Key': 'reservation-key-1',
+            },
+            body: JSON.stringify(unrequestedReservationPayload()),
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 200);
+        assert.equal(body.status, 'success');
+        assert.equal(body.existing, true);
+        assert.equal(body.reservation.practitionerId, SECOND_PRACTITIONER_ID);
+        assert.equal(calls.findActivePractitioners.length, 0);
+        assert.equal(calls.createReservation.length, 0);
+        assert.equal(calls.createOutboxEvent.length, 0);
+    });
+});
+
+test('parallel unrequested reservations do not assign the same practitioner slot twice', async () => {
+    const occupiedSlots = new Set();
+    let sequence = 0;
+    const originalRandom = Math.random;
+
+    Math.random = () => 0.99;
+
+    const createReservation = async ({ input }) => {
+        const slotKey = `${input.practitionerId}:${input.startAt.toISOString()}`;
+
+        if (occupiedSlots.has(slotKey)) {
+            const err = new Error('exclusion violation');
+            err.code = '23P01';
+            throw err;
+        }
+
+        occupiedSlots.add(slotKey);
+        sequence += 1;
+        return createdReservationRow(input, {
+            id: `33333333-3333-4333-8333-33333333333${sequence}`,
+        });
+    };
+
+    try {
+        await withApiServer({
+            verifyResponse: { sub: 'Uverified' },
+            practitioners: activePractitionerRows(),
+            createReservation,
+        }, async ({ baseUrl, calls }) => {
+            const request = () => fetch(`${baseUrl}/api/reservations`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders(),
+                },
+                body: JSON.stringify(unrequestedReservationPayload()),
+            });
+
+            const responses = await Promise.all([request(), request()]);
+            const bodies = await Promise.all(responses.map(response => response.json()));
+            const assignedPractitionerIds = bodies.map(body => body.reservation.practitionerId);
+
+            assert.deepEqual(responses.map(response => response.status), [201, 201]);
+            assert.equal(new Set(assignedPractitionerIds).size, 2);
+            assert.equal(occupiedSlots.size, 2);
+            assert.equal(calls.createOutboxEvent.length, 6);
+            assert.equal(calls.addReservation.length, 0);
+            assert.equal(calls.createEvent.length, 0);
+            assert.equal(calls.pushMessage.length, 0);
+        });
+    } finally {
+        Math.random = originalRandom;
+    }
 });
 
 test('reservation creation returns existing reservation for same line user and idempotency key', async () => {

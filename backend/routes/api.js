@@ -91,8 +91,8 @@ function formatTimeJST(value) {
     return jst.toISOString().slice(11, 16);
 }
 
-function selectedPractitionerFrom(data) {
-    if (data.practitionerId) {
+function explicitPractitionerFrom(data) {
+    if (data.practitionerId && data.practitionerId !== 'all') {
         return {
             id: data.practitionerId,
             name: data.practitionerName,
@@ -100,15 +100,28 @@ function selectedPractitionerFrom(data) {
         };
     }
 
-    if (Array.isArray(data.availablePractitioners) && data.availablePractitioners.length > 0) {
-        return data.availablePractitioners[0];
+    if (data.practitioner_id && data.practitioner_id !== 'all') {
+        return {
+            id: data.practitioner_id,
+            name: data.practitioner_name,
+            calendarId: data.calendar_id,
+        };
     }
 
     return null;
 }
 
+function isUnrequestedReservation(data) {
+    return !explicitPractitionerFrom(data)
+        && (
+            data.practitionerId === 'all'
+            || data.practitioner_id === 'all'
+            || Array.isArray(data.availablePractitioners)
+        );
+}
+
 async function resolvePractitionerSnapshot(client, data, practitionerId) {
-    const selected = selectedPractitionerFrom(data);
+    const selected = explicitPractitionerFrom(data);
     const requestCalendarId = data.calendarId || selected?.calendarId || null;
     const practitioner = await repositories.practitioners.findPractitionerById(client, practitionerId);
 
@@ -117,18 +130,18 @@ async function resolvePractitionerSnapshot(client, data, practitionerId) {
     }
 
     return {
+        id: practitioner.id,
         name: practitioner.name,
         calendarId: practitioner.calendar_id || requestCalendarId,
     };
 }
 
 function buildReservationInput(data, lineUserId, idempotencyKey, practitionerSnapshot) {
-    const selected = selectedPractitionerFrom(data);
-    if (!selected?.id) {
+    if (!practitionerSnapshot?.id) {
         throw badRequest('施術者を選択してください');
     }
 
-    const practitionerId = String(selected.id);
+    const practitionerId = String(practitionerSnapshot.id);
     if (!isUuid(practitionerId)) {
         throw badRequest('施術者IDの形式が不正です');
     }
@@ -191,6 +204,141 @@ function buildReservationInput(data, lineUserId, idempotencyKey, practitionerSna
     };
 }
 
+function uniqueUuidList(values) {
+    const ids = [];
+    const seen = new Set();
+
+    for (const value of values || []) {
+        const id = typeof value === 'object' && value !== null ? value.id : value;
+        const normalized = id === null || id === undefined ? '' : String(id).trim();
+
+        if (isUuid(normalized) && !seen.has(normalized)) {
+            seen.add(normalized);
+            ids.push(normalized);
+        }
+    }
+
+    return ids;
+}
+
+function parsePractitionerIds(value) {
+    if (value === null || value === undefined || value === '') {
+        return [];
+    }
+
+    if (Array.isArray(value)) {
+        return uniqueUuidList(value);
+    }
+
+    if (typeof value === 'string') {
+        return uniqueUuidList(value.split(',').map(id => id.trim()));
+    }
+
+    return [];
+}
+
+function practitionerIdsFromMenuLike(menu) {
+    if (!menu || typeof menu !== 'object') {
+        return [];
+    }
+
+    return parsePractitionerIds(
+        menu.practitionerIds
+        ?? menu.practitioner_ids
+        ?? menu.availablePractitionerIds
+        ?? menu.available_practitioner_ids
+    );
+}
+
+function requestCandidateIdsFrom(data) {
+    if (!Array.isArray(data.availablePractitioners)) {
+        return null;
+    }
+
+    return uniqueUuidList(data.availablePractitioners);
+}
+
+function candidateRequestSnapshotById(data) {
+    const snapshots = new Map();
+
+    for (const practitioner of data.availablePractitioners || []) {
+        if (!practitioner?.id || !isUuid(String(practitioner.id))) {
+            continue;
+        }
+
+        snapshots.set(String(practitioner.id), practitioner);
+    }
+
+    return snapshots;
+}
+
+function menuIdFrom(data) {
+    const menu = data.menu || {};
+    const menuId = typeof menu === 'object' ? menu.id : data.menuId;
+    return menuId && isUuid(String(menuId)) ? String(menuId) : null;
+}
+
+async function menuRestrictedPractitionerIds(client, data) {
+    const menuId = menuIdFrom(data);
+
+    if (menuId && repositories.menus?.findMenuById) {
+        const menu = await repositories.menus.findMenuById(client, menuId);
+        const metadataIds = practitionerIdsFromMenuLike(menu?.metadata);
+
+        if (metadataIds.length > 0) {
+            return metadataIds;
+        }
+    }
+
+    return practitionerIdsFromMenuLike(data.menu);
+}
+
+function intersectCandidateIds(left, right) {
+    if (left === null && right.length === 0) {
+        return null;
+    }
+    if (left === null) {
+        return right;
+    }
+    if (right.length === 0) {
+        return left;
+    }
+
+    const allowed = new Set(right);
+    return left.filter(id => allowed.has(id));
+}
+
+function orderAssignmentCandidates(candidates) {
+    const shuffled = [...candidates];
+
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled;
+}
+
+async function resolveUnrequestedCandidates(client, data) {
+    const requestCandidateIds = requestCandidateIdsFrom(data);
+    const menuCandidateIds = await menuRestrictedPractitionerIds(client, data);
+    const candidateIds = intersectCandidateIds(requestCandidateIds, menuCandidateIds);
+    const practitioners = await repositories.practitioners.findActivePractitioners(client, candidateIds);
+    const requestSnapshots = candidateRequestSnapshotById(data);
+
+    return orderAssignmentCandidates(
+        practitioners.map(practitioner => {
+            const requestSnapshot = requestSnapshots.get(String(practitioner.id));
+
+            return {
+                id: practitioner.id,
+                name: practitioner.name,
+                calendarId: practitioner.calendar_id || requestSnapshot?.calendarId || null,
+            };
+        })
+    );
+}
+
 function reservationResponse(reservation) {
     return {
         id: reservation.id,
@@ -206,7 +354,12 @@ function reservationResponse(reservation) {
         startAt: new Date(reservation.start_at).toISOString(),
         endAt: new Date(reservation.end_at).toISOString(),
         practitionerId: reservation.practitioner_id,
+        practitioner_id: reservation.practitioner_id,
         practitionerName: reservation.practitioner_name_snapshot,
+        practitioner: {
+            id: reservation.practitioner_id,
+            name: reservation.practitioner_name_snapshot,
+        },
         totalMinutes: reservation.total_minutes,
         totalPrice: reservation.total_price,
         canceledAt: reservation.canceled_at ? new Date(reservation.canceled_at).toISOString() : null,
@@ -437,23 +590,7 @@ async function findExistingReservation(lineUserId, idempotencyKey) {
     ));
 }
 
-async function createReservationFromDb(data, lineUserId, idempotencyKey) {
-    if (idempotencyKey) {
-        const existing = await findExistingReservation(lineUserId, idempotencyKey);
-        if (existing) {
-            return { reservation: existing, existing: true };
-        }
-    }
-
-    const selected = selectedPractitionerFrom(data);
-    const practitionerId = selected?.id ? String(selected.id) : '';
-    if (!practitionerId) {
-        throw badRequest('施術者を選択してください');
-    }
-    if (!isUuid(practitionerId)) {
-        throw badRequest('施術者IDの形式が不正です');
-    }
-
+async function createReservationForPractitioner(data, lineUserId, idempotencyKey, practitionerId) {
     return db.withTransaction(async (client) => {
         if (idempotencyKey) {
             const existing = await repositories.reservations.findReservationByIdempotencyKey(
@@ -473,6 +610,75 @@ async function createReservationFromDb(data, lineUserId, idempotencyKey) {
         await enqueueReservationCreatedEvents(client, reservation, input);
         return { reservation, existing: false };
     });
+}
+
+async function tryCreateReservationWithSnapshot(data, lineUserId, idempotencyKey, practitionerSnapshot) {
+    return db.withTransaction(async (client) => {
+        if (idempotencyKey) {
+            const existing = await repositories.reservations.findReservationByIdempotencyKey(
+                client,
+                lineUserId,
+                idempotencyKey
+            );
+
+            if (existing) {
+                return { reservation: existing, existing: true };
+            }
+        }
+
+        const input = buildReservationInput(data, lineUserId, idempotencyKey, practitionerSnapshot);
+        const reservation = await repositories.reservations.createReservation(client, input);
+        await enqueueReservationCreatedEvents(client, reservation, input);
+        return { reservation, existing: false };
+    });
+}
+
+async function createUnrequestedReservationFromDb(data, lineUserId, idempotencyKey) {
+    const candidates = await db.withTransaction((client) => resolveUnrequestedCandidates(client, data));
+
+    if (candidates.length === 0) {
+        throw conflict('予約可能な施術者が見つかりません');
+    }
+
+    for (const candidate of candidates) {
+        try {
+            return await tryCreateReservationWithSnapshot(data, lineUserId, idempotencyKey, candidate);
+        } catch (err) {
+            if (isBusyRangeConflict(err)) {
+                continue;
+            }
+
+            throw err;
+        }
+    }
+
+    throw conflict('指定された時間は満席です');
+}
+
+async function createReservationFromDb(data, lineUserId, idempotencyKey) {
+    if (idempotencyKey) {
+        const existing = await findExistingReservation(lineUserId, idempotencyKey);
+        if (existing) {
+            return { reservation: existing, existing: true };
+        }
+    }
+
+    const selected = explicitPractitionerFrom(data);
+
+    if (selected?.id) {
+        const practitionerId = String(selected.id);
+        if (!isUuid(practitionerId)) {
+            throw badRequest('施術者IDの形式が不正です');
+        }
+
+        return createReservationForPractitioner(data, lineUserId, idempotencyKey, practitionerId);
+    }
+
+    if (isUnrequestedReservation(data)) {
+        return createUnrequestedReservationFromDb(data, lineUserId, idempotencyKey);
+    }
+
+    throw badRequest('施術者を選択してください');
 }
 
 // ====================
@@ -880,6 +1086,13 @@ router.post('/reservations', requireLineUser, rejectMismatchedLineUser, async (r
             return res.status(400).json({
                 status: 'error',
                 message: err.statusCode === 400 ? err.message : '予約内容が不正です',
+            });
+        }
+
+        if (err.statusCode) {
+            return res.status(err.statusCode).json({
+                status: 'error',
+                message: err.message,
             });
         }
 
