@@ -81,6 +81,7 @@ function makeServiceHarness(responses, overrides = {}) {
         },
         withClient: async (callback) => callback({ client: true }),
         getCalendarClient: async () => calendarClient,
+        importExternalEvents: false,
         now: () => FIXED_NOW,
     };
 
@@ -231,6 +232,49 @@ test('syncCalendarStates loads requested sync states and returns aggregate count
     assert.equal(result.fetched_count, 2);
     assert.equal(result.ignored_system_event_count, 1);
     assert.equal(result.external_event_count, 1);
+});
+
+test('syncCalendarState can import external event candidates', async () => {
+    const importCalls = [];
+    const harness = makeServiceHarness([
+        {
+            items: [
+                {
+                    id: 'external-event',
+                    status: 'confirmed',
+                    summary: 'Private appointment',
+                    start: { dateTime: '2026-05-15T10:00:00+09:00' },
+                    end: { dateTime: '2026-05-15T11:00:00+09:00' },
+                },
+            ],
+            nextSyncToken: 'next-token',
+        },
+    ]);
+
+    const result = await syncCalendarState(makeSyncState(), {
+        ...harness.options,
+        importExternalEvents: true,
+        async importExternalEventCandidates(candidates, input) {
+            importCalls.push({ candidates, input });
+            return {
+                imported_count: 1,
+                updated_count: 0,
+                released_count: 0,
+                skipped_count: 0,
+                failed_count: 0,
+                results: [{ action: 'imported', external_event_id: 'external-event' }],
+            };
+        },
+    });
+
+    assert.equal(result.imported_count, 1);
+    assert.equal(result.updated_count, 0);
+    assert.equal(result.failed_count, 0);
+    assert.equal(result.import_results[0].action, 'imported');
+    assert.equal(importCalls.length, 1);
+    assert.equal(importCalls[0].candidates[0].google_event_id, 'external-event');
+    assert.equal(importCalls[0].input.db, harness.options.db);
+    assert.equal(importCalls[0].input.repositories, harness.options.repositories);
 });
 
 async function withCalendarSyncBatchServer(options, callback) {

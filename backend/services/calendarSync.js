@@ -1,5 +1,6 @@
 const db = require('./db');
 const calendarService = require('./calendar');
+const calendarStaffBlockImport = require('./calendarStaffBlockImport');
 const repositories = require('../repositories');
 
 const DEFAULT_FULL_SYNC_PAST_DAYS = 1;
@@ -118,6 +119,9 @@ function resolveDependencies(options = {}) {
         repositories: options.repositories || repositories,
         getCalendarClient: options.getCalendarClient || calendarService.getCalendarClient,
         withClient: options.withClient,
+        importExternalEvents: options.importExternalEvents !== false,
+        importExternalEventCandidates: options.importExternalEventCandidates
+            || calendarStaffBlockImport.importExternalEventCandidates,
         now: options.now || (() => new Date()),
         fullSyncPastDays: options.fullSyncPastDays || DEFAULT_FULL_SYNC_PAST_DAYS,
         fullSyncFutureDays: options.fullSyncFutureDays || DEFAULT_FULL_SYNC_FUTURE_DAYS,
@@ -215,6 +219,41 @@ function buildResult(syncState, fetchResult, savedState, recoveredFromExpiredSyn
     };
 }
 
+function emptyImportSummary() {
+    return {
+        imported_count: 0,
+        updated_count: 0,
+        released_count: 0,
+        skipped_count: 0,
+        failed_count: 0,
+        import_results: [],
+    };
+}
+
+async function attachImportSummary(result, deps) {
+    if (!deps.importExternalEvents) {
+        return {
+            ...result,
+            ...emptyImportSummary(),
+        };
+    }
+
+    const importSummary = await deps.importExternalEventCandidates(result.external_events, {
+        db: deps.db,
+        repositories: deps.repositories,
+    });
+
+    return {
+        ...result,
+        imported_count: importSummary.imported_count,
+        updated_count: importSummary.updated_count,
+        released_count: importSummary.released_count,
+        skipped_count: importSummary.skipped_count,
+        failed_count: importSummary.failed_count,
+        import_results: importSummary.results,
+    };
+}
+
 async function syncCalendarState(syncState, options = {}) {
     const deps = resolveDependencies(options);
     const calendarClient = options.calendarClient
@@ -243,7 +282,8 @@ async function syncCalendarState(syncState, options = {}) {
         }
 
         const savedState = await persistSuccess(deps, syncState, fetchResult);
-        return buildResult(syncState, fetchResult, savedState, recoveredFromExpiredSyncToken);
+        const result = buildResult(syncState, fetchResult, savedState, recoveredFromExpiredSyncToken);
+        return attachImportSummary(result, deps);
     } catch (err) {
         await persistFailure(deps, syncState, err);
         throw err;
@@ -321,6 +361,11 @@ async function syncCalendarStates(options = {}) {
         fetched_count: successfulResults.reduce((sum, result) => sum + result.fetched_count, 0),
         ignored_system_event_count: successfulResults.reduce((sum, result) => sum + result.ignored_system_event_count, 0),
         external_event_count: successfulResults.reduce((sum, result) => sum + result.external_event_count, 0),
+        imported_count: successfulResults.reduce((sum, result) => sum + (result.imported_count || 0), 0),
+        updated_count: successfulResults.reduce((sum, result) => sum + (result.updated_count || 0), 0),
+        released_count: successfulResults.reduce((sum, result) => sum + (result.released_count || 0), 0),
+        skipped_count: successfulResults.reduce((sum, result) => sum + (result.skipped_count || 0), 0),
+        failed_count: successfulResults.reduce((sum, result) => sum + (result.failed_count || 0), 0),
         results,
     };
 }
