@@ -1409,17 +1409,107 @@ async function handleCalendarCancel(event) {
     await calendarService.deleteEvent(calEventId, p.calendarId);
 }
 
-async function handleLineNotify(event) {
-    console.log('[outbox] line_notify stub', event.id);
+function formatOptionNames(optionNames) {
+    if (Array.isArray(optionNames) && optionNames.length > 0) {
+        return optionNames.join('、');
+    }
+    if (typeof optionNames === 'string' && optionNames) {
+        return optionNames;
+    }
+    return null;
+}
+
+function buildCustomerCreatedMessage(p) {
+    const opts = formatOptionNames(p.optionNames);
+    const lines = [
+        `${p.customerName}様`,
+        'ご予約が完了しました。',
+        '',
+        `📅 日時: ${p.date} ${p.time}`,
+        `💆 メニュー: ${p.menuName}`,
+    ];
+    if (opts) lines.push(`✨ オプション: ${opts}`);
+    lines.push(
+        `⏱️ 所要時間: ${p.totalMinutes}分`,
+        `💰 料金: ¥${Number(p.totalPrice).toLocaleString()}`,
+        `👤 担当: ${p.practitionerName || '指名なし'}`,
+        '',
+        'ご来店をお待ちしております。'
+    );
+    return lines.join('\n');
+}
+
+function buildAdminCreatedMessage(p) {
+    const opts = formatOptionNames(p.optionNames);
+    const menuLine = opts ? `💆 ${p.menuName} + ${opts}` : `💆 ${p.menuName}`;
+    return [
+        '【新規予約】',
+        `👤 ${p.customerName} 様`,
+        `📅 ${p.date} ${p.time}`,
+        menuLine,
+        `⏱️ ${p.totalMinutes}分 / ¥${Number(p.totalPrice).toLocaleString()}`,
+        `👤 担当: ${p.practitionerName || '未定'}`,
+        `📞 ${p.customerPhone || '-'}`,
+    ].join('\n');
+}
+
+function buildCustomerCanceledMessage(p) {
+    const lines = [
+        `${p.customerName}様`,
+        'ご予約をキャンセルしました。',
+        '',
+        `📅 ${p.date} ${p.time}`,
+        `💆 ${p.menuName}`,
+        `👤 担当: ${p.practitionerName || '指名なし'}`,
+    ];
+    if (p.cancelReason) lines.push(`キャンセル理由: ${p.cancelReason}`);
+    lines.push('', 'またのご利用をお待ちしております。');
+    return lines.join('\n');
+}
+
+function buildAdminCanceledMessage(p) {
+    const lines = [
+        '【予約キャンセル】',
+        `👤 ${p.customerName} 様`,
+        `📅 ${p.date} ${p.time}`,
+        `💆 ${p.menuName}`,
+        `👤 担当: ${p.practitionerName || '未定'}`,
+    ];
+    if (p.cancelReason) lines.push(`キャンセル理由: ${p.cancelReason}`);
+    return lines.join('\n');
+}
+
+async function handleLineNotifyCustomerCreated(event) {
+    const p = event.payload;
+    if (!p || !p.lineUserId) return;
+    await lineService.pushMessage(p.lineUserId, buildCustomerCreatedMessage(p));
+}
+
+async function handleLineNotifyAdminCreated(event) {
+    const p = event.payload;
+    const ids = (p && p.adminLineIds) || [];
+    await Promise.all(ids.map(id => lineService.pushMessage(id, buildAdminCreatedMessage(p))));
+}
+
+async function handleLineNotifyCustomerCanceled(event) {
+    const p = event.payload;
+    if (!p || !p.lineUserId) return;
+    await lineService.pushMessage(p.lineUserId, buildCustomerCanceledMessage(p));
+}
+
+async function handleLineNotifyAdminCanceled(event) {
+    const p = event.payload;
+    const ids = (p && p.adminLineIds) || [];
+    await Promise.all(ids.map(id => lineService.pushMessage(id, buildAdminCanceledMessage(p))));
 }
 
 const EVENT_HANDLERS = {
-    'reservation.calendar.create': handleCalendarCreate,
-    'reservation.calendar.cancel': handleCalendarCancel,
-    'reservation.line.notify_customer_created': handleLineNotify,
-    'reservation.line.notify_admin_created': handleLineNotify,
-    'reservation.line.notify_customer_canceled': handleLineNotify,
-    'reservation.line.notify_admin_canceled': handleLineNotify,
+    'reservation.calendar.create':               handleCalendarCreate,
+    'reservation.calendar.cancel':               handleCalendarCancel,
+    'reservation.line.notify_customer_created':  handleLineNotifyCustomerCreated,
+    'reservation.line.notify_admin_created':     handleLineNotifyAdminCreated,
+    'reservation.line.notify_customer_canceled': handleLineNotifyCustomerCanceled,
+    'reservation.line.notify_admin_canceled':    handleLineNotifyAdminCanceled,
 };
 
 async function processEvent(event) {

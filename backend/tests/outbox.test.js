@@ -271,7 +271,7 @@ async function withOutboxServer(options, callback) {
         });
         setModule(require.resolve('../services/sheets'), { getSettings: async () => ({}) });
         setModule(require.resolve('../services/calendar'), options.calendarMock || defaultCalendarMock);
-        setModule(require.resolve('../services/line'), { pushMessage: async () => {} });
+        setModule(require.resolve('../services/line'), options.lineMock || { pushMessage: async () => {} });
         setModule(require.resolve('../services/storage'), {});
 
         clearModule(apiPath);
@@ -532,6 +532,171 @@ test('reservation.calendar.cancel with null calendarId skips deleteEvent and suc
         assert.equal(body.processed, 1);
         assert.equal(body.failed, 0);
         assert.equal(deleteEventCalls.length, 0);
+    });
+});
+
+// ----------------------------------------------------------------
+// LINE notify handler tests
+// ----------------------------------------------------------------
+
+const SAMPLE_LINE_CREATED_PAYLOAD = {
+    lineUserId: 'Uaaaa',
+    customerName: '田中太郎',
+    customerPhone: '090-1234-5678',
+    practitionerName: 'スタッフA',
+    menuName: 'テストメニュー',
+    optionNames: [],
+    totalMinutes: 60,
+    totalPrice: 5000,
+    date: '2026/06/01',
+    time: '10:00',
+};
+
+const SAMPLE_LINE_CANCELED_PAYLOAD = {
+    lineUserId: 'Ubbbb',
+    customerName: '鈴木花子',
+    practitionerName: 'スタッフB',
+    menuName: 'カットコース',
+    date: '2026/06/02',
+    time: '14:00',
+    cancelReason: null,
+};
+
+test('notify_customer_created calls pushMessage once with lineUserId', async () => {
+    const pushCalls = [];
+    const claimedEvents = [
+        { id: 'event-1', event_type: 'reservation.line.notify_customer_created', payload: SAMPLE_LINE_CREATED_PAYLOAD },
+    ];
+
+    await withOutboxServer({
+        claimedEvents,
+        lineMock: { pushMessage: async (id, msg) => { pushCalls.push({ id, msg }); } },
+    }, async ({ baseUrl }) => {
+        const response = await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        const body = await response.json();
+        assert.equal(body.processed, 1);
+        assert.equal(body.failed, 0);
+        assert.equal(pushCalls.length, 1);
+        assert.equal(pushCalls[0].id, SAMPLE_LINE_CREATED_PAYLOAD.lineUserId);
+    });
+});
+
+test('notify_admin_created calls pushMessage for each adminLineId (2件)', async () => {
+    const pushCalls = [];
+    const payload = { ...SAMPLE_LINE_CREATED_PAYLOAD, adminLineIds: ['Uadmin1', 'Uadmin2'] };
+    const claimedEvents = [
+        { id: 'event-1', event_type: 'reservation.line.notify_admin_created', payload },
+    ];
+
+    await withOutboxServer({
+        claimedEvents,
+        lineMock: { pushMessage: async (id, msg) => { pushCalls.push({ id, msg }); } },
+    }, async ({ baseUrl }) => {
+        const response = await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        const body = await response.json();
+        assert.equal(body.processed, 1);
+        assert.equal(body.failed, 0);
+        assert.equal(pushCalls.length, 2);
+        assert.ok(pushCalls.some(c => c.id === 'Uadmin1'));
+        assert.ok(pushCalls.some(c => c.id === 'Uadmin2'));
+    });
+});
+
+test('notify_customer_canceled calls pushMessage with lineUserId', async () => {
+    const pushCalls = [];
+    const claimedEvents = [
+        { id: 'event-1', event_type: 'reservation.line.notify_customer_canceled', payload: SAMPLE_LINE_CANCELED_PAYLOAD },
+    ];
+
+    await withOutboxServer({
+        claimedEvents,
+        lineMock: { pushMessage: async (id, msg) => { pushCalls.push({ id, msg }); } },
+    }, async ({ baseUrl }) => {
+        const response = await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        const body = await response.json();
+        assert.equal(body.processed, 1);
+        assert.equal(body.failed, 0);
+        assert.equal(pushCalls.length, 1);
+        assert.equal(pushCalls[0].id, SAMPLE_LINE_CANCELED_PAYLOAD.lineUserId);
+    });
+});
+
+test('notify_customer_canceled message includes cancelReason when present', async () => {
+    const pushCalls = [];
+    const payload = { ...SAMPLE_LINE_CANCELED_PAYLOAD, cancelReason: '都合により' };
+    const claimedEvents = [
+        { id: 'event-1', event_type: 'reservation.line.notify_customer_canceled', payload },
+    ];
+
+    await withOutboxServer({
+        claimedEvents,
+        lineMock: { pushMessage: async (id, msg) => { pushCalls.push({ id, msg }); } },
+    }, async ({ baseUrl }) => {
+        await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        assert.equal(pushCalls.length, 1);
+        assert.ok(pushCalls[0].msg.includes('都合により'));
+    });
+});
+
+test('notify_customer_created with null lineUserId does not call pushMessage', async () => {
+    const pushCalls = [];
+    const payload = { ...SAMPLE_LINE_CREATED_PAYLOAD, lineUserId: null };
+    const claimedEvents = [
+        { id: 'event-1', event_type: 'reservation.line.notify_customer_created', payload },
+    ];
+
+    await withOutboxServer({
+        claimedEvents,
+        lineMock: { pushMessage: async (id, msg) => { pushCalls.push({ id, msg }); } },
+    }, async ({ baseUrl }) => {
+        const response = await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        const body = await response.json();
+        assert.equal(body.processed, 1);
+        assert.equal(body.failed, 0);
+        assert.equal(pushCalls.length, 0);
+    });
+});
+
+test('notify_admin_created with empty adminLineIds does not call pushMessage', async () => {
+    const pushCalls = [];
+    const payload = { ...SAMPLE_LINE_CREATED_PAYLOAD, adminLineIds: [] };
+    const claimedEvents = [
+        { id: 'event-1', event_type: 'reservation.line.notify_admin_created', payload },
+    ];
+
+    await withOutboxServer({
+        claimedEvents,
+        lineMock: { pushMessage: async (id, msg) => { pushCalls.push({ id, msg }); } },
+    }, async ({ baseUrl }) => {
+        const response = await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        const body = await response.json();
+        assert.equal(body.processed, 1);
+        assert.equal(body.failed, 0);
+        assert.equal(pushCalls.length, 0);
     });
 });
 
