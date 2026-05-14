@@ -1,0 +1,40 @@
+schema_version: 1
+salon_id: example-salon
+salon_name: Example Salon
+status: setup
+plan: pilot
+contract_start_date: null
+contract_end_date: null
+owner_name: Example Owner
+owner_contact_note: "Non-sensitive contact note only. Do not add email addresses or phone numbers unless they are public business contacts."
+
+gcp_project_id: example-gcp-project
+cloud_run_service: reservation-example-salon
+cloud_run_region: asia-northeast1
+cloud_run_service_account: reservation-system-api@example-gcp-project.iam.gserviceaccount.com
+service_url: "https://reservation-example-salon-<hash>-an.a.run.app"
+
+database_provider: neon
+database_project_or_instance: example-salon-neon-project
+database_name: reservation_example_salon
+database_secret_name: salon-example-salon-database-url
+
+line_channel_id: "0000000000"
+line_liff_id: "0000000000-example"
+line_access_token_secret_name: salon-example-salon-line-access-token
+
+scheduler_secret_name: salon-example-salon-scheduler-secret
+
+google_calendar_mode: per_practitioner
+default_calendar_id: example-salon-primary@example.com
+practitioner_calendar_policy: "Store practitioner-specific calendar IDs in the tenant DB; default_calendar_id is a fallback."
+
+google_drive_folder_id: example-drive-folder-id
+gcs_bucket_name: example-gcp-project-images
+google_sheet_id: null
+
+theme_color: "#9b1c2c"
+
+notes:
+  - "Template only. Replace placeholders when registering the first salon."
+  - "Do not add DATABASE_URL, LINE_ACCESS_TOKEN, SCHEDULER_SECRET, service account JSON, customer data, or reservation data."

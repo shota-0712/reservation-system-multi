@@ -9,6 +9,7 @@
 - [Single-tenant architecture requirements](docs/single-tenant-architecture-requirements.md)
 - [Implementation issue breakdown](docs/implementation-issues.md)
 - [Production settings and GitHub Actions secrets](GITHUB_SECRETS.md)
+- [Tenant ledger template and operation rules](tenants/README.md)
 
 ## DB Provider Decision
 
