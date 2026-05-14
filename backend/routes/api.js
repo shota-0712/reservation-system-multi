@@ -4,6 +4,7 @@ const sheetsService = require('../services/sheets');
 const calendarService = require('../services/calendar');
 const lineService = require('../services/line');
 const storageService = require('../services/storage');  // Google Cloud Storage
+const { requireLineUser, rejectMismatchedLineUser } = require('../middleware/requireLineUser');
 
 const ADMIN_LINE_IDS = (process.env.ADMIN_LINE_ID || '').split(',').map(id => id.trim()).filter(id => id);
 
@@ -356,9 +357,9 @@ router.get('/weekly-availability', async (req, res, next) => {
 // ====================
 
 // GET /api/history - ユーザーの予約履歴取得
-router.get('/history', async (req, res, next) => {
+router.get('/history', requireLineUser, rejectMismatchedLineUser, async (req, res, next) => {
     try {
-        const { userId } = req.query;
+        const userId = req.lineUser.lineUserId;
         const history = await sheetsService.getUserReservations(userId);
         res.json(history);
     } catch (err) {
@@ -381,9 +382,15 @@ router.get('/reservations', async (req, res, next) => {
 });
 
 // POST /api/reservations - 予約作成
-router.post('/reservations', async (req, res, next) => {
+router.post('/reservations', requireLineUser, rejectMismatchedLineUser, async (req, res, next) => {
     try {
-        const data = req.body;
+        const lineUserId = req.lineUser.lineUserId;
+        const data = {
+            ...req.body,
+            userId: lineUserId,
+            lineUserId,
+            line_user_id: lineUserId,
+        };
 
         // 合計施術時間を計算（メニュー＋オプション）
         const totalMinutes = data.totalMinutes || data.menu.minutes;
@@ -504,9 +511,9 @@ ${optionLine}
 });
 
 // DELETE /api/reservations/:id - 予約キャンセル
-router.delete('/reservations/:id', async (req, res, next) => {
+router.delete('/reservations/:id', requireLineUser, rejectMismatchedLineUser, async (req, res, next) => {
     try {
-        const userId = req.query.userId || req.body?.userId;
+        const userId = req.lineUser.lineUserId;
         const reservationId = req.params.id;
 
         // 予約情報を取得
@@ -569,9 +576,10 @@ ${reservation.practitionerName ? `👤 担当: ${reservation.practitionerName}` 
 });
 
 // PUT /api/reservations/:id - 予約変更
-router.put('/reservations/:id', async (req, res, next) => {
+router.put('/reservations/:id', requireLineUser, rejectMismatchedLineUser, async (req, res, next) => {
     try {
-        const { userId, menu, selectedOptions, newDate, newTime, practitionerId, totalMinutes, totalPrice } = req.body;
+        const userId = req.lineUser.lineUserId;
+        const { menu, selectedOptions, newDate, newTime, practitionerId, totalMinutes, totalPrice } = req.body;
         const reservationId = req.params.id;
 
         // 1. 現在の予約情報を取得

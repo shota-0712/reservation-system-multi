@@ -1087,6 +1087,7 @@
     // ==============================================
     let state = {
       user: null,
+      idToken: null,
       menu: null,
       practitioner: null,  // 施術者情報
       date: null,
@@ -1194,6 +1195,14 @@
       document.getElementById('app').classList.remove('hidden');
     }
 
+    function getLineAuthHeaders() {
+      return state.idToken ? { 'Authorization': `Bearer ${state.idToken}` } : {};
+    }
+
+    function getJsonHeaders() {
+      return { 'Content-Type': 'application/json', ...getLineAuthHeaders() };
+    }
+
     // ==============================================
     // Initialization
     // ==============================================
@@ -1239,6 +1248,11 @@
           console.log('[DEBUG] Not logged in, calling liff.login()');
           liff.login();
           return;
+        }
+
+        state.idToken = liff.getIDToken();
+        if (!state.idToken) {
+          throw new Error('LIFF ID tokenを取得できませんでした');
         }
 
         console.log('[DEBUG] Getting profile...');
@@ -2030,7 +2044,7 @@
         if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
           const res = await fetch(`${API_BASE_URL}/api/reservations`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getJsonHeaders(),
             body: JSON.stringify(payload)
           });
           result = await res.json();
@@ -2062,7 +2076,9 @@
             { id: 'mock1', date: '2023/12/01', time: '10:00', menu: 'フェイシャル基本コース' }
           ];
         } else {
-          const res = await fetch(`${API_BASE_URL}/api/history?userId=${state.user.userId}`);
+          const res = await fetch(`${API_BASE_URL}/api/history`, {
+            headers: getLineAuthHeaders()
+          });
           history = await res.json();
         }
 
@@ -2136,8 +2152,9 @@
       try {
         let result = { status: 'success' };
         if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-          const res = await fetch(`${API_BASE_URL}/api/reservations/${reservationId}?userId=${state.user.userId}`, {
-            method: 'DELETE'
+          const res = await fetch(`${API_BASE_URL}/api/reservations/${reservationId}`, {
+            method: 'DELETE',
+            headers: getLineAuthHeaders()
           });
           result = await res.json();
         } else {
@@ -2489,7 +2506,7 @@
         if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
           const res = await fetch(`${API_BASE_URL}/api/reservations/${rescheduleState.originalReservation.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getJsonHeaders(),
             body: JSON.stringify(payload)
           });
           result = await res.json();

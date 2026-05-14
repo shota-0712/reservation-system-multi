@@ -23,6 +23,7 @@ jobs:
       GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
       LINE_ACCESS_TOKEN: ${{ secrets.LINE_ACCESS_TOKEN }}
       LIFF_ID: ${{ secrets.LIFF_ID }}
+      LINE_CHANNEL_ID: ${{ vars.LINE_CHANNEL_ID }}
       ADMIN_LINE_ID: ${{ secrets.ADMIN_LINE_ID }}
       SCHEDULER_SECRET: ${{ secrets.SCHEDULER_SECRET }}
       THEME_COLOR: ${{ secrets.THEME_COLOR }}
@@ -64,6 +65,7 @@ jobs:
             --set-env-vars "GOOGLE_DRIVE_FOLDER_ID=${GOOGLE_DRIVE_FOLDER_ID}" \
             --set-env-vars "LINE_ACCESS_TOKEN=${LINE_ACCESS_TOKEN}" \
             --set-env-vars "LIFF_ID=${LIFF_ID}" \
+            --set-env-vars "LINE_CHANNEL_ID=${LINE_CHANNEL_ID}" \
             --set-env-vars "ADMIN_LINE_ID=${ADMIN_LINE_ID}" \
             --set-env-vars "SCHEDULER_SECRET=${SCHEDULER_SECRET}" \
             --set-env-vars "GCS_BUCKET_NAME=${{ env.PROJECT_ID }}-images" \

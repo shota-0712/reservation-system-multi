@@ -44,6 +44,14 @@ GitHub リポジトリ → Settings → Secrets and variables → Actions で設
 
 ---
 
+## Repository Variables（非機密設定）
+
+| 変数名 | 説明 | 例 |
+|---|---|---|
+| `LINE_CHANNEL_ID` | LIFF ID token検証に使うLINE LoginチャネルID（client_id） | `1234567890` |
+
+---
+
 ## 注意事項
 
 - `SALON_INFO` と `PRECAUTIONS` はスプレッドシートのsettingsシートから取得
