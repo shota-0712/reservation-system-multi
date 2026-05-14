@@ -89,7 +89,50 @@ async function releaseStaffBlockBusyRange(client, staffBlockId) {
     return result.rows[0] || null;
 }
 
+async function findById(client, id) {
+    const result = await client.query(
+        `SELECT * FROM staff_blocks WHERE id = $1::uuid`,
+        [id]
+    );
+    return result.rows[0] || null;
+}
+
+async function findByPractitioner(client, { practitionerId, from, to } = {}) {
+    const conditions = [`status = 'active'`];
+    const params = [];
+
+    if (practitionerId !== undefined) {
+        params.push(practitionerId);
+        conditions.push(`practitioner_id = $${params.length}::uuid`);
+    }
+    if (from !== undefined) {
+        params.push(from);
+        conditions.push(`end_at > $${params.length}::timestamptz`);
+    }
+    if (to !== undefined) {
+        params.push(to);
+        conditions.push(`start_at < $${params.length}::timestamptz`);
+    }
+
+    const result = await client.query(
+        `SELECT * FROM staff_blocks WHERE ${conditions.join(' AND ')} ORDER BY start_at`,
+        params
+    );
+    return result.rows;
+}
+
+async function releaseStaffBlock(client, id) {
+    const result = await client.query(
+        `UPDATE staff_blocks SET status = 'released', updated_at = now() WHERE id = $1::uuid RETURNING *`,
+        [id]
+    );
+    return result.rows[0] || null;
+}
+
 module.exports = {
     createStaffBlock,
     releaseStaffBlockBusyRange,
+    findById,
+    findByPractitioner,
+    releaseStaffBlock,
 };
