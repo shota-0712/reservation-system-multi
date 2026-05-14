@@ -94,3 +94,8 @@ npm run dev
 ```
 
 現在の既存実装はGoogle Sheets / Google Calendar中心です。DB正本への移行はGitHub Issueの順番に沿って段階的に進めます。
+
+DB接続層は `backend/services/db.js` にあり、`DATABASE_URL` からPostgreSQLへ接続します。
+`query(text, params)` と `withTransaction(callback)` を提供し、repository層は
+`backend/repositories/` 配下に配置します。予約・スタッフブロック作成repositoryは、
+同じtransaction clientで `practitioner_busy_ranges` も作成する前提です。
