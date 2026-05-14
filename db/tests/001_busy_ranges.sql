@@ -229,9 +229,30 @@ BEGIN
   END;
 END $$;
 
+UPDATE reservations
+SET status = 'canceled',
+    canceled_at = '2026-06-01 09:30:00+09',
+    cancel_reason = 'smoke test cancellation'
+WHERE id = '20000000-0000-0000-0000-000000000001';
+
 UPDATE practitioner_busy_ranges
 SET released_at = '2026-06-01 09:30:00+09'
-WHERE id = '40000000-0000-0000-0000-000000000001';
+WHERE reservation_id = '20000000-0000-0000-0000-000000000001';
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM reservations r
+    JOIN practitioner_busy_ranges b ON b.reservation_id = r.id
+    WHERE r.id = '20000000-0000-0000-0000-000000000001'
+      AND r.status = 'canceled'
+      AND r.canceled_at IS NOT NULL
+      AND b.released_at IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'expected canceled reservation and released busy range';
+  END IF;
+END $$;
 
 INSERT INTO staff_blocks (
   id,

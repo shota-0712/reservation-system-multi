@@ -33,6 +33,18 @@ function conflict(message) {
     return err;
 }
 
+function forbidden(message) {
+    const err = new Error(message);
+    err.statusCode = 403;
+    return err;
+}
+
+function notFound(message) {
+    const err = new Error(message);
+    err.statusCode = 404;
+    return err;
+}
+
 function isUuid(value) {
     return typeof value === 'string'
         && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -197,6 +209,8 @@ function reservationResponse(reservation) {
         practitionerName: reservation.practitioner_name_snapshot,
         totalMinutes: reservation.total_minutes,
         totalPrice: reservation.total_price,
+        canceledAt: reservation.canceled_at ? new Date(reservation.canceled_at).toISOString() : null,
+        cancelReason: reservation.cancel_reason || null,
     };
 }
 
@@ -254,6 +268,150 @@ async function enqueueReservationCreatedEvents(client, reservation, input) {
             payload: event.payload,
         });
     }
+}
+
+function cancelReasonFrom(value) {
+    const reason = value?.reason ?? value?.cancelReason ?? value?.cancel_reason ?? null;
+    const normalized = reason === null || reason === undefined ? '' : String(reason).trim();
+    return normalized || null;
+}
+
+function canCustomerCancel(reservation, now = new Date()) {
+    const startAt = new Date(reservation.start_at);
+    return startAt.getTime() - now.getTime() >= 24 * 60 * 60 * 1000;
+}
+
+function buildCancellationPayload(reservation, cancellation) {
+    return {
+        reservationId: reservation.id,
+        lineUserId: reservation.line_user_id,
+        customerName: reservation.customer_name,
+        customerPhone: reservation.customer_phone,
+        practitionerId: reservation.practitioner_id,
+        practitionerName: reservation.practitioner_name_snapshot,
+        menuName: reservation.menu_name_snapshot,
+        totalMinutes: reservation.total_minutes,
+        totalPrice: reservation.total_price,
+        calendarEventId: reservation.calendar_event_id,
+        startAt: new Date(reservation.start_at).toISOString(),
+        endAt: new Date(reservation.end_at).toISOString(),
+        date: formatDateJST(reservation.start_at),
+        time: formatTimeJST(reservation.start_at),
+        canceledAt: reservation.canceled_at ? new Date(reservation.canceled_at).toISOString() : null,
+        cancelReason: reservation.cancel_reason || cancellation.reason || null,
+        actorType: cancellation.actorType,
+        actorLineUserId: cancellation.actorId,
+        source: cancellation.source,
+    };
+}
+
+async function enqueueReservationCanceledEvents(client, reservation, cancellation) {
+    const payload = buildCancellationPayload(reservation, cancellation);
+    const events = [
+        {
+            eventType: 'reservation.calendar.cancel',
+            idempotencyKey: `calendar:cancel:${reservation.id}`,
+            payload,
+        },
+        {
+            eventType: 'reservation.line.notify_customer_canceled',
+            idempotencyKey: `line:customer_canceled:${reservation.id}`,
+            payload,
+        },
+        {
+            eventType: 'reservation.line.notify_admin_canceled',
+            idempotencyKey: `line:admin_canceled:${reservation.id}`,
+            payload: {
+                ...payload,
+                adminLineIds: ADMIN_LINE_IDS,
+            },
+        },
+    ];
+
+    for (const event of events) {
+        await repositories.outboxEvents.createOutboxEvent(client, {
+            eventType: event.eventType,
+            aggregateType: 'reservation',
+            aggregateId: reservation.id,
+            idempotencyKey: event.idempotencyKey,
+            payload: event.payload,
+        });
+    }
+}
+
+function ensureReservationCanBeCanceled(reservation) {
+    if (reservation.status === 'reserved') {
+        return;
+    }
+
+    throw conflict('この予約はキャンセルできません');
+}
+
+async function cancelReservationFromDb(input) {
+    if (!isUuid(input.reservationId)) {
+        throw notFound('予約が見つかりませんでした');
+    }
+
+    return db.withTransaction(async (client) => {
+        const beforeReservation = await repositories.reservations.findReservationByIdForUpdate(
+            client,
+            input.reservationId
+        );
+
+        if (!beforeReservation) {
+            throw notFound('予約が見つかりませんでした');
+        }
+
+        if (input.actorType === 'customer' && beforeReservation.line_user_id !== input.actorId) {
+            throw notFound('予約が見つかりませんでした');
+        }
+
+        if (beforeReservation.status === 'canceled') {
+            await repositories.reservations.releaseReservationBusyRange(client, input.reservationId);
+            return {
+                reservation: beforeReservation,
+                alreadyCanceled: true,
+            };
+        }
+
+        ensureReservationCanBeCanceled(beforeReservation);
+
+        if (input.actorType === 'customer' && !canCustomerCancel(beforeReservation)) {
+            throw forbidden('予約日時の24時間前を過ぎているためキャンセルできません');
+        }
+
+        const afterReservation = await repositories.reservations.cancelReservation(client, {
+            reservationId: input.reservationId,
+            cancelReason: input.reason,
+        });
+        const busyRange = await repositories.reservations.releaseReservationBusyRange(client, input.reservationId);
+
+        if (!afterReservation || !busyRange) {
+            throw new Error('予約キャンセルに必要なDBレコードが見つかりません');
+        }
+
+        await enqueueReservationCanceledEvents(client, afterReservation, input);
+        await repositories.auditLogs.createAuditLog(client, {
+            actorType: input.actorType,
+            actorId: input.actorId,
+            action: 'reservation.canceled',
+            entityType: 'reservation',
+            entityId: afterReservation.id,
+            reservationId: afterReservation.id,
+            beforeData: beforeReservation,
+            afterData: afterReservation,
+            metadata: {
+                reason: input.reason || null,
+                source: input.source,
+                actor_line_user_id: input.actorId,
+            },
+        });
+
+        return {
+            reservation: afterReservation,
+            alreadyCanceled: false,
+        };
+    });
 }
 
 function isBusyRangeConflict(err) {
@@ -732,64 +890,32 @@ router.post('/reservations', requireLineUser, rejectMismatchedLineUser, async (r
 // DELETE /api/reservations/:id - 予約キャンセル
 router.delete('/reservations/:id', requireLineUser, rejectMismatchedLineUser, async (req, res, next) => {
     try {
-        const userId = req.lineUser.lineUserId;
+        const lineUserId = req.lineUser.lineUserId;
         const reservationId = req.params.id;
+        const reason = cancelReasonFrom(req.body);
 
-        // 予約情報を取得
-        const reservation = await sheetsService.getReservationById(reservationId, userId);
-        if (!reservation) {
-            return res.json({ status: 'error', message: '予約が見つかりませんでした' });
-        }
+        const result = await cancelReservationFromDb({
+            reservationId,
+            actorType: 'customer',
+            actorId: lineUserId,
+            reason,
+            source: 'customer_liff',
+        });
 
-        // 24時間前チェック
-        const reservationDateTime = new Date(`${reservation.date.replace(/\//g, '-')}T${reservation.time}:00+09:00`);
-        const now = new Date();
-        const hoursUntilReservation = (reservationDateTime - now) / (1000 * 60 * 60);
-        if (hoursUntilReservation < 24) {
-            return res.json({ status: 'error', message: '予約日時の24時間前を過ぎているためキャンセルできません' });
-        }
-
-        // 施術者のカレンダーからイベント削除
-        if (reservation.eventId && reservation.practitionerId) {
-            const practitioner = await sheetsService.getPractitionerById(reservation.practitionerId);
-            if (practitioner) {
-                await calendarService.deleteEvent(reservation.eventId, practitioner.calendarId);
-            }
-        }
-
-        // スプレッドシートのステータスを更新
-        await sheetsService.cancelReservation(reservationId);
-
-        // LINE通知 (ユーザーへ)
-        // スプレッドシートから保存された設定を取得 (空の場合は空のまま)
-        const settings = await sheetsService.getSettings();
-        const salonInfo = settings.salonInfo || '';
-        const salonInfoSection = salonInfo ? `---------------\n${salonInfo}\n---------------` : '';
-
-        const userMessage = `
-${reservation.name}様
-ご予約のキャンセルを承りました。
-
-📅 日時: ${reservation.date} ${reservation.time}
-💆‍♀️ メニュー: ${reservation.menu}
-${reservation.practitionerName ? `👤 担当: ${reservation.practitionerName}` : ''}
-${salonInfoSection}
-またのご来店を心よりお待ちしております。
-`.trim().replace(/\n\n+/g, '\n');
-        await lineService.pushMessage(userId, userMessage);
-
-        // LINE通知 (管理者へ)
-        const adminMessage = `
-【予約キャンセルがありました】
-👤 名前: ${reservation.name} 様
-📅 日時: ${reservation.date} ${reservation.time}
-💆‍♀️ メニュー: ${reservation.menu}
-${reservation.practitionerName ? `👤 担当: ${reservation.practitionerName}` : ''}
-`.trim();
-        await notifyAdmins(adminMessage);
-
-        res.json({ status: 'success' });
+        res.json({
+            status: 'success',
+            alreadyCanceled: result.alreadyCanceled,
+            reservation: reservationResponse(result.reservation),
+        });
     } catch (err) {
+        if (err.statusCode) {
+            return res.status(err.statusCode).json({ status: 'error', message: err.message });
+        }
+
+        if (isValidationDbError(err)) {
+            return res.status(400).json({ status: 'error', message: '予約IDが不正です' });
+        }
+
         next(err);
     }
 });
@@ -949,66 +1075,38 @@ router.delete('/admin/reservations/:id', async (req, res, next) => {
     try {
         const adminId = req.query.adminId || (req.body && req.body.adminId);
         const reservationId = req.params.id;
+        const reason = cancelReasonFrom({ ...req.query, ...(req.body || {}) });
 
         if (!isAdmin(adminId)) {
             return res.status(403).json({ status: 'error', message: '権限がありません' });
         }
 
-        // 予約情報を取得（管理者用）
-        const reservation = await sheetsService.getReservationByIdForAdmin(reservationId);
-        if (!reservation) {
-            return res.json({ status: 'error', message: '予約が見つかりませんでした' });
+        if (!reason) {
+            return res.status(400).json({ status: 'error', message: 'キャンセル理由を指定してください' });
         }
 
-        if (reservation.status === 'canceled') {
-            return res.json({ status: 'error', message: 'この予約は既にキャンセル済みです' });
-        }
+        const result = await cancelReservationFromDb({
+            reservationId,
+            actorType: 'admin',
+            actorId: adminId,
+            reason,
+            source: 'admin_api',
+        });
 
-        // 施術者のカレンダーからイベント削除
-        if (reservation.eventId && reservation.practitionerId) {
-            const practitioner = await sheetsService.getPractitionerById(reservation.practitionerId);
-            if (practitioner) {
-                await calendarService.deleteEvent(reservation.eventId, practitioner.calendarId);
-            }
-        }
-
-        // スプレッドシートのステータスを更新
-        await sheetsService.cancelReservation(reservationId);
-
-        // 設定からサロン情報を取得
-        const settings = await sheetsService.getSettings();
-        const salonInfo = settings.salonInfo || '';
-
-        // LINE通知 (ユーザーへ) - lineIdが存在する場合のみ
-        if (reservation.lineId) {
-            const salonInfoSection = salonInfo ? `\n---------------\n${salonInfo}\n---------------` : '';
-            const userMessage = `
-${reservation.name}様
-
-誠に申し訳ございませんが、ご予約をキャンセルさせていただきました。
-
-📅 日時: ${reservation.date} ${reservation.time}
-💆‍♀️ メニュー: ${reservation.menu}
-${reservation.practitionerName ? `👤 担当: ${reservation.practitionerName}` : ''}
-${salonInfoSection}
-
-ご不明な点がございましたら、お気軽にお問い合わせください。
-`.trim().replace(/\n\n+/g, '\n');
-            await lineService.pushMessage(reservation.lineId, userMessage);
-        }
-
-        // LINE通知 (管理者へ)
-        const adminMessage = `
-【管理者によるキャンセル】
-👤 名前: ${reservation.name} 様
-📅 日時: ${reservation.date} ${reservation.time}
-💆‍♀️ メニュー: ${reservation.menu}
-${reservation.practitionerName ? `👤 担当: ${reservation.practitionerName}` : ''}
-`.trim();
-        await notifyAdmins(adminMessage);
-
-        res.json({ status: 'success' });
+        res.json({
+            status: 'success',
+            alreadyCanceled: result.alreadyCanceled,
+            reservation: reservationResponse(result.reservation),
+        });
     } catch (err) {
+        if (err.statusCode) {
+            return res.status(err.statusCode).json({ status: 'error', message: err.message });
+        }
+
+        if (isValidationDbError(err)) {
+            return res.status(400).json({ status: 'error', message: '予約IDが不正です' });
+        }
+
         next(err);
     }
 });

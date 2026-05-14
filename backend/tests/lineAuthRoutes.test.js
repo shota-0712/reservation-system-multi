@@ -13,10 +13,14 @@ function createDefaultCalls() {
         getReservationById: [],
         cancelReservation: [],
         withTransaction: [],
+        findReservationByIdForUpdate: [],
         findReservationByIdempotencyKey: [],
         findPractitionerById: [],
         createReservation: [],
+        cancelReservationRecord: [],
+        releaseReservationBusyRange: [],
         createOutboxEvent: [],
+        createAuditLog: [],
         createEvent: [],
         checkConflict: [],
         deleteEvent: [],
@@ -26,10 +30,11 @@ function createDefaultCalls() {
 
 const PRACTITIONER_ID = '11111111-1111-4111-8111-111111111111';
 const MENU_ID = '22222222-2222-4222-8222-222222222222';
+const RESERVATION_ID = '33333333-3333-4333-8333-333333333333';
 
 function createdReservationRow(input, overrides = {}) {
     return {
-        id: overrides.id || '33333333-3333-4333-8333-333333333333',
+        id: overrides.id || RESERVATION_ID,
         line_user_id: input.lineUserId,
         idempotency_key: input.idempotencyKey,
         customer_name: input.customerName,
@@ -42,6 +47,31 @@ function createdReservationRow(input, overrides = {}) {
         status: input.status || 'reserved',
         total_minutes: input.totalMinutes,
         total_price: input.totalPrice,
+        ...overrides,
+    };
+}
+
+function reservationDbRow(overrides = {}) {
+    const startAt = overrides.start_at || new Date('2099-01-01T01:00:00.000Z');
+    const endAt = overrides.end_at || new Date(new Date(startAt).getTime() + 60 * 60 * 1000);
+
+    return {
+        id: overrides.id || RESERVATION_ID,
+        line_user_id: 'Uverified',
+        idempotency_key: null,
+        customer_name: 'Customer',
+        customer_phone: '090-0000-0000',
+        practitioner_id: PRACTITIONER_ID,
+        practitioner_name_snapshot: 'Staff',
+        menu_name_snapshot: 'Menu',
+        start_at: startAt,
+        end_at: endAt,
+        status: 'reserved',
+        total_minutes: 60,
+        total_price: 10000,
+        calendar_event_id: 'event-1',
+        canceled_at: null,
+        cancel_reason: null,
         ...overrides,
     };
 }
@@ -140,6 +170,14 @@ function createDefaultServices(calls, options = {}) {
                 },
             },
             reservations: {
+                async findReservationByIdForUpdate(client, reservationId) {
+                    calls.findReservationByIdForUpdate.push(reservationId);
+                    if (Object.prototype.hasOwnProperty.call(options, 'reservation')) {
+                        return options.reservation;
+                    }
+
+                    return reservationDbRow({ id: reservationId });
+                },
                 async findReservationByIdempotencyKey(client, lineUserId, idempotencyKey) {
                     calls.findReservationByIdempotencyKey.push({ lineUserId, idempotencyKey });
                     return options.existingReservation || null;
@@ -151,6 +189,33 @@ function createDefaultServices(calls, options = {}) {
                     }
                     return createdReservationRow(input, options.createdReservationOverrides);
                 },
+                async cancelReservation(client, input) {
+                    calls.cancelReservationRecord.push(input);
+                    if (options.cancelReservationError) {
+                        throw options.cancelReservationError;
+                    }
+
+                    const current = options.reservation || reservationDbRow({ id: input.reservationId });
+                    return {
+                        ...current,
+                        id: input.reservationId,
+                        status: 'canceled',
+                        canceled_at: options.canceledAt || new Date('2099-01-01T00:00:00.000Z'),
+                        cancel_reason: input.cancelReason || current.cancel_reason,
+                    };
+                },
+                async releaseReservationBusyRange(client, reservationId) {
+                    calls.releaseReservationBusyRange.push(reservationId);
+                    if (Object.prototype.hasOwnProperty.call(options, 'busyRange')) {
+                        return options.busyRange;
+                    }
+
+                    return {
+                        id: 'busy-range-1',
+                        reservation_id: reservationId,
+                        released_at: new Date('2099-01-01T00:00:00.000Z'),
+                    };
+                },
             },
             outboxEvents: {
                 async createOutboxEvent(client, input) {
@@ -159,6 +224,16 @@ function createDefaultServices(calls, options = {}) {
                         throw options.outboxError;
                     }
                     return { id: `outbox-${calls.createOutboxEvent.length}`, ...input };
+                },
+            },
+            auditLogs: {
+                async createAuditLog(client, input) {
+                    calls.createAuditLog.push(input);
+                    if (options.auditLogError) {
+                        throw options.auditLogError;
+                    }
+
+                    return { id: `audit-${calls.createAuditLog.length}`, ...input };
                 },
             },
         },
@@ -199,9 +274,11 @@ async function withApiServer(options, callback) {
     const apiPath = require.resolve('../routes/api');
     const lineAuthPath = require.resolve('../services/lineAuth');
     const requireLineUserPath = require.resolve('../middleware/requireLineUser');
+    const previousAdminLineId = process.env.ADMIN_LINE_ID;
 
     try {
         process.env.LINE_CHANNEL_ID = options.lineChannelId || '1234567890';
+        process.env.ADMIN_LINE_ID = options.adminLineIds || 'Uadmin';
 
         setModule(axiosPath, {
             async post(url, body, requestOptions) {
@@ -247,6 +324,11 @@ async function withApiServer(options, callback) {
             delete process.env.LINE_CHANNEL_ID;
         } else {
             process.env.LINE_CHANNEL_ID = previousLineChannelId;
+        }
+        if (previousAdminLineId === undefined) {
+            delete process.env.ADMIN_LINE_ID;
+        } else {
+            process.env.ADMIN_LINE_ID = previousAdminLineId;
         }
 
         for (const [resolvedPath, cacheEntry] of cacheEntries) {
@@ -575,18 +657,210 @@ test('customer API rejects a request body line_user_id that differs from verifie
     });
 });
 
-test('customer cancellation uses verified LINE sub', async () => {
+test('customer cancellation uses verified LINE sub and records DB cancellation transaction', async () => {
     await withApiServer({ verifyResponse: { sub: 'Uverified' } }, async ({ baseUrl, calls }) => {
-        const response = await fetch(`${baseUrl}/api/reservations/reservation-1`, {
+        const response = await fetch(`${baseUrl}/api/reservations/${RESERVATION_ID}`, {
             method: 'DELETE',
             headers: authHeaders(),
         });
+        const body = await response.json();
 
         assert.equal(response.status, 200);
-        assert.deepEqual(calls.getReservationById, [{
-            reservationId: 'reservation-1',
-            userId: 'Uverified',
+        assert.equal(body.status, 'success');
+        assert.equal(body.alreadyCanceled, false);
+        assert.equal(body.reservation.id, RESERVATION_ID);
+        assert.deepEqual(calls.findReservationByIdForUpdate, [RESERVATION_ID]);
+        assert.deepEqual(calls.cancelReservationRecord, [{
+            reservationId: RESERVATION_ID,
+            cancelReason: null,
         }]);
-        assert.equal(calls.pushMessage[0].userId, 'Uverified');
+        assert.deepEqual(calls.releaseReservationBusyRange, [RESERVATION_ID]);
+        assert.deepEqual(
+            calls.createOutboxEvent.map(event => event.eventType),
+            [
+                'reservation.calendar.cancel',
+                'reservation.line.notify_customer_canceled',
+                'reservation.line.notify_admin_canceled',
+            ]
+        );
+        assert.deepEqual(
+            calls.createOutboxEvent.map(event => event.idempotencyKey),
+            [
+                `calendar:cancel:${RESERVATION_ID}`,
+                `line:customer_canceled:${RESERVATION_ID}`,
+                `line:admin_canceled:${RESERVATION_ID}`,
+            ]
+        );
+        assert.equal(calls.createAuditLog.length, 1);
+        assert.equal(calls.createAuditLog[0].actorType, 'customer');
+        assert.equal(calls.createAuditLog[0].actorId, 'Uverified');
+        assert.equal(calls.createAuditLog[0].action, 'reservation.canceled');
+        assert.equal(calls.createAuditLog[0].metadata.source, 'customer_liff');
+        assert.deepEqual(calls.withTransaction, ['BEGIN', 'COMMIT']);
+        assert.equal(calls.cancelReservation.length, 0);
+        assert.equal(calls.deleteEvent.length, 0);
+        assert.equal(calls.pushMessage.length, 0);
+    });
+});
+
+test('customer cancellation rejects reservations less than 24 hours away', async () => {
+    const startAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
+    const reservation = reservationDbRow({
+        start_at: startAt,
+        end_at: new Date(startAt.getTime() + 60 * 60 * 1000),
+    });
+
+    await withApiServer({ verifyResponse: { sub: 'Uverified' }, reservation }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/reservations/${RESERVATION_ID}`, {
+            method: 'DELETE',
+            headers: authHeaders(),
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 403);
+        assert.equal(body.status, 'error');
+        assert.deepEqual(calls.withTransaction, ['BEGIN', 'ROLLBACK']);
+        assert.equal(calls.cancelReservationRecord.length, 0);
+        assert.equal(calls.releaseReservationBusyRange.length, 0);
+        assert.equal(calls.createOutboxEvent.length, 0);
+        assert.equal(calls.createAuditLog.length, 0);
+    });
+});
+
+test('customer cancellation rejects another customer reservation', async () => {
+    const reservation = reservationDbRow({ line_user_id: 'Uother' });
+
+    await withApiServer({ verifyResponse: { sub: 'Uverified' }, reservation }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/reservations/${RESERVATION_ID}`, {
+            method: 'DELETE',
+            headers: authHeaders(),
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 404);
+        assert.equal(body.status, 'error');
+        assert.deepEqual(calls.withTransaction, ['BEGIN', 'ROLLBACK']);
+        assert.equal(calls.cancelReservationRecord.length, 0);
+        assert.equal(calls.releaseReservationBusyRange.length, 0);
+    });
+});
+
+test('customer cancellation treats an already canceled reservation as success', async () => {
+    const canceledAt = new Date('2099-01-01T00:00:00.000Z');
+    const reservation = reservationDbRow({
+        status: 'canceled',
+        canceled_at: canceledAt,
+        cancel_reason: 'already canceled',
+    });
+
+    await withApiServer({ verifyResponse: { sub: 'Uverified' }, reservation }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/reservations/${RESERVATION_ID}`, {
+            method: 'DELETE',
+            headers: authHeaders(),
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 200);
+        assert.equal(body.status, 'success');
+        assert.equal(body.alreadyCanceled, true);
+        assert.equal(body.reservation.status, 'canceled');
+        assert.deepEqual(calls.releaseReservationBusyRange, [RESERVATION_ID]);
+        assert.equal(calls.cancelReservationRecord.length, 0);
+        assert.equal(calls.createOutboxEvent.length, 0);
+        assert.equal(calls.createAuditLog.length, 0);
+        assert.deepEqual(calls.withTransaction, ['BEGIN', 'COMMIT']);
+    });
+});
+
+test('customer cancellation rejects completed reservations', async () => {
+    const reservation = reservationDbRow({ status: 'completed' });
+
+    await withApiServer({ verifyResponse: { sub: 'Uverified' }, reservation }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/reservations/${RESERVATION_ID}`, {
+            method: 'DELETE',
+            headers: authHeaders(),
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 409);
+        assert.equal(body.status, 'error');
+        assert.equal(calls.cancelReservationRecord.length, 0);
+        assert.equal(calls.releaseReservationBusyRange.length, 0);
+        assert.deepEqual(calls.withTransaction, ['BEGIN', 'ROLLBACK']);
+    });
+});
+
+test('customer cancellation rolls back when outbox insert fails', async () => {
+    const outboxError = new Error('outbox unavailable');
+
+    await withApiServer({ verifyResponse: { sub: 'Uverified' }, outboxError }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/reservations/${RESERVATION_ID}`, {
+            method: 'DELETE',
+            headers: authHeaders(),
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 500);
+        assert.equal(body.status, 'error');
+        assert.deepEqual(calls.withTransaction, ['BEGIN', 'ROLLBACK']);
+        assert.equal(calls.cancelReservationRecord.length, 1);
+        assert.equal(calls.releaseReservationBusyRange.length, 1);
+        assert.equal(calls.createOutboxEvent.length, 1);
+        assert.equal(calls.createAuditLog.length, 0);
+    });
+});
+
+test('customer cancellation rejects mismatched request body identity fields', async () => {
+    await withApiServer({ verifyResponse: { sub: 'Uverified' } }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/reservations/${RESERVATION_ID}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+            body: JSON.stringify({ line_user_id: 'Uattacker' }),
+        });
+
+        assert.equal(response.status, 403);
+        assert.equal(calls.findReservationByIdForUpdate.length, 0);
+    });
+});
+
+test('admin cancellation records reason without requiring LIFF customer auth', async () => {
+    await withApiServer({ adminLineIds: 'Uadmin' }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/admin/reservations/${RESERVATION_ID}?adminId=Uadmin`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: 'schedule adjustment' }),
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 200);
+        assert.equal(body.status, 'success');
+        assert.equal(calls.verify.length, 0);
+        assert.deepEqual(calls.cancelReservationRecord, [{
+            reservationId: RESERVATION_ID,
+            cancelReason: 'schedule adjustment',
+        }]);
+        assert.equal(calls.createAuditLog.length, 1);
+        assert.equal(calls.createAuditLog[0].actorType, 'admin');
+        assert.equal(calls.createAuditLog[0].actorId, 'Uadmin');
+        assert.equal(calls.createAuditLog[0].metadata.reason, 'schedule adjustment');
+        assert.equal(calls.createAuditLog[0].metadata.source, 'admin_api');
+        assert.deepEqual(calls.withTransaction, ['BEGIN', 'COMMIT']);
+    });
+});
+
+test('admin cancellation requires a reason', async () => {
+    await withApiServer({ adminLineIds: 'Uadmin' }, async ({ baseUrl, calls }) => {
+        const response = await fetch(`${baseUrl}/api/admin/reservations/${RESERVATION_ID}?adminId=Uadmin`, {
+            method: 'DELETE',
+        });
+        const body = await response.json();
+
+        assert.equal(response.status, 400);
+        assert.equal(body.status, 'error');
+        assert.equal(calls.verify.length, 0);
+        assert.deepEqual(calls.withTransaction, []);
     });
 });

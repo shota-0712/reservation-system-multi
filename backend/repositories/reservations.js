@@ -116,6 +116,21 @@ async function findReservationById(client, id) {
     return result.rows[0] || null;
 }
 
+async function findReservationByIdForUpdate(client, id) {
+    const result = await client.query(
+        `
+            SELECT *
+            FROM reservations
+            WHERE id = $1::uuid
+            LIMIT 1
+            FOR UPDATE
+        `,
+        [id]
+    );
+
+    return result.rows[0] || null;
+}
+
 async function findReservationByIdempotencyKey(client, lineUserId, idempotencyKey) {
     const result = await client.query(
         `
@@ -126,6 +141,22 @@ async function findReservationByIdempotencyKey(client, lineUserId, idempotencyKe
             LIMIT 1
         `,
         [lineUserId, idempotencyKey]
+    );
+
+    return result.rows[0] || null;
+}
+
+async function cancelReservation(client, input) {
+    const result = await client.query(
+        `
+            UPDATE reservations
+            SET status = 'canceled'::reservation_status,
+                canceled_at = COALESCE(canceled_at, now()),
+                cancel_reason = COALESCE($2, cancel_reason)
+            WHERE id = $1::uuid
+            RETURNING *
+        `,
+        [input.reservationId, nullable(input.cancelReason)]
     );
 
     return result.rows[0] || null;
@@ -148,6 +179,8 @@ async function releaseReservationBusyRange(client, reservationId) {
 module.exports = {
     createReservation,
     findReservationById,
+    findReservationByIdForUpdate,
     findReservationByIdempotencyKey,
+    cancelReservation,
     releaseReservationBusyRange,
 };

@@ -1,7 +1,12 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { createReservation } = require('../repositories/reservations');
+const {
+    cancelReservation,
+    createReservation,
+    findReservationByIdForUpdate,
+    releaseReservationBusyRange,
+} = require('../repositories/reservations');
 
 const PRACTITIONER_ID = '11111111-1111-4111-8111-111111111111';
 const RESERVATION_ID = '33333333-3333-4333-8333-333333333333';
@@ -60,4 +65,74 @@ test('createReservation inserts reservation and practitioner busy range with the
         startAt,
         endAt,
     ]);
+});
+
+test('findReservationByIdForUpdate locks the reservation row', async () => {
+    const queries = [];
+    const client = {
+        async query(text, params) {
+            queries.push({ text, params });
+            return {
+                rows: [{ id: RESERVATION_ID }],
+            };
+        },
+    };
+
+    const reservation = await findReservationByIdForUpdate(client, RESERVATION_ID);
+
+    assert.equal(reservation.id, RESERVATION_ID);
+    assert.match(queries[0].text, /FOR UPDATE/);
+    assert.deepEqual(queries[0].params, [RESERVATION_ID]);
+});
+
+test('cancelReservation marks reservation canceled with cancel reason', async () => {
+    const canceledAt = new Date('2099-01-01T00:00:00.000Z');
+    const queries = [];
+    const client = {
+        async query(text, params) {
+            queries.push({ text, params });
+            return {
+                rows: [{
+                    id: RESERVATION_ID,
+                    status: 'canceled',
+                    canceled_at: canceledAt,
+                    cancel_reason: 'customer request',
+                }],
+            };
+        },
+    };
+
+    const reservation = await cancelReservation(client, {
+        reservationId: RESERVATION_ID,
+        cancelReason: 'customer request',
+    });
+
+    assert.equal(reservation.status, 'canceled');
+    assert.equal(reservation.cancel_reason, 'customer request');
+    assert.match(queries[0].text, /UPDATE reservations/);
+    assert.match(queries[0].text, /canceled_at = COALESCE\(canceled_at, now\(\)\)/);
+    assert.deepEqual(queries[0].params, [RESERVATION_ID, 'customer request']);
+});
+
+test('releaseReservationBusyRange releases the reservation busy range', async () => {
+    const queries = [];
+    const client = {
+        async query(text, params) {
+            queries.push({ text, params });
+            return {
+                rows: [{
+                    id: 'busy-range-1',
+                    reservation_id: RESERVATION_ID,
+                    released_at: new Date('2099-01-01T00:00:00.000Z'),
+                }],
+            };
+        },
+    };
+
+    const busyRange = await releaseReservationBusyRange(client, RESERVATION_ID);
+
+    assert.equal(busyRange.reservation_id, RESERVATION_ID);
+    assert.match(queries[0].text, /UPDATE practitioner_busy_ranges/);
+    assert.match(queries[0].text, /released_at = COALESCE\(released_at, now\(\)\)/);
+    assert.deepEqual(queries[0].params, [RESERVATION_ID]);
 });

@@ -3,4 +3,5 @@ module.exports = {
     practitioners: require('./practitioners'),
     staffBlocks: require('./staffBlocks'),
     outboxEvents: require('./outboxEvents'),
+    auditLogs: require('./auditLogs'),
 };
