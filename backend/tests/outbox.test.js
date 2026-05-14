@@ -256,16 +256,21 @@ async function withOutboxServer(options, callback) {
             getPool: () => fakePool,
             withTransaction: async (cb) => cb({ query: async () => ({ rows: [] }) }),
         });
+        const defaultCalendarMock = {
+            selectRandomPractitioner: () => null,
+            async createEvent() {},
+            async deleteEvent() {},
+        };
         setModule(require.resolve('../repositories'), {
             outboxEvents: mockOutboxEvents,
-            reservations: {},
+            reservations: options.reservationsMock || {},
             practitioners: {},
             menus: {},
             staffBlocks: {},
             auditLogs: {},
         });
         setModule(require.resolve('../services/sheets'), { getSettings: async () => ({}) });
-        setModule(require.resolve('../services/calendar'), { selectRandomPractitioner: () => null });
+        setModule(require.resolve('../services/calendar'), options.calendarMock || defaultCalendarMock);
         setModule(require.resolve('../services/line'), { pushMessage: async () => {} });
         setModule(require.resolve('../services/storage'), {});
 
@@ -315,14 +320,32 @@ async function withOutboxServer(options, callback) {
     }
 }
 
+const SAMPLE_RESERVATION_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const SAMPLE_CALENDAR_PAYLOAD = {
+    reservationId: SAMPLE_RESERVATION_ID,
+    menuName: 'テストメニュー',
+    customerName: '田中太郎',
+    practitionerName: 'スタッフA',
+    totalMinutes: 60,
+    totalPrice: 5000,
+    customerPhone: '090-1234-5678',
+    startAt: new Date('2026-06-01T10:00:00+09:00').toISOString(),
+    endAt: new Date('2026-06-01T11:00:00+09:00').toISOString(),
+    calendarId: 'test-calendar@group.calendar.google.com',
+};
+
 test('POST /api/batch/outbox returns { processed, failed, recovered }', async () => {
     const claimedEvents = [
-        { id: 'event-1', event_type: 'calendar_event_create' },
-        { id: 'event-2', event_type: 'line_notify_customer_created' },
+        { id: 'event-1', event_type: 'reservation.calendar.create', payload: SAMPLE_CALENDAR_PAYLOAD },
+        { id: 'event-2', event_type: 'reservation.line.notify_customer_created' },
     ];
 
     await withOutboxServer(
-        { claimedEvents, recoverStaleRows: [{ id: 'stale-1' }] },
+        {
+            claimedEvents,
+            recoverStaleRows: [{ id: 'stale-1' }],
+            reservationsMock: { async updateCalendarEventId() {} },
+        },
         async ({ baseUrl }) => {
             const response = await fetch(`${baseUrl}/api/batch/outbox`, {
                 method: 'POST',
@@ -341,7 +364,7 @@ test('POST /api/batch/outbox returns { processed, failed, recovered }', async ()
 test('POST /api/batch/outbox counts failed events when handler throws', async () => {
     const claimedEvents = [
         { id: 'event-bad', event_type: 'unknown_event_type' },
-        { id: 'event-ok', event_type: 'calendar_event_create' },
+        { id: 'event-ok', event_type: 'reservation.line.notify_customer_created' },
     ];
 
     await withOutboxServer({ claimedEvents }, async ({ baseUrl }) => {
@@ -366,5 +389,178 @@ test('POST /api/batch/outbox returns 403 with wrong secret', async () => {
         });
 
         assert.equal(response.status, 403);
+    });
+});
+
+test('reservation.calendar.create calls calendarService.createEvent', async () => {
+    const createEventCalls = [];
+    const claimedEvents = [
+        { id: 'event-1', event_type: 'reservation.calendar.create', payload: SAMPLE_CALENDAR_PAYLOAD },
+    ];
+
+    await withOutboxServer({
+        claimedEvents,
+        calendarMock: {
+            selectRandomPractitioner: () => null,
+            async createEvent(...args) { createEventCalls.push(args); },
+            async deleteEvent() {},
+        },
+        reservationsMock: { async updateCalendarEventId() {} },
+    }, async ({ baseUrl }) => {
+        const response = await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        assert.equal(response.status, 200);
+        const body = await response.json();
+        assert.equal(body.processed, 1);
+        assert.equal(body.failed, 0);
+        assert.equal(createEventCalls.length, 1);
+    });
+});
+
+test('reservation.calendar.create calls reservations.updateCalendarEventId', async () => {
+    const updateCalls = [];
+    const claimedEvents = [
+        { id: 'event-1', event_type: 'reservation.calendar.create', payload: SAMPLE_CALENDAR_PAYLOAD },
+    ];
+
+    await withOutboxServer({
+        claimedEvents,
+        reservationsMock: {
+            async updateCalendarEventId(client, input) { updateCalls.push(input); },
+        },
+    }, async ({ baseUrl }) => {
+        const response = await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        assert.equal(response.status, 200);
+        assert.equal(updateCalls.length, 1);
+        assert.equal(updateCalls[0].id, SAMPLE_RESERVATION_ID);
+    });
+});
+
+test('reservation.calendar.create generates deterministic event ID from reservationId', async () => {
+    const createEventCalls = [];
+    const claimedEvents = [
+        { id: 'event-1', event_type: 'reservation.calendar.create', payload: SAMPLE_CALENDAR_PAYLOAD },
+    ];
+    const expectedCalEventId = 'r' + SAMPLE_RESERVATION_ID.replace(/-/g, '');
+
+    await withOutboxServer({
+        claimedEvents,
+        calendarMock: {
+            selectRandomPractitioner: () => null,
+            async createEvent(...args) { createEventCalls.push(args); },
+            async deleteEvent() {},
+        },
+        reservationsMock: { async updateCalendarEventId() {} },
+    }, async ({ baseUrl }) => {
+        await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        assert.equal(createEventCalls.length, 1);
+        const opts = createEventCalls[0][5];
+        assert.equal(opts.eventId, expectedCalEventId);
+    });
+});
+
+test('reservation.calendar.cancel calls calendarService.deleteEvent', async () => {
+    const deleteEventCalls = [];
+    const cancelPayload = {
+        reservationId: SAMPLE_RESERVATION_ID,
+        calendarEventId: 'r' + SAMPLE_RESERVATION_ID.replace(/-/g, ''),
+        calendarId: 'test-calendar@group.calendar.google.com',
+    };
+    const claimedEvents = [
+        { id: 'event-1', event_type: 'reservation.calendar.cancel', payload: cancelPayload },
+    ];
+
+    await withOutboxServer({
+        claimedEvents,
+        calendarMock: {
+            selectRandomPractitioner: () => null,
+            async createEvent() {},
+            async deleteEvent(...args) { deleteEventCalls.push(args); },
+        },
+    }, async ({ baseUrl }) => {
+        const response = await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        assert.equal(response.status, 200);
+        const body = await response.json();
+        assert.equal(body.processed, 1);
+        assert.equal(body.failed, 0);
+        assert.equal(deleteEventCalls.length, 1);
+        assert.equal(deleteEventCalls[0][0], cancelPayload.calendarEventId);
+    });
+});
+
+test('reservation.calendar.cancel with null calendarId skips deleteEvent and succeeds', async () => {
+    const deleteEventCalls = [];
+    const cancelPayload = {
+        reservationId: SAMPLE_RESERVATION_ID,
+        calendarEventId: 'r' + SAMPLE_RESERVATION_ID.replace(/-/g, ''),
+        calendarId: null,
+    };
+    const claimedEvents = [
+        { id: 'event-1', event_type: 'reservation.calendar.cancel', payload: cancelPayload },
+    ];
+
+    await withOutboxServer({
+        claimedEvents,
+        calendarMock: {
+            selectRandomPractitioner: () => null,
+            async createEvent() {},
+            async deleteEvent(...args) { deleteEventCalls.push(args); },
+        },
+    }, async ({ baseUrl }) => {
+        const response = await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        assert.equal(response.status, 200);
+        const body = await response.json();
+        assert.equal(body.processed, 1);
+        assert.equal(body.failed, 0);
+        assert.equal(deleteEventCalls.length, 0);
+    });
+});
+
+test('reservation.calendar.create uses same deterministic event ID on retry (idempotent)', async () => {
+    const createEventCalls = [];
+    const retry1 = { id: 'event-1', event_type: 'reservation.calendar.create', payload: SAMPLE_CALENDAR_PAYLOAD };
+    const retry2 = { id: 'event-2', event_type: 'reservation.calendar.create', payload: SAMPLE_CALENDAR_PAYLOAD };
+    const expectedCalEventId = 'r' + SAMPLE_RESERVATION_ID.replace(/-/g, '');
+
+    await withOutboxServer({
+        claimedEvents: [retry1, retry2],
+        calendarMock: {
+            selectRandomPractitioner: () => null,
+            async createEvent(...args) { createEventCalls.push(args); },
+            async deleteEvent() {},
+        },
+        reservationsMock: { async updateCalendarEventId() {} },
+    }, async ({ baseUrl }) => {
+        const response = await fetch(`${baseUrl}/api/batch/outbox`, {
+            method: 'POST',
+            headers: { 'x-scheduler-secret': 'test-secret' },
+        });
+
+        assert.equal(response.status, 200);
+        const body = await response.json();
+        assert.equal(body.processed, 2);
+        assert.equal(body.failed, 0);
+        assert.equal(createEventCalls.length, 2);
+        assert.equal(createEventCalls[0][5].eventId, expectedCalEventId);
+        assert.equal(createEventCalls[1][5].eventId, expectedCalEventId);
     });
 });

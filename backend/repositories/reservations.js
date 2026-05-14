@@ -176,6 +176,15 @@ async function releaseReservationBusyRange(client, reservationId) {
     return result.rows[0] || null;
 }
 
+async function updateCalendarEventId(client, { id, calendarEventId }) {
+    const result = await client.query(
+        `UPDATE reservations SET calendar_event_id = $1, updated_at = now()
+         WHERE id = $2 RETURNING *`,
+        [calendarEventId, id]
+    );
+    return result.rows[0];
+}
+
 module.exports = {
     createReservation,
     findReservationById,
@@ -183,4 +192,5 @@ module.exports = {
     findReservationByIdempotencyKey,
     cancelReservation,
     releaseReservationBusyRange,
+    updateCalendarEventId,
 };

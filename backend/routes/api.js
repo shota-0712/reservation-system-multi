@@ -1362,8 +1362,51 @@ async function withClient(pool, callback) {
     }
 }
 
+function buildCalendarDescription(p) {
+    return [
+        `担当: ${p.practitionerName}`,
+        `メニュー: ${p.menuName}`,
+        `所要時間: ${p.totalMinutes}分`,
+        `金額: ${p.totalPrice}円`,
+        `電話: ${p.customerPhone}`,
+    ].join('\n');
+}
+
 async function handleCalendarCreate(event) {
-    console.log('[outbox] calendar_event_create stub', event.id);
+    const p = event.payload;
+    if (!p.calendarId) {
+        console.log('[outbox] calendar create: no calendarId, skip', event.id);
+        return;
+    }
+
+    const calEventId = 'r' + p.reservationId.replace(/-/g, '');
+
+    await calendarService.createEvent(
+        `${p.menuName}（${p.customerName}）`,
+        new Date(p.startAt),
+        new Date(p.endAt),
+        buildCalendarDescription(p),
+        p.calendarId,
+        { eventId: calEventId, reservationId: p.reservationId }
+    );
+
+    const pool = db.getPool();
+    await withClient(pool, (client) =>
+        repositories.reservations.updateCalendarEventId(client, {
+            id: p.reservationId,
+            calendarEventId: calEventId,
+        })
+    );
+}
+
+async function handleCalendarCancel(event) {
+    const p = event.payload;
+    if (!p.calendarId) {
+        console.log('[outbox] calendar cancel: no calendarId, skip', event.id);
+        return;
+    }
+    const calEventId = p.calendarEventId || ('r' + p.reservationId.replace(/-/g, ''));
+    await calendarService.deleteEvent(calEventId, p.calendarId);
 }
 
 async function handleLineNotify(event) {
@@ -1371,9 +1414,12 @@ async function handleLineNotify(event) {
 }
 
 const EVENT_HANDLERS = {
-    'calendar_event_create': handleCalendarCreate,
-    'line_notify_customer_created': handleLineNotify,
-    'line_notify_admin_created': handleLineNotify,
+    'reservation.calendar.create': handleCalendarCreate,
+    'reservation.calendar.cancel': handleCalendarCancel,
+    'reservation.line.notify_customer_created': handleLineNotify,
+    'reservation.line.notify_admin_created': handleLineNotify,
+    'reservation.line.notify_customer_canceled': handleLineNotify,
+    'reservation.line.notify_admin_canceled': handleLineNotify,
 };
 
 async function processEvent(event) {

@@ -219,26 +219,45 @@ async function checkConflict(startTime, endTime, calendarId, excludeEventId = nu
 }
 
 // カレンダーにイベント作成
-async function createEvent(title, startTime, endTime, description, calendarId) {
+async function createEvent(title, startTime, endTime, description, calendarId, { eventId, reservationId } = {}) {
     const calendar = await getCalendarClient();
 
-    const response = await calendar.events.insert({
-        calendarId: calendarId,
-        requestBody: {
-            summary: title,
-            description: description,
-            start: {
-                dateTime: startTime.toISOString(),
-                timeZone: 'Asia/Tokyo',
-            },
-            end: {
-                dateTime: endTime.toISOString(),
-                timeZone: 'Asia/Tokyo',
-            },
+    const requestBody = {
+        summary: title,
+        description: description,
+        start: {
+            dateTime: startTime.toISOString(),
+            timeZone: 'Asia/Tokyo',
         },
-    });
+        end: {
+            dateTime: endTime.toISOString(),
+            timeZone: 'Asia/Tokyo',
+        },
+    };
 
-    return response.data.id;
+    if (eventId) {
+        requestBody.id = eventId;
+    }
+
+    if (reservationId) {
+        requestBody.extendedProperties = {
+            private: {
+                source: 'reservation_system',
+                reservation_id: String(reservationId),
+            },
+        };
+    }
+
+    try {
+        const response = await calendar.events.insert({
+            calendarId: calendarId,
+            requestBody,
+        });
+        return response.data.id;
+    } catch (err) {
+        if (err.code === 409) return eventId || null;
+        throw err;
+    }
 }
 
 // カレンダーからイベント削除
