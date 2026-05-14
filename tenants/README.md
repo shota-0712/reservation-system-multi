@@ -55,6 +55,8 @@
 | `gcs_bucket_name` | GCS画像保存先bucket。使わない場合は `null`。 |
 | `google_sheet_id` | 移行元、テンプレート、補助設定としてGoogle Sheetsを残す場合のID。予約データの正本にはしない。 |
 | `theme_color` | サロンのメインテーマカラー。 |
+| `theme_color_light` | サロンのホバー、補助UI向けテーマカラー。未確定なら `null`。 |
+| `theme_color_dark` | サロンの濃色テーマカラー。未確定なら `null`。 |
 | `notes` | セットアップ状況、停止、バックアップ、削除予定などの非機密メモ。 |
 
 ## Secret Policy
@@ -73,7 +75,7 @@
 
 Issue #15の方針に合わせ、Cloud Run deployでは次のSecret Manager secret名を参照します。
 
-| 台帳field | Cloud Run env var | GitHub Repository Variable |
+| 台帳field | Cloud Run env var | GitHub Repository Variable override |
 |---|---|---|
 | `database_secret_name` | `DATABASE_URL` | `DATABASE_URL_SECRET_NAME` |
 | `line_access_token_secret_name` | `LINE_ACCESS_TOKEN` | `LINE_ACCESS_TOKEN_SECRET_NAME` |
@@ -96,7 +98,7 @@ Cloud Run runtime service account には、参照するSecretごとに `roles/se
 3. Secret Managerに `database_secret_name`, `line_access_token_secret_name`, `scheduler_secret_name` のsecretを作る。
 4. Cloud Run runtime service accountへ、secret単位で `roles/secretmanager.secretAccessor` を付与する。
 5. サロン別DB、Cloud Run service、LINE channel、LIFF app、Google Calendar、画像保存先を作る。
-6. 現行の単一deploy workflowを使う場合は、台帳の値に合わせてGitHub Repository Variablesを設定する。
+6. GitHub Actionsの `Deploy to Cloud Run` workflowを `workflow_dispatch` で起動し、`salon_id` に台帳ファイル名のIDを指定する。まずは `dry_run: true` で解決されるservice名、image名、Secret Manager secret名を確認する。
 7. DB migration、予約作成、Calendar反映、LINE通知、Scheduler認証を確認する。
 8. 動作確認後、`status: active` に変更する。
 
@@ -104,7 +106,9 @@ Cloud Run runtime service account には、参照するSecretごとに `roles/se
 
 ## Deploy Use
 
-Issue #17のサロン別Cloud Run deployでは、少なくとも次のfieldをdeploy入力として使える形にしています。
+Issue #17のサロン別Cloud Run deployでは、`.github/workflows/deploy.yml` の手動dispatchで `salon_id` を受け取り、`scripts/deploy-cloud-run.sh` が `tenants/<salon_id>.salon.yaml` を読みます。GitHub Repository VariablesまたはGitHub Environment Variablesに同名のdeploy用変数がある場合は、tenant YAMLより優先されます。
+
+少なくとも次のfieldをdeploy入力として使えます。
 
 - `salon_id`
 - `status`
@@ -121,5 +125,9 @@ Issue #17のサロン別Cloud Run deployでは、少なくとも次のfieldをde
 - `gcs_bucket_name`
 - `google_sheet_id`
 - `theme_color`
+- `theme_color_light`
+- `theme_color_dark`
 
-`status: active` のサロンだけを自動deploy対象にするか、`setup` も明示指定時だけdeploy対象にする方針を後続Issueで決めます。
+Artifact Registryのimage pathはservice名から分離しています。既定では `${cloud_run_region}-docker.pkg.dev/${gcp_project_id}/reservation-system/reservation-system-api:${GITHUB_SHA}` を使い、`ARTIFACT_REGISTRY_REPOSITORY` と `IMAGE_NAME` で上書きできます。同じimageをbuild/pushして、`cloud_run_service` だけをサロン別に変えてdeployします。
+
+初期運用は手動deployです。`status: active` のサロンだけを自動deploy対象にするか、`setup` も明示指定時だけdeploy対象にするか、複数サロンへのmatrix deployをいつ有効にするかは後続Issueで決めます。

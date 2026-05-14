@@ -34,6 +34,8 @@ gcs_bucket_name: example-gcp-project-images
 google_sheet_id: null
 
 theme_color: "#9b1c2c"
+theme_color_light: "#b92b3d"
+theme_color_dark: "#7a1522"
 
 notes:
   - "Template only. Replace placeholders when registering the first salon."

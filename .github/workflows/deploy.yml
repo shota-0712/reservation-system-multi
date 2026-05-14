@@ -1,71 +1,106 @@
 name: Deploy to Cloud Run
 
 on:
-  push:
-    branches:
-      - main
-
-env:
-  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
-  REGION: ${{ vars.REGION || 'asia-northeast1' }}
+  workflow_dispatch:
+    inputs:
+      salon_id:
+        description: "Tenant salon_id matching tenants/<salon_id>.salon.yaml"
+        required: true
+        type: string
+      environment:
+        description: "GitHub environment for deploy credentials and overrides"
+        required: true
+        default: production
+        type: choice
+        options:
+          - production
+          - setup
+      dry_run:
+        description: "Resolve settings and print deploy commands without pushing or deploying"
+        required: true
+        default: true
+        type: boolean
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+    environment: ${{ inputs.environment }}
+
     permissions:
       contents: read
       id-token: write
 
     env:
+      SALON_ID: ${{ inputs.salon_id }}
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      REGION: ${{ vars.REGION }}
+      SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+      ARTIFACT_REGISTRY_REPOSITORY: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'reservation-system' }}
+      IMAGE_NAME: ${{ vars.IMAGE_NAME || 'reservation-system-api' }}
+      IMAGE_TAG: ${{ github.sha }}
+      CLOUD_RUN_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_SERVICE_ACCOUNT }}
       GOOGLE_SHEET_ID: ${{ vars.GOOGLE_SHEET_ID }}
       GOOGLE_DRIVE_FOLDER_ID: ${{ vars.GOOGLE_DRIVE_FOLDER_ID }}
+      GCS_BUCKET_NAME: ${{ vars.GCS_BUCKET_NAME }}
       LIFF_ID: ${{ vars.LIFF_ID }}
       LINE_CHANNEL_ID: ${{ vars.LINE_CHANNEL_ID }}
       ADMIN_LINE_ID: ${{ vars.ADMIN_LINE_ID }}
       THEME_COLOR: ${{ vars.THEME_COLOR }}
       THEME_COLOR_LIGHT: ${{ vars.THEME_COLOR_LIGHT }}
       THEME_COLOR_DARK: ${{ vars.THEME_COLOR_DARK }}
-      CLOUD_RUN_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_SERVICE_ACCOUNT }}
-      DATABASE_URL_SECRET_NAME: ${{ vars.DATABASE_URL_SECRET_NAME || 'DATABASE_URL' }}
-      LINE_ACCESS_TOKEN_SECRET_NAME: ${{ vars.LINE_ACCESS_TOKEN_SECRET_NAME || 'LINE_ACCESS_TOKEN' }}
-      SCHEDULER_SECRET_SECRET_NAME: ${{ vars.SCHEDULER_SECRET_SECRET_NAME || 'SCHEDULER_SECRET' }}
-    
+      DATABASE_URL_SECRET_NAME: ${{ vars.DATABASE_URL_SECRET_NAME }}
+      LINE_ACCESS_TOKEN_SECRET_NAME: ${{ vars.LINE_ACCESS_TOKEN_SECRET_NAME }}
+      SCHEDULER_SECRET_SECRET_NAME: ${{ vars.SCHEDULER_SECRET_SECRET_NAME }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
+      - name: Resolve tenant deploy config
+        run: |
+          scripts/deploy-cloud-run.sh \
+            --salon-id "${SALON_ID}" \
+            --tenant-file "tenants/${SALON_ID}.salon.yaml" \
+            --write-github-env "${GITHUB_ENV}" \
+            --resolve-only
+
       - name: Google Auth
+        if: ${{ inputs.dry_run == false }}
         id: auth
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
-      
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-      
-      - name: Configure Docker
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-      
 
-      - name: Build and Push Container
+      - name: Set up Cloud SDK
+        if: ${{ inputs.dry_run == false }}
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        if: ${{ inputs.dry_run == false }}
+        run: gcloud auth configure-docker "${REGION}-docker.pkg.dev"
+
+      - name: Build and push shared image
+        if: ${{ inputs.dry_run == false }}
         run: |
-          cd backend
-          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }} .
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
-      
+          docker build -t "${IMAGE}" backend
+          docker push "${IMAGE}"
+
+      - name: Show dry-run build commands
+        if: ${{ inputs.dry_run == true }}
+        run: |
+          echo "docker build -t ${IMAGE} backend"
+          echo "docker push ${IMAGE}"
+
       - name: Deploy to Cloud Run
         run: |
-          RUNTIME_SERVICE_ACCOUNT="${CLOUD_RUN_SERVICE_ACCOUNT:-reservation-system-api@${PROJECT_ID}.iam.gserviceaccount.com}"
+          args=(
+            --salon-id "${SALON_ID}"
+            --tenant-file "tenants/${SALON_ID}.salon.yaml"
+            --image "${IMAGE}"
+          )
 
-          gcloud run deploy "${SERVICE_NAME}" \
-            --image "${REGION}-docker.pkg.dev/${PROJECT_ID}/${SERVICE_NAME}/${SERVICE_NAME}:${GITHUB_SHA}" \
-            --region "${REGION}" \
-            --platform managed \
-            --allow-unauthenticated \
-            --service-account "${RUNTIME_SERVICE_ACCOUNT}" \
-            --set-env-vars "^|^GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID}|GOOGLE_DRIVE_FOLDER_ID=${GOOGLE_DRIVE_FOLDER_ID}|LIFF_ID=${LIFF_ID}|LINE_CHANNEL_ID=${LINE_CHANNEL_ID}|ADMIN_LINE_ID=${ADMIN_LINE_ID}|GCS_BUCKET_NAME=${PROJECT_ID}-images|TZ=Asia/Tokyo|THEME_COLOR=${THEME_COLOR}|THEME_COLOR_LIGHT=${THEME_COLOR_LIGHT}|THEME_COLOR_DARK=${THEME_COLOR_DARK}|SERVICE_NAME=${SERVICE_NAME}|GCP_PROJECT_ID=${PROJECT_ID}" \
-            --set-secrets "DATABASE_URL=${DATABASE_URL_SECRET_NAME}:latest" \
-            --set-secrets "LINE_ACCESS_TOKEN=${LINE_ACCESS_TOKEN_SECRET_NAME}:latest" \
-            --set-secrets "SCHEDULER_SECRET=${SCHEDULER_SECRET_SECRET_NAME}:latest"
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            args+=(--dry-run)
+          fi
+
+          scripts/deploy-cloud-run.sh "${args[@]}"
