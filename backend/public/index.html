@@ -1099,7 +1099,8 @@
       allOptions: [],       // 全オプション一覧
       totalMinutes: 0,      // 合計時間
       totalPrice: 0,        // 合計料金
-      availablePractitioners: null  // 指名なし時の空き施術者リスト
+      availablePractitioners: null,  // 指名なし時の空き施術者リスト
+      reservationIdempotencyKey: null
     };
 
     // ==============================================
@@ -1201,6 +1202,14 @@
 
     function getJsonHeaders() {
       return { 'Content-Type': 'application/json', ...getLineAuthHeaders() };
+    }
+
+    function createIdempotencyKey() {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+      }
+
+      return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     }
 
     // ==============================================
@@ -2042,9 +2051,10 @@
 
         let result = { status: 'success' };
         if (!(location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+          state.reservationIdempotencyKey = state.reservationIdempotencyKey || createIdempotencyKey();
           const res = await fetch(`${API_BASE_URL}/api/reservations`, {
             method: 'POST',
-            headers: getJsonHeaders(),
+            headers: { ...getJsonHeaders(), 'Idempotency-Key': state.reservationIdempotencyKey },
             body: JSON.stringify(payload)
           });
           result = await res.json();
@@ -2053,6 +2063,7 @@
         }
 
         if (result.status === 'success') {
+          state.reservationIdempotencyKey = null;
           showToast('予約が完了しました！');
           switchTab('mypage');
         } else {

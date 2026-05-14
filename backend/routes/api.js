@@ -4,6 +4,8 @@ const sheetsService = require('../services/sheets');
 const calendarService = require('../services/calendar');
 const lineService = require('../services/line');
 const storageService = require('../services/storage');  // Google Cloud Storage
+const db = require('../services/db');
+const repositories = require('../repositories');
 const { requireLineUser, rejectMismatchedLineUser } = require('../middleware/requireLineUser');
 
 const ADMIN_LINE_IDS = (process.env.ADMIN_LINE_ID || '').split(',').map(id => id.trim()).filter(id => id);
@@ -17,6 +19,302 @@ function isAdmin(userId) {
 async function notifyAdmins(text) {
     const promises = ADMIN_LINE_IDS.map(adminId => lineService.pushMessage(adminId, text));
     await Promise.all(promises);
+}
+
+function badRequest(message) {
+    const err = new Error(message);
+    err.statusCode = 400;
+    return err;
+}
+
+function conflict(message) {
+    const err = new Error(message);
+    err.statusCode = 409;
+    return err;
+}
+
+function isUuid(value) {
+    return typeof value === 'string'
+        && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function getIdempotencyKey(req) {
+    const key = req.get('idempotency-key')
+        || req.body?.idempotency_key
+        || req.body?.idempotencyKey
+        || '';
+    const normalized = String(key).trim();
+    return normalized || null;
+}
+
+function parseReservationStartAt(date, time) {
+    if (!date || !time) {
+        throw badRequest('予約日と時刻を指定してください');
+    }
+
+    const normalizedDate = String(date).replace(/\//g, '-');
+    const normalizedTime = String(time);
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate) || !/^\d{2}:\d{2}$/.test(normalizedTime)) {
+        throw badRequest('予約日または時刻の形式が不正です');
+    }
+
+    const startAt = new Date(`${normalizedDate}T${normalizedTime}:00+09:00`);
+    if (Number.isNaN(startAt.getTime())) {
+        throw badRequest('予約日または時刻の形式が不正です');
+    }
+
+    return startAt;
+}
+
+function formatDateJST(value) {
+    const date = new Date(value);
+    const jst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return jst.toISOString().slice(0, 10).replace(/-/g, '/');
+}
+
+function formatTimeJST(value) {
+    const date = new Date(value);
+    const jst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return jst.toISOString().slice(11, 16);
+}
+
+function selectedPractitionerFrom(data) {
+    if (data.practitionerId) {
+        return {
+            id: data.practitionerId,
+            name: data.practitionerName,
+            calendarId: data.calendarId,
+        };
+    }
+
+    if (Array.isArray(data.availablePractitioners) && data.availablePractitioners.length > 0) {
+        return data.availablePractitioners[0];
+    }
+
+    return null;
+}
+
+async function resolvePractitionerSnapshot(client, data, practitionerId) {
+    const selected = selectedPractitionerFrom(data);
+    const requestCalendarId = data.calendarId || selected?.calendarId || null;
+    const practitioner = await repositories.practitioners.findPractitionerById(client, practitionerId);
+
+    if (!practitioner) {
+        throw badRequest('施術者が見つかりません');
+    }
+
+    return {
+        name: practitioner.name,
+        calendarId: practitioner.calendar_id || requestCalendarId,
+    };
+}
+
+function buildReservationInput(data, lineUserId, idempotencyKey, practitionerSnapshot) {
+    const selected = selectedPractitionerFrom(data);
+    if (!selected?.id) {
+        throw badRequest('施術者を選択してください');
+    }
+
+    const practitionerId = String(selected.id);
+    if (!isUuid(practitionerId)) {
+        throw badRequest('施術者IDの形式が不正です');
+    }
+
+    const menu = data.menu || {};
+    const menuName = typeof menu === 'string' ? menu : (menu.name || data.menuName);
+    if (!menuName) {
+        throw badRequest('メニューを選択してください');
+    }
+
+    const customerName = data.name || data.customerName;
+    if (!customerName) {
+        throw badRequest('お名前を入力してください');
+    }
+
+    const totalMinutes = Number(data.totalMinutes ?? (typeof menu === 'object' ? menu.minutes : undefined));
+    if (!Number.isInteger(totalMinutes) || totalMinutes <= 0) {
+        throw badRequest('合計施術時間が不正です');
+    }
+
+    const totalPrice = Number(data.totalPrice ?? (typeof menu === 'object' ? menu.price : 0) ?? 0);
+    if (!Number.isFinite(totalPrice) || totalPrice < 0) {
+        throw badRequest('合計金額が不正です');
+    }
+
+    const startAt = parseReservationStartAt(data.date, data.time);
+    const endAt = new Date(startAt.getTime() + totalMinutes * 60000);
+
+    const selectedOptions = Array.isArray(data.selectedOptions) ? data.selectedOptions : [];
+    const optionNames = selectedOptions
+        .map(option => option?.name)
+        .filter(Boolean);
+
+    return {
+        customerId: null,
+        lineUserId,
+        idempotencyKey,
+        createdVia: 'customer_liff',
+        customerName,
+        customerPhone: data.phone || data.customerPhone || null,
+        practitionerId,
+        practitionerNameSnapshot: practitionerSnapshot.name,
+        menuId: typeof menu === 'object' && isUuid(menu.id) ? menu.id : null,
+        menuNameSnapshot: menuName,
+        startAt,
+        endAt,
+        status: 'reserved',
+        totalMinutes,
+        totalPrice,
+        calendarEventId: null,
+        notes: data.notes || null,
+        metadata: {
+            selected_options: selectedOptions,
+            option_names: optionNames,
+            source: 'api',
+            requested_date: data.date,
+            requested_time: data.time,
+            calendar_id: practitionerSnapshot.calendarId,
+        },
+    };
+}
+
+function reservationResponse(reservation) {
+    return {
+        id: reservation.id,
+        status: reservation.status,
+        lineUserId: reservation.line_user_id,
+        idempotencyKey: reservation.idempotency_key,
+        name: reservation.customer_name,
+        phone: reservation.customer_phone || '',
+        menu: reservation.menu_name_snapshot,
+        menuName: reservation.menu_name_snapshot,
+        date: formatDateJST(reservation.start_at),
+        time: formatTimeJST(reservation.start_at),
+        startAt: new Date(reservation.start_at).toISOString(),
+        endAt: new Date(reservation.end_at).toISOString(),
+        practitionerId: reservation.practitioner_id,
+        practitionerName: reservation.practitioner_name_snapshot,
+        totalMinutes: reservation.total_minutes,
+        totalPrice: reservation.total_price,
+    };
+}
+
+function buildOutboxPayload(reservation, input) {
+    const optionNames = input.metadata.option_names || [];
+
+    return {
+        reservationId: reservation.id,
+        lineUserId: reservation.line_user_id,
+        customerName: reservation.customer_name,
+        customerPhone: reservation.customer_phone,
+        practitionerId: reservation.practitioner_id,
+        practitionerName: reservation.practitioner_name_snapshot,
+        calendarId: input.metadata.calendar_id,
+        menuName: reservation.menu_name_snapshot,
+        optionNames,
+        totalMinutes: reservation.total_minutes,
+        totalPrice: reservation.total_price,
+        startAt: new Date(reservation.start_at).toISOString(),
+        endAt: new Date(reservation.end_at).toISOString(),
+        date: formatDateJST(reservation.start_at),
+        time: formatTimeJST(reservation.start_at),
+    };
+}
+
+async function enqueueReservationCreatedEvents(client, reservation, input) {
+    const payload = buildOutboxPayload(reservation, input);
+    const events = [
+        {
+            eventType: 'reservation.calendar.create',
+            idempotencyKey: `calendar:create:${reservation.id}`,
+            payload,
+        },
+        {
+            eventType: 'reservation.line.notify_customer_created',
+            idempotencyKey: `line:customer_created:${reservation.id}`,
+            payload,
+        },
+        {
+            eventType: 'reservation.line.notify_admin_created',
+            idempotencyKey: `line:admin_created:${reservation.id}`,
+            payload: {
+                ...payload,
+                adminLineIds: ADMIN_LINE_IDS,
+            },
+        },
+    ];
+
+    for (const event of events) {
+        await repositories.outboxEvents.createOutboxEvent(client, {
+            eventType: event.eventType,
+            aggregateType: 'reservation',
+            aggregateId: reservation.id,
+            idempotencyKey: event.idempotencyKey,
+            payload: event.payload,
+        });
+    }
+}
+
+function isBusyRangeConflict(err) {
+    return err?.code === '23P01';
+}
+
+function isReservationIdempotencyConflict(err) {
+    return err?.code === '23505'
+        && err?.constraint === 'reservations_line_user_id_idempotency_key_uq';
+}
+
+function isValidationDbError(err) {
+    return ['22P02', '23503', '23514'].includes(err?.code);
+}
+
+async function findExistingReservation(lineUserId, idempotencyKey) {
+    if (!idempotencyKey) {
+        return null;
+    }
+
+    return db.withTransaction((client) => (
+        repositories.reservations.findReservationByIdempotencyKey(client, lineUserId, idempotencyKey)
+    ));
+}
+
+async function createReservationFromDb(data, lineUserId, idempotencyKey) {
+    if (idempotencyKey) {
+        const existing = await findExistingReservation(lineUserId, idempotencyKey);
+        if (existing) {
+            return { reservation: existing, existing: true };
+        }
+    }
+
+    const selected = selectedPractitionerFrom(data);
+    const practitionerId = selected?.id ? String(selected.id) : '';
+    if (!practitionerId) {
+        throw badRequest('施術者を選択してください');
+    }
+    if (!isUuid(practitionerId)) {
+        throw badRequest('施術者IDの形式が不正です');
+    }
+
+    return db.withTransaction(async (client) => {
+        if (idempotencyKey) {
+            const existing = await repositories.reservations.findReservationByIdempotencyKey(
+                client,
+                lineUserId,
+                idempotencyKey
+            );
+
+            if (existing) {
+                return { reservation: existing, existing: true };
+            }
+        }
+
+        const practitionerSnapshot = await resolvePractitionerSnapshot(client, data, practitionerId);
+        const input = buildReservationInput(data, lineUserId, idempotencyKey, practitionerSnapshot);
+        const reservation = await repositories.reservations.createReservation(client, input);
+        await enqueueReservationCreatedEvents(client, reservation, input);
+        return { reservation, existing: false };
+    });
 }
 
 // ====================
@@ -385,127 +683,48 @@ router.get('/reservations', async (req, res, next) => {
 router.post('/reservations', requireLineUser, rejectMismatchedLineUser, async (req, res, next) => {
     try {
         const lineUserId = req.lineUser.lineUserId;
-        const data = {
-            ...req.body,
-            userId: lineUserId,
-            lineUserId,
-            line_user_id: lineUserId,
-        };
+        const idempotencyKey = getIdempotencyKey(req);
+        const result = await createReservationFromDb(req.body || {}, lineUserId, idempotencyKey);
+        const statusCode = result.existing ? 200 : 201;
 
-        // 合計施術時間を計算（メニュー＋オプション）
-        const totalMinutes = data.totalMinutes || data.menu.minutes;
-        const totalPrice = data.totalPrice || data.menu.price;
-
-        // カレンダーで重複チェック用の時間
-        const dateTime = new Date(`${data.date.replace(/\//g, '-')}T${data.time}:00+09:00`);
-        const endTime = new Date(dateTime.getTime() + totalMinutes * 60000);
-
-        let practitioner;
-
-        // 「指名なし」の場合: availablePractitionersからランダムに選択
-        if (data.availablePractitioners && data.availablePractitioners.length > 0) {
-            // 空いている施術者からランダムに選択
-            const selected = calendarService.selectRandomPractitioner(data.availablePractitioners);
-            if (!selected) {
-                return res.json({ status: 'error', message: '予約可能な施術者が見つかりません' });
-            }
-            practitioner = await sheetsService.getPractitionerById(selected.id);
-            if (!practitioner) {
-                return res.json({ status: 'error', message: '施術者が見つかりません' });
-            }
-            // 念のため再度重複チェック
-            const hasConflict = await calendarService.checkConflict(dateTime, endTime, practitioner.calendarId);
-            if (hasConflict) {
-                return res.json({ status: 'error', message: '選択された時間は既に予約が入っています。再度お試しください。' });
-            }
-        } else {
-            // 通常の指名予約
-            if (!data.practitionerId) {
-                return res.json({ status: 'error', message: '施術者を選択してください' });
-            }
-            practitioner = await sheetsService.getPractitionerById(data.practitionerId);
-            if (!practitioner) {
-                return res.json({ status: 'error', message: '施術者が見つかりません' });
-            }
-            const hasConflict = await calendarService.checkConflict(dateTime, endTime, practitioner.calendarId);
-            if (hasConflict) {
-                return res.json({ status: 'error', message: '指定された時間は既に予約が入っています' });
+        res.status(statusCode).json({
+            status: 'success',
+            id: result.reservation.id,
+            existing: result.existing,
+            reservation: reservationResponse(result.reservation),
+        });
+    } catch (err) {
+        if (isReservationIdempotencyConflict(err)) {
+            try {
+                const existing = await findExistingReservation(req.lineUser.lineUserId, getIdempotencyKey(req));
+                if (existing) {
+                    return res.status(200).json({
+                        status: 'success',
+                        id: existing.id,
+                        existing: true,
+                        reservation: reservationResponse(existing),
+                    });
+                }
+            } catch (lookupErr) {
+                return next(lookupErr);
             }
         }
 
-        // オプション名の文字列を準備
-        const optionNames = data.selectedOptions && data.selectedOptions.length > 0
-            ? data.selectedOptions.map(o => o.name).join('、')
-            : '';
+        if (isBusyRangeConflict(err)) {
+            const slotConflict = conflict('指定された時間は既に予約が入っています');
+            return res.status(slotConflict.statusCode).json({
+                status: 'error',
+                message: slotConflict.message,
+            });
+        }
 
-        // カレンダーに予約を追加（オプション情報も含める）
-        const eventTitle = optionNames
-            ? `【予約】${data.name}様 (${data.menu.name} + ${optionNames})`
-            : `【予約】${data.name}様 (${data.menu.name})`;
+        if (err.statusCode === 400 || isValidationDbError(err)) {
+            return res.status(400).json({
+                status: 'error',
+                message: err.statusCode === 400 ? err.message : '予約内容が不正です',
+            });
+        }
 
-        const eventDescription = optionNames
-            ? `電話番号: ${data.phone || ''}\nLINE ID: ${data.userId}\n担当: ${practitioner.name}\nオプション: ${optionNames}\n合計時間: ${totalMinutes}分 / ¥${Number(totalPrice).toLocaleString()}`
-            : `電話番号: ${data.phone || ''}\nLINE ID: ${data.userId}\n担当: ${practitioner.name}`;
-
-        const eventId = await calendarService.createEvent(
-            eventTitle,
-            dateTime,
-            endTime,
-            eventDescription,
-            practitioner.calendarId
-        );
-
-        // スプレッドシートに予約を記録
-        await sheetsService.addReservation({
-            ...data,
-            eventId,
-            practitionerId: practitioner.id,
-            practitionerName: practitioner.name,
-            totalMinutes,
-            totalPrice,
-        });
-
-        // LINE通知 (ユーザーへ)
-        // スプレッドシートから保存された設定を取得 (空の場合は空のまま)
-        const settings = await sheetsService.getSettings();
-        const salonInfo = settings.salonInfo || '';
-        const precautions = settings.precautions || '';
-
-        const optionLine = optionNames ? `✨ オプション: ${optionNames}` : '';
-        // 店舗情報・注意事項のセクションを動的に構築
-        const salonInfoSection = salonInfo ? `---------------\n${salonInfo}` : '';
-        const precautionsSection = precautions ? `---------------\n${precautions}` : '';
-
-        const userMessage = `
-${data.name}様
-ご予約ありがとうございます。
-
-📅 日時: ${data.date} ${data.time}
-💆‍♀️ メニュー: ${data.menu.name}
-${optionLine}
-⏱️ 合計時間: ${totalMinutes}分
-💰 合計料金: ¥${Number(totalPrice).toLocaleString()}
-👤 担当: ${practitioner.name}
-${salonInfoSection}
-${precautionsSection}
-`.trim().replace(/\n\n+/g, '\n');  // 空行を削除
-        await lineService.pushMessage(data.userId, userMessage);
-
-        // LINE通知 (管理者へ)
-        const adminMessage = `
-【新規予約が入りました】
-👤 名前: ${data.name} 様
-📅 日時: ${data.date} ${data.time}
-💆‍♀️ メニュー: ${data.menu.name}
-${optionLine}
-⏱️ 合計: ${totalMinutes}分 / ¥${Number(totalPrice).toLocaleString()}
-👤 担当: ${practitioner.name}
-📱 電話: ${data.phone || 'なし'}
-`.trim().replace(/\n\n+/g, '\n');
-        await notifyAdmins(adminMessage);
-
-        res.json({ status: 'success' });
-    } catch (err) {
         next(err);
     }
 });
