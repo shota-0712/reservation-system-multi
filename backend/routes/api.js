@@ -1352,6 +1352,84 @@ router.post('/upload-image', async (req, res, next) => {
 // バッチ処理関連
 // ====================
 
+// POST /api/batch/outbox - outbox イベント処理
+async function withClient(pool, callback) {
+    const client = await pool.connect();
+    try {
+        return await callback(client);
+    } finally {
+        client.release();
+    }
+}
+
+async function handleCalendarCreate(event) {
+    console.log('[outbox] calendar_event_create stub', event.id);
+}
+
+async function handleLineNotify(event) {
+    console.log('[outbox] line_notify stub', event.id);
+}
+
+const EVENT_HANDLERS = {
+    'calendar_event_create': handleCalendarCreate,
+    'line_notify_customer_created': handleLineNotify,
+    'line_notify_admin_created': handleLineNotify,
+};
+
+async function processEvent(event) {
+    const handler = EVENT_HANDLERS[event.event_type];
+    if (!handler) {
+        throw new Error(`Unknown event_type: ${event.event_type}`);
+    }
+    await handler(event);
+}
+
+router.post('/batch/outbox', async (req, res, next) => {
+    try {
+        const secret = req.headers['x-scheduler-secret'];
+        const expectedSecret = process.env.SCHEDULER_SECRET;
+
+        if (!expectedSecret || secret !== expectedSecret) {
+            console.log('[Outbox] Unauthorized access attempt');
+            return res.status(403).json({ status: 'error', message: 'Forbidden' });
+        }
+
+        const workerId = `outbox-worker-${Date.now()}`;
+        const pool = db.getPool();
+        const { outboxEvents } = repositories;
+
+        const staleRows = await withClient(pool, (client) => outboxEvents.recoverStale(client));
+        const recovered = staleRows.length;
+        console.log(`[Outbox] Recovered ${recovered} stale events`);
+
+        const events = await withClient(pool, (client) => outboxEvents.claimEvents(client, { workerId }));
+        console.log(`[Outbox] Worker ${workerId} claimed ${events.length} events`);
+
+        let processed = 0;
+        let failed = 0;
+
+        for (const event of events) {
+            try {
+                await processEvent(event);
+                await withClient(pool, (client) => outboxEvents.markSucceeded(client, { id: event.id }));
+                processed++;
+            } catch (err) {
+                console.error(`[Outbox] Failed to process event ${event.id}:`, err.message);
+                try {
+                    await withClient(pool, (client) => outboxEvents.markFailed(client, { id: event.id, error: err }));
+                } catch (markErr) {
+                    console.error(`[Outbox] markFailed failed for event ${event.id}:`, markErr.message);
+                }
+                failed++;
+            }
+        }
+
+        res.json({ processed, failed, recovered });
+    } catch (err) {
+        next(err);
+    }
+});
+
 // POST /api/batch/reminders - 翌日の予約リマインダー送信
 router.post('/batch/reminders', async (req, res, next) => {
     try {
