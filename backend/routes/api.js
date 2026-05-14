@@ -1283,6 +1283,111 @@ router.get('/check-admin', (req, res) => {
     res.json({ isAdmin: isAdmin(userId) });
 });
 
+// POST /api/admin/reservations - 管理者による代理予約作成
+router.post('/admin/reservations', async (req, res, next) => {
+    try {
+        const data = req.body || {};
+        const { adminId } = data;
+
+        if (!isAdmin(adminId)) {
+            return res.status(403).json({ status: 'error', message: '権限がありません' });
+        }
+
+        if (!isUuid(data.practitionerId)) {
+            return res.status(400).json({ status: 'error', message: '施術者IDが不正です' });
+        }
+
+        const customerName = data.name || data.customerName;
+        if (!customerName) {
+            return res.status(400).json({ status: 'error', message: 'お名前を入力してください' });
+        }
+
+        const lineUserId = data.lineUserId || null;
+
+        const result = await db.withTransaction(async (client) => {
+            const practitioner = await repositories.practitioners.findPractitionerById(client, data.practitionerId);
+            if (!practitioner) {
+                throw badRequest('施術者が見つかりません');
+            }
+
+            const practitionerSnapshot = {
+                id: practitioner.id,
+                name: practitioner.name,
+                calendarId: practitioner.calendar_id || null,
+            };
+
+            const input = {
+                ...buildReservationInput(data, lineUserId, null, practitionerSnapshot),
+                createdVia: 'staff_admin',
+            };
+
+            const reservation = await repositories.reservations.createReservation(client, input);
+            const payload = buildOutboxPayload(reservation, input);
+
+            await repositories.outboxEvents.createOutboxEvent(client, {
+                eventType: 'reservation.calendar.create',
+                aggregateType: 'reservation',
+                aggregateId: reservation.id,
+                idempotencyKey: `calendar:create:${reservation.id}`,
+                payload,
+            });
+
+            if (lineUserId) {
+                await repositories.outboxEvents.createOutboxEvent(client, {
+                    eventType: 'reservation.line.notify_customer_created',
+                    aggregateType: 'reservation',
+                    aggregateId: reservation.id,
+                    idempotencyKey: `line:customer_created:${reservation.id}`,
+                    payload,
+                });
+            }
+
+            await repositories.outboxEvents.createOutboxEvent(client, {
+                eventType: 'reservation.line.notify_admin_created',
+                aggregateType: 'reservation',
+                aggregateId: reservation.id,
+                idempotencyKey: `line:admin_created:${reservation.id}`,
+                payload: { ...payload, adminLineIds: ADMIN_LINE_IDS },
+            });
+
+            await repositories.auditLogs.createAuditLog(client, {
+                actorType: 'admin',
+                actorId: adminId,
+                action: 'reservation.create',
+                entityType: 'reservation',
+                entityId: reservation.id,
+                reservationId: reservation.id,
+                afterData: reservation,
+            });
+
+            return { reservation };
+        });
+
+        res.status(201).json({
+            status: 'success',
+            reservation: reservationResponse(result.reservation),
+            existing: false,
+        });
+    } catch (err) {
+        if (isBusyRangeConflict(err)) {
+            return res.status(409).json({ status: 'error', message: '指定された時間は既に予約が入っています' });
+        }
+
+        if (err.statusCode === 400 || isValidationDbError(err)) {
+            return res.status(400).json({
+                status: 'error',
+                message: err.statusCode === 400 ? err.message : '予約内容が不正です',
+            });
+        }
+
+        if (err.statusCode) {
+            return res.status(err.statusCode).json({ status: 'error', message: err.message });
+        }
+
+        next(err);
+    }
+});
+
 // DELETE /api/admin/reservations/:id - 管理者による予約キャンセル
 router.delete('/admin/reservations/:id', async (req, res, next) => {
     try {
