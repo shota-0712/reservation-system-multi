@@ -8,6 +8,7 @@
 
 - [Single-tenant architecture requirements](docs/single-tenant-architecture-requirements.md)
 - [Implementation issue breakdown](docs/implementation-issues.md)
+- [Production settings and GitHub Actions secrets](GITHUB_SECRETS.md)
 
 ## DB Provider Decision
 
@@ -51,6 +52,34 @@ psql "$DATABASE_URL" -c 'select 1;'
 ```
 
 既にローカルPostgresがある場合は、同等のDBを作成して `DATABASE_URL` に接続文字列を設定します。
+
+## Production Configuration
+
+本番Cloud Runでは、機密値を通常の環境変数やGitHub Secretsから直接注入しません。Secret Managerに保存し、Cloud RunのSecret参照として渡します。
+
+本番で必須のSecret Manager secret:
+
+| Cloud Run env var | 用途 |
+|---|---|
+| `DATABASE_URL` | サロンごとのPostgreSQL接続URL |
+| `LINE_ACCESS_TOKEN` | LINE Messaging APIチャネルアクセストークン |
+| `SCHEDULER_SECRET` | Cloud Scheduler認証用secret |
+
+非機密設定の例:
+
+| env var | 用途 |
+|---|---|
+| `GCP_PROJECT_ID` | Google CloudプロジェクトID |
+| `REGION` | Cloud Run / Artifact Registryリージョン |
+| `SERVICE_NAME` | Cloud Runサービス名、サイトタイトル |
+| `LIFF_ID` | LIFFアプリID |
+| `LINE_CHANNEL_ID` | LIFF ID token検証用LINE LoginチャネルID |
+| `THEME_COLOR`, `THEME_COLOR_LIGHT`, `THEME_COLOR_DARK` | サイトテーマカラー |
+| `GOOGLE_SHEET_ID` | DB移行後は予約データの正本ではない。残す場合は移行元、テンプレート、補助設定など用途を明確にする。 |
+
+Cloud Run runtime service account には、参照するSecretごとに `roles/secretmanager.secretAccessor` を付与します。GitHub Actions側にはdeploy認証に必要なGCP認証情報だけを置き、アプリ機密値は置きません。
+
+詳細なGitHub Variables、Secret Manager secret名、権限付与手順は [GITHUB_SECRETS.md](GITHUB_SECRETS.md) を参照してください。
 
 ## Migration Policy
 

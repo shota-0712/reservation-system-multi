@@ -6,9 +6,9 @@ on:
       - main
 
 env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
-  REGION: asia-northeast1
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  REGION: ${{ vars.REGION || 'asia-northeast1' }}
 
 jobs:
   deploy:
@@ -19,16 +19,18 @@ jobs:
       id-token: write
 
     env:
-      GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
-      GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
-      LINE_ACCESS_TOKEN: ${{ secrets.LINE_ACCESS_TOKEN }}
-      LIFF_ID: ${{ secrets.LIFF_ID }}
+      GOOGLE_SHEET_ID: ${{ vars.GOOGLE_SHEET_ID }}
+      GOOGLE_DRIVE_FOLDER_ID: ${{ vars.GOOGLE_DRIVE_FOLDER_ID }}
+      LIFF_ID: ${{ vars.LIFF_ID }}
       LINE_CHANNEL_ID: ${{ vars.LINE_CHANNEL_ID }}
-      ADMIN_LINE_ID: ${{ secrets.ADMIN_LINE_ID }}
-      SCHEDULER_SECRET: ${{ secrets.SCHEDULER_SECRET }}
-      THEME_COLOR: ${{ secrets.THEME_COLOR }}
-      THEME_COLOR_LIGHT: ${{ secrets.THEME_COLOR_LIGHT }}
-      THEME_COLOR_DARK: ${{ secrets.THEME_COLOR_DARK }}
+      ADMIN_LINE_ID: ${{ vars.ADMIN_LINE_ID }}
+      THEME_COLOR: ${{ vars.THEME_COLOR }}
+      THEME_COLOR_LIGHT: ${{ vars.THEME_COLOR_LIGHT }}
+      THEME_COLOR_DARK: ${{ vars.THEME_COLOR_DARK }}
+      CLOUD_RUN_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_SERVICE_ACCOUNT }}
+      DATABASE_URL_SECRET_NAME: ${{ vars.DATABASE_URL_SECRET_NAME || 'DATABASE_URL' }}
+      LINE_ACCESS_TOKEN_SECRET_NAME: ${{ vars.LINE_ACCESS_TOKEN_SECRET_NAME || 'LINE_ACCESS_TOKEN' }}
+      SCHEDULER_SECRET_SECRET_NAME: ${{ vars.SCHEDULER_SECRET_SECRET_NAME || 'SCHEDULER_SECRET' }}
     
     steps:
       - name: Checkout
@@ -55,22 +57,15 @@ jobs:
       
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
-            --region ${{ env.REGION }} \
+          RUNTIME_SERVICE_ACCOUNT="${CLOUD_RUN_SERVICE_ACCOUNT:-reservation-system-api@${PROJECT_ID}.iam.gserviceaccount.com}"
+
+          gcloud run deploy "${SERVICE_NAME}" \
+            --image "${REGION}-docker.pkg.dev/${PROJECT_ID}/${SERVICE_NAME}/${SERVICE_NAME}:${GITHUB_SHA}" \
+            --region "${REGION}" \
             --platform managed \
             --allow-unauthenticated \
-            --service-account reservation-system-api@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
-            --set-env-vars "GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID}" \
-            --set-env-vars "GOOGLE_DRIVE_FOLDER_ID=${GOOGLE_DRIVE_FOLDER_ID}" \
-            --set-env-vars "LINE_ACCESS_TOKEN=${LINE_ACCESS_TOKEN}" \
-            --set-env-vars "LIFF_ID=${LIFF_ID}" \
-            --set-env-vars "LINE_CHANNEL_ID=${LINE_CHANNEL_ID}" \
-            --set-env-vars "ADMIN_LINE_ID=${ADMIN_LINE_ID}" \
-            --set-env-vars "SCHEDULER_SECRET=${SCHEDULER_SECRET}" \
-            --set-env-vars "GCS_BUCKET_NAME=${{ env.PROJECT_ID }}-images" \
-            --set-env-vars "TZ=Asia/Tokyo" \
-            --set-env-vars "THEME_COLOR=${THEME_COLOR}" \
-            --set-env-vars "THEME_COLOR_LIGHT=${THEME_COLOR_LIGHT}" \
-            --set-env-vars "THEME_COLOR_DARK=${THEME_COLOR_DARK}" \
-            --set-env-vars "SERVICE_NAME=${{ env.SERVICE_NAME }}"
+            --service-account "${RUNTIME_SERVICE_ACCOUNT}" \
+            --set-env-vars "^|^GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID}|GOOGLE_DRIVE_FOLDER_ID=${GOOGLE_DRIVE_FOLDER_ID}|LIFF_ID=${LIFF_ID}|LINE_CHANNEL_ID=${LINE_CHANNEL_ID}|ADMIN_LINE_ID=${ADMIN_LINE_ID}|GCS_BUCKET_NAME=${PROJECT_ID}-images|TZ=Asia/Tokyo|THEME_COLOR=${THEME_COLOR}|THEME_COLOR_LIGHT=${THEME_COLOR_LIGHT}|THEME_COLOR_DARK=${THEME_COLOR_DARK}|SERVICE_NAME=${SERVICE_NAME}|GCP_PROJECT_ID=${PROJECT_ID}" \
+            --set-secrets "DATABASE_URL=${DATABASE_URL_SECRET_NAME}:latest" \
+            --set-secrets "LINE_ACCESS_TOKEN=${LINE_ACCESS_TOKEN_SECRET_NAME}:latest" \
+            --set-secrets "SCHEDULER_SECRET=${SCHEDULER_SECRET_SECRET_NAME}:latest"
