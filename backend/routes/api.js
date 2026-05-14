@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('node:crypto');
 const router = express.Router();
 const reservationSheetsService = require('../services/sheets');
 const calendarService = require('../services/calendar');
@@ -57,6 +58,34 @@ function getIdempotencyKey(req) {
         || '';
     const normalized = String(key).trim();
     return normalized || null;
+}
+
+const ACCEPTED_GOOGLE_CALENDAR_RESOURCE_STATES = new Set([
+    'sync',
+    'exists',
+    'not_exists',
+]);
+
+function readGoogleCalendarWebhookHeaders(req) {
+    return {
+        channelId: req.get('x-goog-channel-id') || '',
+        resourceId: req.get('x-goog-resource-id') || '',
+        resourceState: req.get('x-goog-resource-state') || '',
+        channelToken: req.get('x-goog-channel-token') || '',
+        messageNumber: req.get('x-goog-message-number') || null,
+    };
+}
+
+function safeTokenEquals(expected, actual) {
+    if (typeof expected !== 'string' || typeof actual !== 'string') {
+        return false;
+    }
+
+    const expectedBuffer = Buffer.from(expected);
+    const actualBuffer = Buffer.from(actual);
+
+    return expectedBuffer.length === actualBuffer.length
+        && crypto.timingSafeEqual(expectedBuffer, actualBuffer);
 }
 
 function parseReservationStartAt(date, time) {
@@ -842,6 +871,54 @@ async function createReservationFromDb(data, lineUserId, idempotencyKey) {
 // ====================
 // アプリ設定関連
 // ====================
+
+// POST /api/webhooks/google-calendar - Google Calendar push notification
+router.post('/webhooks/google-calendar', async (req, res, next) => {
+    try {
+        const headers = readGoogleCalendarWebhookHeaders(req);
+
+        if (!headers.channelId || !headers.resourceId || !headers.resourceState || !headers.channelToken) {
+            return res.status(400).json({ status: 'error', message: 'Missing Google Calendar webhook headers' });
+        }
+
+        const result = await db.withTransaction(async (client) => {
+            const syncState = await repositories.calendarSyncStates.findByChannelId(client, headers.channelId);
+
+            if (!syncState) {
+                return { statusCode: 404, body: { status: 'error', message: 'Unknown channel' } };
+            }
+
+            if (syncState.channel_resource_id !== headers.resourceId) {
+                return { statusCode: 403, body: { status: 'error', message: 'Resource mismatch' } };
+            }
+
+            if (!safeTokenEquals(syncState.channel_token, headers.channelToken)) {
+                return { statusCode: 403, body: { status: 'error', message: 'Forbidden' } };
+            }
+
+            if (!ACCEPTED_GOOGLE_CALENDAR_RESOURCE_STATES.has(headers.resourceState)) {
+                console.warn('[GoogleCalendarWebhook] Ignored unexpected resource state', {
+                    channelId: headers.channelId,
+                    resourceState: headers.resourceState,
+                    messageNumber: headers.messageNumber,
+                });
+                return { statusCode: 200, body: { status: 'ignored', reason: 'unexpected_resource_state' } };
+            }
+
+            await repositories.calendarSyncStates.recordSyncRequested(client, {
+                id: syncState.id,
+                resourceState: headers.resourceState,
+                messageNumber: headers.messageNumber,
+            });
+
+            return { statusCode: 202, body: { status: 'accepted' } };
+        });
+
+        return res.status(result.statusCode).json(result.body);
+    } catch (err) {
+        next(err);
+    }
+});
 
 // GET /api/config - フロントエンド用設定取得 (LIFF_ID, テーマカラー等)
 router.get('/config', (req, res) => {

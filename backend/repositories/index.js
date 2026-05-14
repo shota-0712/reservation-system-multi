@@ -6,5 +6,6 @@ module.exports = {
     settings: require('./settings'),
     staffBlocks: require('./staffBlocks'),
     outboxEvents: require('./outboxEvents'),
+    calendarSyncStates: require('./calendarSyncStates'),
     auditLogs: require('./auditLogs'),
 };

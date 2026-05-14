@@ -10,6 +10,7 @@ Run migrations against an empty database:
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/001_initial_schema.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/002_master_tables.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/003_calendar_sync_schema.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/004_calendar_webhook_sync_request.sql
 ```
 
 ## Calendar Sync Schema
@@ -18,6 +19,9 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/003_calendar_sync_schem
 channel, webhook validation token, and incremental `syncToken` state.
 `calendar_sync_states.channel_token` is a webhook verification secret and
 must not be logged.
+Webhook notifications update `sync_requested_at` and `last_notification_at`;
+later sync workers can pick rows where the requested timestamp is newer than
+the last completed sync.
 
 `calendar_sync_conflicts` stores unresolved Calendar block ingestion conflicts
 so operators can inspect sync lag or reservation collisions without changing
