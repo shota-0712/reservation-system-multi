@@ -53,7 +53,10 @@ async function claimEvents(client, { workerId, limit = 20 }) {
                 updated_at = now()
             WHERE id IN (
                 SELECT id FROM outbox_events
-                WHERE status IN ('pending', 'failed')
+                WHERE (
+                    status = 'pending'
+                    OR (status = 'failed' AND attempt_count < 5)
+                )
                   AND next_attempt_at <= now()
                 ORDER BY created_at
                 LIMIT $2
@@ -64,6 +67,80 @@ async function claimEvents(client, { workerId, limit = 20 }) {
         [workerId, limit]
     );
     return result.rows;
+}
+
+async function getStats(client) {
+    const stats = {
+        pending: 0,
+        processing: 0,
+        succeeded: 0,
+        failed: 0,
+        stale_processing: 0,
+    };
+
+    const statusResult = await client.query(
+        `
+            SELECT
+                status,
+                COUNT(*) AS count
+            FROM outbox_events
+            GROUP BY status
+        `
+    );
+
+    for (const row of statusResult.rows) {
+        if (Object.prototype.hasOwnProperty.call(stats, row.status)) {
+            stats[row.status] = Number(row.count);
+        }
+    }
+
+    const staleResult = await client.query(
+        `
+            SELECT COUNT(*) AS count
+            FROM outbox_events
+            WHERE status = 'processing'
+              AND locked_at < now() - interval '10 minutes'
+        `
+    );
+
+    stats.stale_processing = Number(staleResult.rows[0]?.count || 0);
+    return stats;
+}
+
+async function resetStaleProcessing(client, thresholdMinutes = 10) {
+    const result = await client.query(
+        `
+            UPDATE outbox_events
+            SET status = 'pending',
+                locked_at = null,
+                locked_by = null
+            WHERE status = 'processing'
+              AND locked_at < now() - ($1 * interval '1 minute')
+            RETURNING id
+        `,
+        [thresholdMinutes]
+    );
+    return result.rowCount;
+}
+
+async function retryEvent(client, id) {
+    const result = await client.query(
+        `
+            UPDATE outbox_events
+            SET status = 'pending',
+                locked_at = null,
+                locked_by = null,
+                next_attempt_at = now()
+            WHERE id = $1
+              AND (
+                status = 'failed'
+                OR (status = 'processing' AND locked_at < now() - interval '10 minutes')
+              )
+            RETURNING id
+        `,
+        [id]
+    );
+    return result.rowCount > 0;
 }
 
 async function markSucceeded(client, { id }) {
@@ -128,6 +205,9 @@ async function recoverStale(client, { staleMinutes = 10 } = {}) {
 module.exports = {
     createOutboxEvent,
     claimEvents,
+    getStats,
+    resetStaleProcessing,
+    retryEvent,
     markSucceeded,
     markFailed,
     recoverStale,

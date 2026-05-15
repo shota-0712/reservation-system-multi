@@ -18,6 +18,19 @@ function isAdmin(userId) {
     return ADMIN_LINE_IDS.includes(userId);
 }
 
+function requireAdmin(req, res, next) {
+    const adminId = req.query.adminId
+        || req.body?.adminId
+        || req.get('x-admin-line-id');
+
+    if (!isAdmin(adminId)) {
+        return res.status(403).json({ status: 'error', message: '権限がありません' });
+    }
+
+    req.adminId = adminId;
+    return next();
+}
+
 // ヘルパー: 全管理者に通知
 async function notifyAdmins(text) {
     const promises = ADMIN_LINE_IDS.map(adminId => lineService.pushMessage(adminId, text));
@@ -1859,6 +1872,41 @@ router.get('/admin/staff-blocks', async (req, res, next) => {
             return res.status(err.statusCode).json({ status: 'error', message: err.message });
         }
 
+        next(err);
+    }
+});
+
+router.get('/admin/outbox/stats', requireAdmin, async (req, res, next) => {
+    try {
+        const pool = db.getPool();
+        const stats = await withClient(pool, (client) => repositories.outboxEvents.getStats(client));
+        res.status(200).json(stats);
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post('/admin/outbox/reset-stale', requireAdmin, async (req, res, next) => {
+    try {
+        const pool = db.getPool();
+        const reset = await withClient(pool, (client) => repositories.outboxEvents.resetStaleProcessing(client));
+        res.status(200).json({ reset });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post('/admin/outbox/:id/retry', requireAdmin, async (req, res, next) => {
+    try {
+        const pool = db.getPool();
+        const queued = await withClient(pool, (client) => repositories.outboxEvents.retryEvent(client, req.params.id));
+
+        if (!queued) {
+            return res.status(409).json({ error: 'event is not retryable' });
+        }
+
+        return res.status(200).json({ queued: true });
+    } catch (err) {
         next(err);
     }
 });
