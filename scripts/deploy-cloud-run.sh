@@ -24,6 +24,7 @@ Options:
   --line-channel-id <id>               LINE Login channel ID.
   --google-sheet-id <id>               Optional Google Sheet ID.
   --google-drive-folder-id <id>        Optional Google Drive folder ID.
+  --google-calendar-webhook-url <url>  Google Calendar push notification webhook URL.
   --gcs-bucket-name <name>             Optional GCS bucket name.
   --admin-line-id <ids>                Optional comma-separated admin LINE user IDs.
   --theme-color <color>                Optional theme color.
@@ -164,6 +165,7 @@ LIFF_ID_ARG=""
 LINE_CHANNEL_ID_ARG=""
 GOOGLE_SHEET_ID_ARG=""
 GOOGLE_DRIVE_FOLDER_ID_ARG=""
+GOOGLE_CALENDAR_WEBHOOK_URL_ARG=""
 GCS_BUCKET_NAME_ARG=""
 ADMIN_LINE_ID_ARG=""
 THEME_COLOR_ARG=""
@@ -243,6 +245,10 @@ while [[ $# -gt 0 ]]; do
       GOOGLE_DRIVE_FOLDER_ID_ARG="${2:-}"
       shift 2
       ;;
+    --google-calendar-webhook-url)
+      GOOGLE_CALENDAR_WEBHOOK_URL_ARG="${2:-}"
+      shift 2
+      ;;
     --gcs-bucket-name)
       GCS_BUCKET_NAME_ARG="${2:-}"
       shift 2
@@ -315,6 +321,7 @@ LIFF_ID="$(first_non_empty "${LIFF_ID_ARG}" "${LIFF_ID:-}" "${TENANT_LINE_LIFF_I
 LINE_CHANNEL_ID="$(first_non_empty "${LINE_CHANNEL_ID_ARG}" "${LINE_CHANNEL_ID:-}" "${TENANT_LINE_CHANNEL_ID:-}")"
 GOOGLE_SHEET_ID="$(first_non_empty "${GOOGLE_SHEET_ID_ARG}" "${GOOGLE_SHEET_ID:-}" "${TENANT_GOOGLE_SHEET_ID:-}")"
 GOOGLE_DRIVE_FOLDER_ID="$(first_non_empty "${GOOGLE_DRIVE_FOLDER_ID_ARG}" "${GOOGLE_DRIVE_FOLDER_ID:-}" "${TENANT_GOOGLE_DRIVE_FOLDER_ID:-}")"
+GOOGLE_CALENDAR_WEBHOOK_URL="$(first_non_empty "${GOOGLE_CALENDAR_WEBHOOK_URL_ARG}" "${GOOGLE_CALENDAR_WEBHOOK_URL:-}" "${TENANT_GOOGLE_CALENDAR_WEBHOOK_URL:-}")"
 GCS_BUCKET_NAME="$(first_non_empty "${GCS_BUCKET_NAME_ARG}" "${GCS_BUCKET_NAME:-}" "${TENANT_GCS_BUCKET_NAME:-}" "${PROJECT_ID}-images")"
 ADMIN_LINE_ID="$(first_non_empty "${ADMIN_LINE_ID_ARG}" "${ADMIN_LINE_ID:-}")"
 THEME_COLOR="$(first_non_empty "${THEME_COLOR_ARG}" "${THEME_COLOR:-}" "${TENANT_THEME_COLOR:-}")"
@@ -331,6 +338,7 @@ THEME_COLOR_DARK="$(first_non_empty "${THEME_COLOR_DARK_ARG}" "${THEME_COLOR_DAR
 
 [[ -n "${LIFF_ID}" ]] || warn "LIFF_ID is empty"
 [[ -n "${LINE_CHANNEL_ID}" ]] || warn "LINE_CHANNEL_ID is empty"
+[[ -n "${GOOGLE_CALENDAR_WEBHOOK_URL}" ]] || warn "GOOGLE_CALENDAR_WEBHOOK_URL is empty; calendar watch refresh batch cannot register push channels"
 if [[ -n "${TENANT_STATUS}" && ! "${TENANT_STATUS}" =~ ^(setup|active)$ ]]; then
   warn "tenant status is ${TENANT_STATUS}; manual deploy is intended for setup or active tenants"
 fi
@@ -355,6 +363,7 @@ if [[ -n "${GITHUB_ENV_PATH}" ]]; then
     "LINE_CHANNEL_ID=${LINE_CHANNEL_ID}" \
     "GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID}" \
     "GOOGLE_DRIVE_FOLDER_ID=${GOOGLE_DRIVE_FOLDER_ID}" \
+    "GOOGLE_CALENDAR_WEBHOOK_URL=${GOOGLE_CALENDAR_WEBHOOK_URL}" \
     "GCS_BUCKET_NAME=${GCS_BUCKET_NAME}" \
     "ADMIN_LINE_ID=${ADMIN_LINE_ID}" \
     "THEME_COLOR=${THEME_COLOR}" \
@@ -379,6 +388,7 @@ append_env_var "LIFF_ID" "${LIFF_ID}"
 append_env_var "LINE_CHANNEL_ID" "${LINE_CHANNEL_ID}"
 append_env_var "GOOGLE_SHEET_ID" "${GOOGLE_SHEET_ID}"
 append_env_var "GOOGLE_DRIVE_FOLDER_ID" "${GOOGLE_DRIVE_FOLDER_ID}"
+append_env_var "GOOGLE_CALENDAR_WEBHOOK_URL" "${GOOGLE_CALENDAR_WEBHOOK_URL}"
 append_env_var "GCS_BUCKET_NAME" "${GCS_BUCKET_NAME}"
 append_env_var "ADMIN_LINE_ID" "${ADMIN_LINE_ID}"
 append_env_var "THEME_COLOR" "${THEME_COLOR}"

@@ -4,6 +4,7 @@ const router = express.Router();
 const reservationSheetsService = require('../services/sheets');
 const calendarService = require('../services/calendar');
 const calendarSyncService = require('../services/calendarSync');
+const calendarWatchService = require('../services/calendarWatch');
 const lineService = require('../services/line');
 const storageService = require('../services/storage');  // Google Cloud Storage
 const db = require('../services/db');
@@ -1958,6 +1959,19 @@ function parseCalendarSyncLimit(value) {
     return limit;
 }
 
+function parseBooleanFlag(value) {
+    if (value === undefined || value === null || value === '') {
+        return false;
+    }
+    if (typeof value === 'boolean') {
+        return value;
+    }
+    if (typeof value === 'number') {
+        return value === 1;
+    }
+    return ['true', '1', 'yes', 'on'].includes(String(value).trim().toLowerCase());
+}
+
 async function handleCalendarCreate(event) {
     const p = event.payload;
     if (!p.calendarId) {
@@ -2007,6 +2021,27 @@ router.post('/batch/calendar-sync', async (req, res, next) => {
 
         const result = await calendarSyncService.syncCalendarStates({
             stateIds: parseCalendarSyncStateIds(req.body || {}),
+            limit: parseCalendarSyncLimit(req.body?.limit),
+        });
+
+        return res.json({ status: 'ok', ...result });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.post('/batch/calendar-watch/refresh', async (req, res, next) => {
+    try {
+        const secret = req.headers['x-scheduler-secret'];
+        const expectedSecret = process.env.SCHEDULER_SECRET;
+
+        if (!expectedSecret || secret !== expectedSecret) {
+            console.log('[CalendarWatch] Unauthorized access attempt');
+            return res.status(403).json({ status: 'error', message: 'Forbidden' });
+        }
+
+        const result = await calendarWatchService.refreshCalendarWatchChannels({
+            force: parseBooleanFlag(req.body?.force),
             limit: parseCalendarSyncLimit(req.body?.limit),
         });
 

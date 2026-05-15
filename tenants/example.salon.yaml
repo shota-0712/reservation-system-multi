@@ -28,6 +28,7 @@ scheduler_secret_name: salon-example-salon-scheduler-secret
 google_calendar_mode: per_practitioner
 default_calendar_id: example-salon-primary@example.com
 practitioner_calendar_policy: "Store practitioner-specific calendar IDs in the tenant DB; default_calendar_id is a fallback."
+google_calendar_webhook_url: "https://reservation-example-salon-<hash>-an.a.run.app/api/webhooks/google-calendar"
 
 google_drive_folder_id: example-drive-folder-id
 gcs_bucket_name: example-gcp-project-images

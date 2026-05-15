@@ -45,6 +45,42 @@ async function listRequested(client, { limit = 20 } = {}) {
     return result.rows;
 }
 
+async function listWatchRefreshCandidates(client, {
+    refreshBefore,
+    force = false,
+    limit = 100,
+} = {}) {
+    const result = await client.query(
+        `
+            SELECT css.*
+            FROM calendar_sync_states css
+            JOIN practitioners p
+              ON p.id = css.practitioner_id
+            WHERE p.is_active = true
+              AND css.calendar_id IS NOT NULL
+              AND btrim(css.calendar_id) <> ''
+            ORDER BY
+              CASE
+                WHEN $2::boolean
+                  OR css.watch_expires_at IS NULL
+                  OR css.watch_expires_at < $1::timestamptz
+                THEN 0
+                ELSE 1
+              END,
+              css.watch_expires_at ASC NULLS FIRST,
+              css.updated_at ASC
+            LIMIT $3
+        `,
+        [
+            refreshBefore,
+            Boolean(force),
+            limit,
+        ]
+    );
+
+    return result.rows;
+}
+
 async function recordSyncRequested(client, input) {
     const result = await client.query(
         `
@@ -127,12 +163,63 @@ async function recordSyncFailed(client, input) {
     return result.rows[0] || null;
 }
 
+async function recordWatchChannel(client, input) {
+    const result = await client.query(
+        `
+            UPDATE calendar_sync_states
+            SET channel_id = $2,
+                channel_resource_id = $3,
+                channel_token = $4,
+                watch_expires_at = $5::timestamptz,
+                last_error = null,
+                sync_requested_at = CASE
+                    WHEN $6::boolean THEN now()
+                    ELSE sync_requested_at
+                END,
+                updated_at = now()
+            WHERE id = $1::uuid
+            RETURNING *
+        `,
+        [
+            input.id,
+            input.channelId,
+            input.channelResourceId,
+            input.channelToken,
+            input.watchExpiresAt,
+            Boolean(input.requestSync),
+        ]
+    );
+
+    return result.rows[0] || null;
+}
+
+async function recordWatchRefreshFailed(client, input) {
+    const result = await client.query(
+        `
+            UPDATE calendar_sync_states
+            SET last_error = $2,
+                updated_at = now()
+            WHERE id = $1::uuid
+            RETURNING *
+        `,
+        [
+            input.id,
+            input.error,
+        ]
+    );
+
+    return result.rows[0] || null;
+}
+
 module.exports = {
     findByChannelId,
     findById,
     listRequested,
+    listWatchRefreshCandidates,
     recordSyncRequested,
     clearSyncToken,
     recordSyncSucceeded,
     recordSyncFailed,
+    recordWatchChannel,
+    recordWatchRefreshFailed,
 };

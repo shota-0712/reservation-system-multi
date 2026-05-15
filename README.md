@@ -77,6 +77,7 @@ psql "$DATABASE_URL" -c 'select 1;'
 | `LINE_CHANNEL_ID` | LIFF ID token検証用LINE LoginチャネルID |
 | `THEME_COLOR`, `THEME_COLOR_LIGHT`, `THEME_COLOR_DARK` | サイトテーマカラー |
 | `GOOGLE_SHEET_ID` | DB移行後は予約データの正本ではない。残す場合は移行元、テンプレート、補助設定など用途を明確にする。 |
+| `GOOGLE_CALENDAR_WEBHOOK_URL` | Google Calendar push notification の受信URL。例: `https://<service-url>/api/webhooks/google-calendar` |
 
 Cloud Run runtime service account には、参照するSecretごとに `roles/secretmanager.secretAccessor` を付与します。GitHub Actions側にはdeploy認証に必要なGCP認証情報だけを置き、アプリ機密値は置きません。
 
