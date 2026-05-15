@@ -7,5 +7,6 @@ module.exports = {
     staffBlocks: require('./staffBlocks'),
     outboxEvents: require('./outboxEvents'),
     calendarSyncStates: require('./calendarSyncStates'),
+    calendarSyncConflicts: require('./calendarSyncConflicts'),
     auditLogs: require('./auditLogs'),
 };
