@@ -1909,15 +1909,78 @@
       color: var(--color-enji);
     }
 
-    #settings-modal .rounded-t-3xl,
-    #settings-modal .rounded-lg,
-    #menu-modal .rounded-t-3xl,
-    #menu-modal .rounded-lg,
-    #option-modal .rounded-t-3xl,
-    #option-modal .rounded-lg,
-    #practitioner-modal .rounded-t-3xl,
-    #practitioner-modal .rounded-lg {
+    .sm-modal-panel {
+      background: var(--sm-bg);
+      border-radius: var(--sm-radius);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+
+    .sm-modal-header {
+      background: var(--sm-bg);
+      border-bottom: 1px solid var(--sm-border);
+      color: var(--sm-text);
+    }
+
+    .sm-modal-title {
+      color: var(--sm-text);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .sm-modal-close {
+      color: var(--sm-text);
+    }
+
+    .sm-modal-field,
+    .sm-modal-upload,
+    .sm-modal-check {
+      border-color: var(--sm-border) !important;
       border-radius: var(--sm-radius) !important;
+      box-shadow: none !important;
+    }
+
+    .sm-modal-primary,
+    .sm-modal-danger,
+    .sm-modal-secondary {
+      border-radius: var(--sm-radius) !important;
+      box-shadow: none !important;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .sm-modal-danger {
+      background: var(--sm-bg);
+      border-color: #c0392b !important;
+      color: #c0392b !important;
+    }
+
+    .sm-reschedule-surface {
+      background: var(--sm-bg);
+      border: 1px solid var(--sm-border);
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .sm-reschedule-week-button {
+      align-items: center;
+      background: var(--sm-bg);
+      border: 1px solid var(--sm-border);
+      border-radius: 0;
+      color: var(--sm-text);
+      display: inline-flex;
+      height: 32px;
+      justify-content: center;
+      transition: background 0.18s ease, border-color 0.18s ease;
+      width: 32px;
+    }
+
+    .sm-reschedule-week-button:active {
+      background: #f4f2f0;
+      border-color: var(--sm-border-strong);
     }
 
     #settings-modal input,
@@ -2595,15 +2658,15 @@
   <!-- Confirm Modal -->
   <div id="confirm-modal"
     class="fixed inset-0 bg-black/50 flex justify-center items-center z-[70] hidden opacity-0 transition-opacity duration-300">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300"
+    <div class="sm-modal-panel w-full max-w-sm p-6 transform scale-95 transition-transform duration-300"
       id="confirm-modal-content">
-      <h3 class="font-bold text-lg text-gray-800 mb-2">確認</h3>
+      <h3 class="sm-modal-title mb-3">確認</h3>
       <p id="confirm-message" class="text-gray-600 mb-6">本当に実行しますか？</p>
       <div class="flex justify-end gap-3">
         <button id="confirm-cancel-btn"
-          class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">キャンセル</button>
+          class="sm-modal-secondary px-4 py-2 border border-[--sm-border] text-[--sm-text] hover:bg-gray-100 transition-colors">キャンセル</button>
         <button id="confirm-ok-btn"
-          class="px-4 py-2 bg-enji text-white rounded-lg hover:opacity-90 transition-opacity">OK</button>
+          class="sm-modal-primary px-4 py-2 bg-enji text-white hover:opacity-90 transition-opacity">OK</button>
       </div>
     </div>
   </div>
@@ -2623,16 +2686,16 @@
   <div id="reschedule-modal" class="fixed inset-0 bg-black/50 flex flex-col z-50 hidden animate-fade-in">
     <div class="bg-white w-full h-full flex flex-col">
       <!-- Header -->
-      <div class="bg-enji text-white p-4 flex justify-between items-center flex-shrink-0">
-        <button onclick="closeRescheduleModal()" class="text-white hover:text-gray-200">
+      <div class="sm-modal-header p-4 flex justify-between items-center flex-shrink-0">
+        <button onclick="closeRescheduleModal()" class="text-[--sm-text] hover:text-enji">
           <i class="fas fa-arrow-left"></i>
         </button>
-        <h3 class="font-bold text-lg">予約変更</h3>
+        <h3 class="sm-modal-title">予約変更</h3>
         <div class="w-6"></div>
       </div>
 
       <!-- Current Reservation Info -->
-      <div class="p-4 bg-gray-50 border-b flex-shrink-0">
+      <div class="p-4 bg-gray-50 border-b border-[--sm-border] flex-shrink-0">
         <p class="text-sm text-gray-600 mb-1">現在の予約</p>
         <p id="reschedule-current" class="font-bold text-gray-800"></p>
       </div>
@@ -2654,15 +2717,15 @@
         <!-- Step 3: Date Selection -->
         <div id="reschedule-step-date" class="hidden p-4">
           <h4 class="font-bold text-gray-700 mb-3"><i class="fas fa-calendar mr-2 text-enji"></i>日時選択</h4>
-          <div class="bg-white rounded-xl shadow-sm p-2">
+          <div class="sm-reschedule-surface p-2">
             <div class="flex justify-between items-center mb-2 px-2">
               <button id="reschedule-prev-week"
-                class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600 hover:bg-gray-200 transition-colors">
+                class="sm-reschedule-week-button text-sm">
                 <i class="fas fa-chevron-left"></i>
               </button>
               <h3 id="reschedule-calendar-title" class="font-bold text-gray-700"></h3>
               <button id="reschedule-next-week"
-                class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600 hover:bg-gray-200 transition-colors">
+                class="sm-reschedule-week-button text-sm">
                 <i class="fas fa-chevron-right"></i>
               </button>
             </div>
@@ -2683,7 +2746,7 @@
         <!-- Step 4: Confirm -->
         <div id="reschedule-step-confirm" class="hidden p-4">
           <h4 class="font-bold text-gray-700 mb-3"><i class="fas fa-check mr-2 text-enji"></i>変更内容の確認</h4>
-          <div class="bg-white rounded-xl shadow-sm p-4 space-y-3">
+          <div class="sm-reschedule-surface p-4 space-y-3">
             <div class="flex justify-between items-start">
               <span class="text-gray-500 text-sm">メニュー</span>
               <span id="reschedule-confirm-menu" class="font-bold text-gray-800 text-right"></span>
@@ -2710,7 +2773,7 @@
             </div>
           </div>
           <button id="reschedule-submit-btn"
-            class="w-full mt-4 bg-enji text-white font-bold py-3 rounded-lg hover:bg-enji-dark transition-colors">
+            class="sm-modal-primary w-full mt-4 bg-enji text-white py-3 hover:bg-enji-dark transition-colors">
             <i class="fas fa-check mr-2"></i>この内容で変更する
           </button>
         </div>
@@ -2721,10 +2784,10 @@
   <!-- Menu Edit Modal -->
   <div id="menu-modal"
     class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 hidden p-4 animate-fade-in overflow-y-auto">
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-sm overflow-hidden my-auto max-h-[90vh] flex flex-col">
-      <div class="bg-enji text-white p-4 flex justify-between items-center flex-shrink-0">
-        <h3 id="menu-modal-title" class="font-bold text-lg">メニュー編集</h3>
-        <button onclick="closeMenuModal()" class="text-white hover:text-gray-200"><i class="fas fa-times"></i></button>
+    <div class="sm-modal-panel w-full max-w-sm overflow-hidden my-auto max-h-[90vh] flex flex-col">
+      <div class="sm-modal-header p-4 flex justify-between items-center flex-shrink-0">
+        <h3 id="menu-modal-title" class="uppercase tracking-widest text-xs font-semibold text-[--sm-text]">メニュー編集</h3>
+        <button onclick="closeMenuModal()" class="sm-modal-close hover:text-enji"><i class="fas fa-times"></i></button>
       </div>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         <input type="hidden" id="menu-edit-id">
@@ -2732,55 +2795,55 @@
         <div>
           <label class="text-xs text-gray-400 block mb-1">メニュー名</label>
           <input type="text" id="menu-edit-name"
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
             placeholder="メニュー名を入力">
         </div>
         <div class="relative">
           <label class="text-xs text-gray-400 block mb-1">カテゴリ</label>
           <input type="text" id="menu-edit-category"
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
             placeholder="カテゴリを入力（例：全員、初回限定）" oninput="showCategorySuggestions(this.value)"
             onfocus="showCategorySuggestions(this.value)">
           <div id="category-suggestions"
-            class="hidden absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-40 overflow-y-auto">
+            class="sm-modal-panel hidden absolute z-10 w-full border border-[--sm-border] mt-1 max-h-40 overflow-y-auto">
           </div>
         </div>
         <div class="flex gap-4">
           <div class="flex-1">
             <label class="text-xs text-gray-400 block mb-1">施術時間（分）</label>
             <input type="number" id="menu-edit-minutes"
-              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
               placeholder="60">
           </div>
           <div class="flex-1">
             <label class="text-xs text-gray-400 block mb-1">料金（円）</label>
             <input type="number" id="menu-edit-price"
-              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
               placeholder="10000">
           </div>
         </div>
         <div>
           <label class="text-xs text-gray-400 block mb-1">説明</label>
           <textarea id="menu-edit-description" rows="3"
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji resize-none"
+            class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji resize-none"
             placeholder="メニューの説明を入力"></textarea>
         </div>
         <div>
           <label class="text-xs text-gray-400 block mb-1">メニュー画像</label>
           <div id="menu-image-preview" class="mb-2 hidden">
             <img id="menu-preview-img" src="" alt="Preview"
-              class="w-full h-32 object-cover rounded-lg border border-gray-200">
+              class="sm-modal-field w-full h-32 object-cover border border-[--sm-border]">
           </div>
           <div class="flex gap-2">
             <label class="flex-1 cursor-pointer">
               <input type="file" id="menu-edit-image" accept="image/*" class="hidden" onchange="previewMenuImage(this)">
               <div
-                class="w-full py-2 text-center border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-enji hover:text-enji transition-colors">
+                class="sm-modal-upload w-full py-2 text-center border-2 border-dashed border-[--sm-border] text-gray-500 hover:border-enji hover:text-enji transition-colors">
                 <i class="fas fa-camera mr-2"></i>画像を選択
               </div>
             </label>
             <button type="button" onclick="clearMenuImage()" id="menu-clear-image-btn"
-              class="hidden px-4 py-2 border border-red-400 text-red-400 rounded-lg hover:bg-red-50 transition-colors">
+              class="sm-modal-danger hidden px-4 py-2 border border-red-400 text-red-400 hover:bg-red-50 transition-colors">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -2789,16 +2852,16 @@
         <div>
           <label class="text-xs text-gray-400 block mb-2">利用可能なオプション</label>
           <div id="menu-options-container"
-            class="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+            class="sm-modal-field space-y-2 max-h-40 overflow-y-auto border border-[--sm-border] p-3">
             <div class="text-gray-400 text-sm">読み込み中...</div>
           </div>
           <p class="text-xs text-gray-400 mt-1">※選択したオプションのみ予約時に表示されます</p>
         </div>
         <div class="pt-4 border-t border-gray-100 space-y-2">
           <button onclick="saveMenu()"
-            class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg transition-colors">保存</button>
+            class="sm-modal-primary w-full bg-enji hover:bg-enji-dark text-white py-3 transition-colors">保存</button>
           <button id="menu-delete-btn" onclick="deleteMenuFromModal()"
-            class="w-full border border-red-500 text-red-500 font-bold py-3 rounded-lg hover:bg-red-50 transition-colors hidden">削除</button>
+            class="sm-modal-danger w-full border border-red-500 text-red-500 py-3 hover:bg-red-50 transition-colors hidden">削除</button>
         </div>
       </div>
     </div>
@@ -2807,10 +2870,10 @@
   <!-- Practitioner Edit Modal (NEW) -->
   <div id="practitioner-modal"
     class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 hidden p-4 animate-fade-in overflow-y-auto">
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-sm overflow-hidden my-auto max-h-[90vh] flex flex-col">
-      <div class="bg-enji text-white p-4 flex justify-between items-center flex-shrink-0">
-        <h3 id="practitioner-modal-title" class="font-bold text-lg">施術者編集</h3>
-        <button onclick="closePractitionerModal()" class="text-white hover:text-gray-200"><i
+    <div class="sm-modal-panel w-full max-w-sm overflow-hidden my-auto max-h-[90vh] flex flex-col">
+      <div class="sm-modal-header p-4 flex justify-between items-center flex-shrink-0">
+        <h3 id="practitioner-modal-title" class="uppercase tracking-widest text-xs font-semibold text-[--sm-text]">施術者編集</h3>
+        <button onclick="closePractitionerModal()" class="sm-modal-close hover:text-enji"><i
             class="fas fa-times"></i></button>
       </div>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
@@ -2819,51 +2882,51 @@
         <div>
           <label class="text-xs text-gray-400 block mb-1">施術者名 <span class="text-red-400">*</span></label>
           <input type="text" id="practitioner-edit-name"
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
             placeholder="施術者名を入力">
         </div>
         <div>
           <label class="text-xs text-gray-400 block mb-1">役職/肩書き</label>
           <input type="text" id="practitioner-edit-title"
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
             placeholder="例: LinCal【東京】">
         </div>
         <div class="flex gap-3">
           <div class="flex-1">
             <label class="text-xs text-gray-400 block mb-1">経歴</label>
             <input type="text" id="practitioner-edit-experience"
-              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
               placeholder="例: 歴5年">
           </div>
           <div class="flex-1">
             <label class="text-xs text-gray-400 block mb-1">指名料（円）</label>
             <input type="number" id="practitioner-edit-nominationFee"
-              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
               placeholder="例: 330">
           </div>
         </div>
         <div>
           <label class="text-xs text-gray-400 block mb-1">SNS/Instagram</label>
           <input type="text" id="practitioner-edit-sns"
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
             placeholder="例: @username">
         </div>
         <div>
           <label class="text-xs text-gray-400 block mb-1">PRタイトル</label>
           <input type="text" id="practitioner-edit-prTitle"
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
             placeholder="例: 再現性ヘア◎ 透明感ベージュカラー">
         </div>
         <div>
           <label class="text-xs text-gray-400 block mb-1">詳細コメント（予約画面に表示）</label>
           <textarea id="practitioner-edit-description" rows="3"
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji resize-none"
+            class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji resize-none"
             placeholder="お客様へのメッセージを入力"></textarea>
         </div>
         <div>
           <label class="text-xs text-gray-400 block mb-1">GoogleカレンダーID <span class="text-red-400">*</span></label>
           <input type="text" id="practitioner-edit-calendarId"
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
             placeholder="example@gmail.com">
           <p class="text-xs text-gray-400 mt-1">カレンダーのメールアドレスを入力してください</p>
         </div>
@@ -2871,28 +2934,28 @@
           <label class="text-xs text-gray-400 block mb-1">プロフィール画像</label>
           <div id="practitioner-image-preview" class="mb-2 hidden">
             <img id="practitioner-preview-img" src="" alt="Preview"
-              class="w-24 h-24 object-cover rounded-full mx-auto border border-gray-200">
+              class="sm-modal-field w-24 h-24 object-cover mx-auto border border-[--sm-border]">
           </div>
           <div class="flex gap-2">
             <label class="flex-1 cursor-pointer">
               <input type="file" id="practitioner-edit-image" accept="image/*" class="hidden"
                 onchange="previewPractitionerImage(this)">
               <div
-                class="w-full py-2 text-center border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-enji hover:text-enji transition-colors">
+                class="sm-modal-upload w-full py-2 text-center border-2 border-dashed border-[--sm-border] text-gray-500 hover:border-enji hover:text-enji transition-colors">
                 <i class="fas fa-camera mr-2"></i>画像を選択
               </div>
             </label>
             <button type="button" onclick="clearPractitionerImage()" id="practitioner-clear-image-btn"
-              class="hidden px-4 py-2 border border-red-400 text-red-400 rounded-lg hover:bg-red-50 transition-colors">
+              class="sm-modal-danger hidden px-4 py-2 border border-red-400 text-red-400 hover:bg-red-50 transition-colors">
               <i class="fas fa-trash"></i>
             </button>
           </div>
         </div>
         <div class="pt-4 border-t border-gray-100 space-y-2">
           <button onclick="savePractitioner()"
-            class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg transition-colors">保存</button>
+            class="sm-modal-primary w-full bg-enji hover:bg-enji-dark text-white py-3 transition-colors">保存</button>
           <button id="practitioner-delete-btn" onclick="deletePractitionerFromModal()"
-            class="w-full border border-red-500 text-red-500 font-bold py-3 rounded-lg hover:bg-red-50 transition-colors hidden">削除</button>
+            class="sm-modal-danger w-full border border-red-500 text-red-500 py-3 hover:bg-red-50 transition-colors hidden">削除</button>
         </div>
       </div>
     </div>
@@ -2901,10 +2964,10 @@
   <!-- Option Edit Modal (NEW) -->
   <div id="option-modal"
     class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 hidden p-4 animate-fade-in overflow-y-auto">
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-sm overflow-hidden my-auto max-h-[90vh] flex flex-col">
-      <div class="bg-enji text-white p-4 flex justify-between items-center flex-shrink-0">
-        <h3 id="option-modal-title" class="font-bold text-lg">オプション編集</h3>
-        <button onclick="closeOptionModal()" class="text-white hover:text-gray-200"><i
+    <div class="sm-modal-panel w-full max-w-sm overflow-hidden my-auto max-h-[90vh] flex flex-col">
+      <div class="sm-modal-header p-4 flex justify-between items-center flex-shrink-0">
+        <h3 id="option-modal-title" class="uppercase tracking-widest text-xs font-semibold text-[--sm-text]">オプション編集</h3>
+        <button onclick="closeOptionModal()" class="sm-modal-close hover:text-enji"><i
             class="fas fa-times"></i></button>
       </div>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
@@ -2912,34 +2975,34 @@
         <div>
           <label class="text-xs text-gray-400 block mb-1">オプション名</label>
           <input type="text" id="option-edit-name"
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+            class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
             placeholder="オプション名を入力">
         </div>
         <div class="flex gap-4">
           <div class="flex-1">
             <label class="text-xs text-gray-400 block mb-1">追加時間（分）</label>
             <input type="number" id="option-edit-minutes"
-              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
               placeholder="30">
           </div>
           <div class="flex-1">
             <label class="text-xs text-gray-400 block mb-1">追加料金（円）</label>
             <input type="number" id="option-edit-price"
-              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+              class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
               placeholder="3000">
           </div>
         </div>
         <div>
           <label class="text-xs text-gray-400 block mb-1">説明</label>
           <textarea id="option-edit-description" rows="2"
-            class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji resize-none"
+            class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji resize-none"
             placeholder="オプションの説明を入力"></textarea>
         </div>
         <div class="pt-4 border-t border-gray-100 space-y-2">
           <button onclick="saveOption()"
-            class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg transition-colors">保存</button>
+            class="sm-modal-primary w-full bg-enji hover:bg-enji-dark text-white py-3 transition-colors">保存</button>
           <button id="option-delete-btn" onclick="deleteOptionFromModal()"
-            class="w-full border border-red-500 text-red-500 font-bold py-3 rounded-lg hover:bg-red-50 transition-colors hidden">削除</button>
+            class="sm-modal-danger w-full border border-red-500 text-red-500 py-3 hover:bg-red-50 transition-colors hidden">削除</button>
         </div>
       </div>
     </div>
@@ -2948,35 +3011,35 @@
   <!-- Settings Modal (NEW) -->
   <div id="settings-modal"
     class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 hidden p-4 animate-fade-in overflow-y-auto">
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden my-auto max-h-[90vh] flex flex-col">
-      <div class="bg-enji text-white p-4 flex justify-between items-center flex-shrink-0">
-        <h3 class="font-bold text-lg"><i class="fas fa-cog mr-2"></i>予約システム設定</h3>
-        <button onclick="closeSettingsModal()" class="text-white hover:text-gray-200"><i
+    <div class="sm-modal-panel w-full max-w-md overflow-hidden my-auto max-h-[90vh] flex flex-col">
+      <div class="sm-modal-header p-4 flex justify-between items-center flex-shrink-0">
+        <h3 class="uppercase tracking-widest text-xs font-semibold text-[--sm-text]">予約システム設定</h3>
+        <button onclick="closeSettingsModal()" class="sm-modal-close hover:text-enji"><i
             class="fas fa-times"></i></button>
       </div>
       <div class="p-6 space-y-4 overflow-y-auto flex-1">
         <!-- Header Customization Section -->
         <div class="pb-4 border-b border-gray-200">
-          <h4 class="font-bold text-gray-700 text-sm mb-3"><i class="fas fa-store mr-2"></i>ヘッダー表示設定</h4>
+          <h4 class="font-bold text-gray-700 text-sm mb-3">ヘッダー表示設定</h4>
 
           <div class="mb-3">
             <label class="text-xs text-gray-400 block mb-1">ロゴ画像</label>
             <input type="hidden" id="settings-logoUrl">
             <div id="settings-logo-preview" class="mb-2 hidden">
               <img id="settings-logo-img" src="" alt="Logo Preview"
-                class="w-16 h-16 object-cover rounded-full mx-auto border border-gray-200">
+                class="sm-modal-field w-16 h-16 object-cover mx-auto border border-[--sm-border]">
             </div>
             <div class="flex gap-2">
               <label class="flex-1 cursor-pointer">
                 <input type="file" id="settings-logo-file" accept="image/*" class="hidden"
                   onchange="previewSettingsLogo(this)">
                 <div
-                  class="w-full py-2 text-center border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-enji hover:text-enji transition-colors text-sm">
+                  class="sm-modal-upload w-full py-2 text-center border-2 border-dashed border-[--sm-border] text-gray-500 hover:border-enji hover:text-enji transition-colors text-sm">
                   <i class="fas fa-camera mr-2"></i>ロゴを選択
                 </div>
               </label>
               <button type="button" onclick="clearSettingsLogo()" id="settings-clear-logo-btn"
-                class="hidden px-4 py-2 border border-red-400 text-red-400 rounded-lg hover:bg-red-50 transition-colors text-sm">
+                class="sm-modal-danger hidden px-4 py-2 border border-red-400 text-red-400 hover:bg-red-50 transition-colors text-sm">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
@@ -2985,33 +3048,33 @@
           <div class="mb-3">
             <label class="text-xs text-gray-400 block mb-1">サロン名</label>
             <input type="text" id="settings-salonName"
-              class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
+              class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
               placeholder="demoサロン">
           </div>
 
           <div class="mb-3">
             <label class="text-xs text-gray-400 block mb-1">住所</label>
             <input type="text" id="settings-address"
-              class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
+              class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
               placeholder="〒123-4567 東京都千代田区1-1-1">
           </div>
 
           <div class="mb-0">
             <label class="text-xs text-gray-400 block mb-1">最寄り駅</label>
             <input type="text" id="settings-station"
-              class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
+              class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
               placeholder="東京駅">
           </div>
         </div>
 
         <!-- Business Settings Section -->
         <div>
-          <h4 class="font-bold text-gray-700 text-sm mb-3"><i class="fas fa-clock mr-2"></i>営業設定</h4>
+          <h4 class="font-bold text-gray-700 text-sm mb-3">営業設定</h4>
           <div class="grid grid-cols-2 gap-3 mb-3">
             <div>
               <label class="text-xs text-gray-400 block mb-1">営業開始時間</label>
               <select id="settings-businessStart"
-                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm">
+                class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm">
                 <option value="9">9:00</option>
                 <option value="10" selected>10:00</option>
                 <option value="11">11:00</option>
@@ -3021,7 +3084,7 @@
             <div>
               <label class="text-xs text-gray-400 block mb-1">営業終了時間</label>
               <select id="settings-businessEnd"
-                class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm">
+                class="sm-modal-field w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm">
                 <option value="18">18:00</option>
                 <option value="19">19:00</option>
                 <option value="20" selected>20:00</option>
@@ -3035,38 +3098,38 @@
             <label class="text-xs text-gray-400 block mb-1">定休日</label>
             <div class="flex flex-wrap gap-2" id="settings-regularHolidays-container">
               <label
-                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
-                <input type="checkbox" value="1" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                class="sm-modal-check inline-flex items-center bg-gray-50 border border-[--sm-border] px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="1" class="sm-modal-field form-checkbox text-enji h-4 w-4 mr-1">
                 <span class="text-sm">月</span>
               </label>
               <label
-                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
-                <input type="checkbox" value="2" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                class="sm-modal-check inline-flex items-center bg-gray-50 border border-[--sm-border] px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="2" class="sm-modal-field form-checkbox text-enji h-4 w-4 mr-1">
                 <span class="text-sm">火</span>
               </label>
               <label
-                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
-                <input type="checkbox" value="3" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                class="sm-modal-check inline-flex items-center bg-gray-50 border border-[--sm-border] px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="3" class="sm-modal-field form-checkbox text-enji h-4 w-4 mr-1">
                 <span class="text-sm">水</span>
               </label>
               <label
-                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
-                <input type="checkbox" value="4" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                class="sm-modal-check inline-flex items-center bg-gray-50 border border-[--sm-border] px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="4" class="sm-modal-field form-checkbox text-enji h-4 w-4 mr-1">
                 <span class="text-sm">木</span>
               </label>
               <label
-                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
-                <input type="checkbox" value="5" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                class="sm-modal-check inline-flex items-center bg-gray-50 border border-[--sm-border] px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="5" class="sm-modal-field form-checkbox text-enji h-4 w-4 mr-1">
                 <span class="text-sm">金</span>
               </label>
               <label
-                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
-                <input type="checkbox" value="6" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                class="sm-modal-check inline-flex items-center bg-gray-50 border border-[--sm-border] px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="6" class="sm-modal-field form-checkbox text-enji h-4 w-4 mr-1">
                 <span class="text-sm">土</span>
               </label>
               <label
-                class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100">
-                <input type="checkbox" value="0" class="form-checkbox text-enji rounded h-4 w-4 mr-1">
+                class="sm-modal-check inline-flex items-center bg-gray-50 border border-[--sm-border] px-2 py-1 cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" value="0" class="sm-modal-field form-checkbox text-enji h-4 w-4 mr-1">
                 <span class="text-sm text-red-500">日</span>
               </label>
             </div>
@@ -3075,7 +3138,7 @@
           <div>
             <label class="text-xs text-gray-400 block mb-1">臨時休業日（選択してください）</label>
             <input type="text" id="settings-holidays"
-              class="flatpickr w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm bg-white"
+              class="sm-modal-field flatpickr w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm bg-white"
               placeholder="タップして日付を選択" readonly>
             <p class="text-xs text-gray-400 mt-1">※複数選択可能です</p>
           </div>
@@ -3083,7 +3146,7 @@
           <div class="mb-3">
             <label class="text-xs text-gray-400 block mb-1">臨時営業日</label>
             <input type="text" id="settings-temporaryBusinessDays"
-              class="flatpickr w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm bg-white"
+              class="sm-modal-field flatpickr w-full p-2 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm bg-white"
               placeholder="タップして日付を選択" readonly>
             <p class="text-xs text-gray-400 mt-1">※定休日でも営業する場合は選択</p>
           </div>
@@ -3091,24 +3154,24 @@
 
         <!-- Reservation Info Section -->
         <div>
-          <h4 class="font-bold text-gray-700 text-sm mb-3"><i class="fas fa-info-circle mr-2"></i>予約完了時の表示</h4>
+          <h4 class="font-bold text-gray-700 text-sm mb-3">予約完了時の表示</h4>
           <div class="mb-3">
             <label class="text-xs text-gray-400 block mb-1">店舗情報</label>
             <textarea id="settings-salonInfo" rows="6"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
+              class="sm-modal-field w-full p-3 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
               placeholder="【店舗情報】&#10;サロン名: demoサロン&#10;最寄り駅: 千葉駅・東千葉駅&#10;住所: 〒123-4567 東京都千代田区1-1-1&#10;営業時間: 10:00〜19:00 (完全予約制)&#10;定休日: 不定休"></textarea>
           </div>
           <div>
             <label class="text-xs text-gray-400 block mb-1">注意事項</label>
             <textarea id="settings-precautions" rows="6"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
+              class="sm-modal-field w-full p-3 border border-[--sm-border] focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji text-sm"
               placeholder="キャンセルポリシー、注意事項など"></textarea>
           </div>
         </div>
 
         <div class="pt-4 border-t border-gray-100">
           <button onclick="saveSettings()"
-            class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg transition-colors">
+            class="sm-modal-primary w-full bg-enji hover:bg-enji-dark text-white py-3 transition-colors">
             <i class="fas fa-save mr-2"></i>保存
           </button>
         </div>
@@ -3186,7 +3249,7 @@
     // ==============================================
 
     // Toast notification (replaces alert())
-    // Toast notification (Dynamic Pill Style)
+    // Toast notification (Sharp Minimal Style)
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
 
@@ -3199,7 +3262,8 @@
         ? '<i class="fas fa-check text-green-500"></i>'
         : '<i class="fas fa-times text-red-400"></i>';
 
-      toast.className = `${bgClass} shadow-xl px-6 py-3 rounded-full flex items-center gap-3 animate-scale-in border border-gray-100 pointer-events-auto`;
+      toast.className = `${bgClass} shadow-sm px-6 py-3 flex items-center gap-3 animate-scale-in border border-[--sm-border] pointer-events-auto`;
+      toast.style.borderRadius = 'var(--sm-radius)';
       toast.innerHTML = `
       ${icon}
       <span class="font-bold text-sm text-center">${message}</span>
@@ -4772,7 +4836,7 @@
       const container = document.getElementById('reschedule-menu-list');
       container.innerHTML = rescheduleState.allMenus.map(menu => `
         <div onclick="selectRescheduleMenu('${menu.id}')"
-          class="bg-white shadow-sm border border-gray-200 p-4 rounded-lg cursor-pointer hover:border-enji transition-colors">
+          class="sm-reschedule-surface p-4 cursor-pointer hover:border-enji transition-colors">
           <div class="font-bold text-gray-800">${menu.name}</div>
           <div class="text-sm text-gray-500 mt-1">${menu.minutes}分 / ¥${Number(menu.price).toLocaleString()}</div>
         </div>
@@ -4815,7 +4879,7 @@
       // 「指名なし」オプションを追加
       let html = `
         <div onclick="selectReschedulePractitioner(null)"
-          class="bg-white shadow-sm border border-gray-200 p-4 rounded-lg cursor-pointer hover:border-enji transition-colors">
+          class="sm-reschedule-surface p-4 cursor-pointer hover:border-enji transition-colors">
           <div class="font-bold text-gray-800">指名なし</div>
           <div class="text-sm text-gray-500">空いている施術者が担当</div>
         </div>
@@ -4823,7 +4887,7 @@
 
       html += rescheduleState.allPractitioners.map(p => `
         <div onclick="selectReschedulePractitioner('${p.id}')"
-          class="bg-white shadow-sm border border-gray-200 p-4 rounded-lg cursor-pointer hover:border-enji transition-colors">
+          class="sm-reschedule-surface p-4 cursor-pointer hover:border-enji transition-colors">
           <div class="font-bold text-gray-800">${p.name}</div>
           ${p.title ? `<div class="text-sm text-gray-500">${p.title}</div>` : ''}
         </div>
@@ -4884,14 +4948,14 @@
         rescheduleState.weeklyData = weeklyData;
 
         // ヘッダー描画
-        headerRow.innerHTML = '<th class="py-2 w-12 bg-gray-50 sticky left-0 z-10 border-r border-gray-100">日時</th>';
+        headerRow.innerHTML = '<th class="py-2 w-12 bg-gray-50 sticky left-0 z-10 border border-[--sm-border]">日時</th>';
         weeklyData.forEach(day => {
           const isSat = day.day === '土';
           const isSun = day.day === '日';
           const colorClass = isSat ? 'text-blue-500' : (isSun ? 'text-red-500' : 'text-gray-700');
           const dayNum = day.date.split('/')[2];
           headerRow.innerHTML += `
-            <th class="py-1 px-1">
+            <th class="py-1 px-1 border border-[--sm-border]">
               <div class="text-xs ${colorClass}">${dayNum}</div>
               <div class="text-xs ${colorClass}">(${day.day})</div>
             </th>
@@ -4903,8 +4967,8 @@
         const timeSlots = weeklyData[0].slots.map(s => s.time);
 
         timeSlots.forEach((time, index) => {
-          let rowHtml = `<tr class="border-b border-gray-50">`;
-          rowHtml += `<td class="py-3 text-xs font-bold text-gray-600 bg-gray-50 sticky left-0 z-10 border-r border-gray-100">${time}</td>`;
+          let rowHtml = `<tr>`;
+          rowHtml += `<td class="py-3 text-xs font-bold text-gray-600 bg-gray-50 sticky left-0 z-10 border border-[--sm-border]">${time}</td>`;
 
           weeklyData.forEach(day => {
             const slot = day.slots[index];
@@ -4912,7 +4976,7 @@
             let cellClass = '';
 
             if (slot.status === '○') {
-              cellContent = '<i class="far fa-circle text-enji text-lg"></i>';
+              cellContent = '<span class="text-enji text-xs font-semibold tracking-widest">OK</span>';
               cellClass = 'cursor-pointer hover:bg-red-50 transition-colors';
             } else if (slot.status === '×') {
               cellContent = '<i class="fas fa-times text-gray-400 text-lg"></i>';
@@ -4923,7 +4987,7 @@
             }
 
             const clickHandler = slot.status === '○' ? `onclick="selectRescheduleSlot('${day.date}', '${time}')"` : '';
-            rowHtml += `<td class="py-2 ${cellClass}" ${clickHandler}>${cellContent}</td>`;
+            rowHtml += `<td class="py-2 border border-[--sm-border] ${cellClass}" ${clickHandler}>${cellContent}</td>`;
           });
 
           rowHtml += `</tr>`;
@@ -6227,8 +6291,8 @@
         container.innerHTML = options.map(opt => {
           const isChecked = selectedIds.includes(String(opt.id));
           return `
-            <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-              <input type="checkbox" class="menu-option-checkbox w-4 h-4 text-enji border-gray-300 rounded focus:ring-enji"
+            <label class="sm-modal-check flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1">
+              <input type="checkbox" class="sm-modal-field menu-option-checkbox w-4 h-4 text-enji border-[--sm-border] focus:ring-enji"
                 value="${opt.id}" ${isChecked ? 'checked' : ''}>
               <span class="text-sm text-gray-700">${opt.name}</span>
               <span class="text-xs text-gray-400">(+${opt.minutes}分 / ¥${opt.price.toLocaleString()})</span>
