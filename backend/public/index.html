@@ -911,6 +911,248 @@
       text-align: center;
     }
 
+    #mypage-view {
+      color: var(--sm-text);
+    }
+
+    #mypage-view .sm-mypage-heading {
+      align-items: flex-start;
+      display: flex;
+      gap: 14px;
+      margin: 2px 0 18px;
+    }
+
+    #mypage-view .sm-mypage-heading-number {
+      border-bottom: 1px solid var(--color-enji);
+      color: var(--sm-text);
+      flex: 0 0 auto;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      padding-bottom: 6px;
+    }
+
+    #mypage-view .sm-mypage-heading-title {
+      color: var(--sm-text);
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.08;
+      margin: 0;
+    }
+
+    #mypage-view .sm-mypage-heading-subtitle {
+      color: var(--sm-text-muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    #mypage-view .sm-member-card {
+      align-items: center;
+      background: #fbfaf8;
+      border: 1px solid var(--sm-border);
+      border-radius: var(--sm-radius);
+      display: flex;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding: 14px;
+    }
+
+    #mypage-view .sm-member-avatar {
+      align-items: center;
+      background: var(--sm-text);
+      border-radius: 999px;
+      color: var(--sm-bg);
+      display: flex;
+      flex: 0 0 48px;
+      font-size: 14px;
+      font-weight: 900;
+      height: 48px;
+      justify-content: center;
+      line-height: 1;
+      overflow: hidden;
+      width: 48px;
+    }
+
+    #mypage-view .sm-member-avatar img {
+      height: 100%;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    #mypage-view .sm-member-meta {
+      min-width: 0;
+    }
+
+    #mypage-view .sm-member-number {
+      color: var(--sm-text-muted);
+      font-size: 10.5px;
+      font-weight: 700;
+      line-height: 1.4;
+      margin: 0 0 3px;
+    }
+
+    #mypage-view .sm-member-name {
+      color: var(--sm-text);
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.25;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    #mypage-view .sm-member-visits {
+      color: var(--sm-text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.5;
+      margin: 4px 0 0;
+    }
+
+    #mypage-view .sm-mypage-tabs {
+      border-bottom: 1px solid var(--sm-border);
+      display: flex;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+
+    #mypage-view .sm-mypage-tab {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      color: var(--sm-text-faint);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1;
+      padding: 0 0 10px;
+      transition: border-color 0.18s ease, color 0.18s ease;
+    }
+
+    #mypage-view .sm-mypage-tab.is-active {
+      border-bottom-color: var(--color-enji);
+      color: var(--sm-text);
+    }
+
+    #mypage-view .sm-reserved-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    #mypage-view .sm-reservation-card {
+      background: var(--sm-bg);
+      border: 1px solid var(--sm-border);
+      border-radius: var(--sm-radius);
+      padding: 15px;
+    }
+
+    #mypage-view .sm-reservation-date {
+      color: var(--sm-text-muted);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.35;
+      margin: 0 0 10px;
+    }
+
+    #mypage-view .sm-reservation-menu {
+      color: var(--sm-text);
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.35;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    #mypage-view .sm-reservation-practitioner {
+      color: var(--sm-text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin: 4px 0 14px;
+    }
+
+    #mypage-view .sm-reservation-actions {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #mypage-view .sm-reservation-action {
+      background: var(--sm-bg);
+      border: 1px solid var(--sm-border-strong);
+      border-radius: var(--sm-radius);
+      color: var(--sm-text);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      padding: 12px 8px;
+      text-align: center;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    #mypage-view .sm-reservation-action:active {
+      background: #f4f2f0;
+    }
+
+    #mypage-view .sm-reservation-action-danger {
+      border-color: #d48a80;
+      color: #b42318;
+    }
+
+    #mypage-view .sm-history-label {
+      color: var(--sm-text);
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1;
+      margin: 2px 0 8px;
+    }
+
+    #mypage-view .sm-history-list {
+      border-top: 1px solid var(--sm-border);
+    }
+
+    #mypage-view .sm-history-row {
+      align-items: baseline;
+      border-bottom: 1px solid var(--sm-border);
+      display: grid;
+      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding: 12px 0;
+    }
+
+    #mypage-view .sm-history-menu {
+      color: var(--sm-text);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    #mypage-view .sm-history-meta {
+      color: var(--sm-text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.45;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    #mypage-view .sm-mypage-empty,
+    #mypage-view .sm-mypage-loading,
+    #mypage-view .sm-mypage-error {
+      border-bottom: 1px solid var(--sm-border);
+      color: var(--sm-text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 22px 0;
+      text-align: center;
+    }
+
+    #mypage-view .sm-mypage-error {
+      color: #b42318;
+    }
+
     @media (max-width: 380px) {
       .sm-header-main {
         grid-template-columns: minmax(62px, 1fr) minmax(0, 1.25fr) minmax(64px, 1fr);
@@ -959,6 +1201,23 @@
       #step-date .sm-date-time-head,
       #step-date .sm-date-time-cell {
         width: 48px;
+      }
+
+      #mypage-view .sm-mypage-heading-title {
+        font-size: 20px;
+      }
+
+      #mypage-view .sm-member-card {
+        gap: 12px;
+        padding: 12px;
+      }
+
+      #mypage-view .sm-history-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      #mypage-view .sm-history-meta {
+        text-align: left;
       }
     }
 
@@ -1275,23 +1534,44 @@
       </div>
 
       <!-- MY PAGE VIEW -->
-      <!-- ... (My Page View remains same) ... -->
       <div id="mypage-view" class="hidden animate-fade-in">
-        <h2 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-enji pl-3">マイページ</h2>
-
-        <div class="bg-white rounded-xl shadow-sm p-6 text-center mb-6">
-          <div class="mb-2 flex justify-center">
-            <div
-              class="bg-gray-100 text-gray-400 rounded-full w-16 h-16 flex items-center justify-center overflow-hidden">
-              <img id="user-icon" src="https://placehold.co/100" alt="User" class="w-full h-full object-cover">
-            </div>
+        <div class="sm-mypage-heading">
+          <div class="sm-mypage-heading-number">05</div>
+          <div class="min-w-0">
+            <h2 class="sm-mypage-heading-title">マイページ</h2>
+            <p class="sm-mypage-heading-subtitle">ご予約とご来店履歴</p>
           </div>
-          <h3 id="user-name-display" class="font-bold text-gray-800">ゲスト様</h3>
         </div>
 
-        <h3 class="font-bold text-gray-700 mb-3">予約履歴 / 確認</h3>
-        <div id="reservation-history" class="space-y-3">
-          <div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+        <section class="sm-member-card" aria-label="会員情報">
+          <div class="sm-member-avatar" aria-hidden="true">
+            <img id="member-avatar-img" class="hidden" src="" alt="">
+            <span id="member-avatar-initials">--</span>
+          </div>
+          <div class="sm-member-meta">
+            <p class="sm-member-number">会員番号 <span id="member-number">#0042</span></p>
+            <h3 id="user-name-display" class="sm-member-name">ゲスト</h3>
+            <p class="sm-member-visits">ご来店 <span id="visit-count">0</span> 回</p>
+          </div>
+        </section>
+
+        <div class="sm-mypage-tabs" role="tablist" aria-label="予約履歴">
+          <button id="mypage-tab-reserved" class="sm-mypage-tab is-active" type="button" role="tab"
+            aria-selected="true" aria-controls="reserved-list" onclick="switchMypageTab('reserved')">
+            予約中 (<span id="reserved-count">0</span>)
+          </button>
+          <button id="mypage-tab-history" class="sm-mypage-tab" type="button" role="tab" aria-selected="false"
+            aria-controls="history-list" onclick="switchMypageTab('history')">
+            履歴 (<span id="history-count">0</span>)
+          </button>
+        </div>
+
+        <div id="reservation-history">
+          <div id="reserved-list" role="tabpanel" aria-labelledby="mypage-tab-reserved">
+            <div class="sm-mypage-loading"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+          <div id="history-list" class="hidden" role="tabpanel" aria-labelledby="mypage-tab-history">
+          </div>
         </div>
       </div>
 
@@ -1409,39 +1689,6 @@
   <!-- Toast Container -->
   <div id="toast-container"
     class="fixed top-6 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 pointer-events-none w-full max-w-sm px-4 items-center">
-  </div>
-
-  <!-- Reservation Detail Modal -->
-  <div id="reservation-modal"
-    class="fixed inset-0 bg-black/50 flex justify-center items-center z-50 hidden p-4 animate-fade-in">
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-sm overflow-hidden">
-      <div class="bg-enji text-white p-4 flex justify-between items-center">
-        <h3 class="font-bold text-lg">予約詳細</h3>
-        <button onclick="closeModal()" class="text-white hover:text-gray-200"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="p-6 space-y-4">
-        <div>
-          <label class="text-xs text-gray-400 block">日時</label>
-          <p id="modal-date" class="font-bold text-gray-800 text-lg"></p>
-        </div>
-        <div>
-          <label class="text-xs text-gray-400 block">メニュー</label>
-          <p id="modal-menu" class="font-bold text-gray-800"></p>
-        </div>
-        <div>
-          <label class="text-xs text-gray-400 block">担当</label>
-          <p id="modal-practitioner" class="font-bold text-gray-800"></p>
-        </div>
-        <div class="pt-4 border-t border-gray-100 space-y-2">
-          <button id="modal-change-btn"
-            class="w-full bg-enji text-white font-bold py-3 rounded-lg hover:bg-enji-dark transition-colors">
-            <i class="fas fa-calendar-alt mr-2"></i>予約を変更する
-          </button>
-          <button id="modal-cancel-btn"
-            class="w-full border border-red-500 text-red-500 font-bold py-3 rounded-lg hover:bg-red-50 transition-colors">予約をキャンセルする</button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Reschedule Modal -->
@@ -2119,7 +2366,7 @@
     // ==============================================
     window.onload = async () => {
       if (!location.hostname || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-        state.user = { userId: 'mock_admin', displayName: 'Guest User', pictureUrl: 'https://placehold.co/100' };
+        state.user = { userId: 'mock_admin', displayName: 'Guest User', pictureUrl: '' };
         state.isAdmin = MOCK_ADMIN;
         updateUserDisplay();
         if (state.isAdmin) showAdminTab();
@@ -2203,11 +2450,49 @@
       document.getElementById('nav-admin').classList.add('flex');
     }
 
+    function getUserDisplayName() {
+      return state.user?.displayName || 'ゲスト';
+    }
+
+    function getUserInitials(name) {
+      const compactName = Array.from(String(name || 'ゲスト').replace(/\s+/g, ''));
+      return compactName.slice(0, 2).join('').toUpperCase() || 'GU';
+    }
+
+    function getMemberNumber() {
+      const userId = String(state.user?.userId || state.user?.lineUserId || state.user?.line_user_id || '').trim();
+      if (!userId) return '#0042';
+      return `#${userId.slice(-4).padStart(4, '0').toUpperCase()}`;
+    }
+
     function updateUserDisplay() {
       if (state.user) {
-        document.getElementById('user-name-display').innerText = state.user.displayName + '様';
-        if (state.user.pictureUrl) {
-          document.getElementById('user-icon').src = state.user.pictureUrl;
+        const displayName = getUserDisplayName();
+        const nameDisplay = document.getElementById('user-name-display');
+        const memberNumber = document.getElementById('member-number');
+        const avatarImg = document.getElementById('member-avatar-img');
+        const avatarInitials = document.getElementById('member-avatar-initials');
+
+        if (nameDisplay) nameDisplay.innerText = displayName;
+        if (memberNumber) memberNumber.innerText = getMemberNumber();
+        if (avatarInitials) avatarInitials.innerText = getUserInitials(displayName);
+
+        if (avatarImg && avatarInitials) {
+          if (state.user.pictureUrl) {
+            avatarImg.src = state.user.pictureUrl;
+            avatarImg.alt = displayName;
+            avatarImg.onerror = () => {
+              avatarImg.classList.add('hidden');
+              avatarInitials.classList.remove('hidden');
+            };
+            avatarImg.classList.remove('hidden');
+            avatarInitials.classList.add('hidden');
+          } else {
+            avatarImg.removeAttribute('src');
+            avatarImg.alt = '';
+            avatarImg.classList.add('hidden');
+            avatarInitials.classList.remove('hidden');
+          }
         }
       }
     }
@@ -3140,15 +3425,144 @@
       }
     };
 
+    function normalizeHistoryItems(history) {
+      return Array.isArray(history) ? history : [];
+    }
+
+    function getReservationMenuName(item) {
+      return item?.menuName || item?.menu || 'メニュー未設定';
+    }
+
+    function getReservationPractitionerName(item) {
+      return item?.practitionerName || item?.practitioner?.name || '担当未定';
+    }
+
+    function parseReservationDateTime(item) {
+      const date = String(item?.date || '').replace(/\//g, '-');
+      const time = String(item?.time || '00:00').slice(0, 5);
+      const parsed = new Date(`${date}T${time}:00+09:00`);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function formatMypageReservationDate(item) {
+      const parsed = parseReservationDateTime(item);
+      const time = String(item?.time || '').slice(0, 5);
+      if (!parsed) {
+        return `${item?.date || ''} ・ ${time} 〜`;
+      }
+
+      const weekdays = ['日曜', '月曜', '火曜', '水曜', '木曜', '金曜', '土曜'];
+      const month = String(parsed.getMonth() + 1).padStart(2, '0');
+      const day = String(parsed.getDate()).padStart(2, '0');
+      return `${month}.${day} ${weekdays[parsed.getDay()]} ・ ${time} 〜`;
+    }
+
+    function canChangeReservation(item) {
+      const reservationDateTime = parseReservationDateTime(item);
+      if (!reservationDateTime) return true;
+      const hoursUntilReservation = (reservationDateTime - new Date()) / (1000 * 60 * 60);
+      return hoursUntilReservation >= 24;
+    }
+
+    function setMypageLoading() {
+      const reservedList = document.getElementById('reserved-list');
+      const historyList = document.getElementById('history-list');
+      if (reservedList) reservedList.innerHTML = '<div class="sm-mypage-loading"><i class="fas fa-spinner fa-spin"></i></div>';
+      if (historyList) historyList.innerHTML = '';
+    }
+
+    function updateMypageCounts(history) {
+      const reservedCount = history.filter(item => item.status === 'reserved').length;
+      const historyCount = history.length - reservedCount;
+      const visitCount = history.filter(item => item.status !== 'canceled').length;
+
+      document.getElementById('reserved-count').innerText = reservedCount;
+      document.getElementById('history-count').innerText = historyCount;
+      document.getElementById('visit-count').innerText = visitCount;
+    }
+
+    function renderReservedList(items) {
+      const reservedList = document.getElementById('reserved-list');
+      if (!reservedList) return;
+
+      if (items.length === 0) {
+        reservedList.innerHTML = '<div class="sm-mypage-empty">予約中のご予約はありません</div>';
+        return;
+      }
+
+      reservedList.innerHTML = `
+        <div class="sm-reserved-list">
+          ${items.map(item => {
+            const itemArg = escapeHtml(JSON.stringify(item));
+            const idArg = escapeHtml(JSON.stringify(item.id));
+            const changeDisabled = canChangeReservation(item) ? '' : ' disabled aria-disabled="true" title="変更期限を過ぎています"';
+            const changeClass = canChangeReservation(item) ? '' : ' opacity-50 cursor-not-allowed';
+
+            return `
+              <article class="sm-reservation-card">
+                <p class="sm-reservation-date">${escapeHtml(formatMypageReservationDate(item))}</p>
+                <h3 class="sm-reservation-menu">${escapeHtml(getReservationMenuName(item))}</h3>
+                <p class="sm-reservation-practitioner">${escapeHtml(getReservationPractitionerName(item))}</p>
+                <div class="sm-reservation-actions">
+                  <button type="button" class="sm-reservation-action${changeClass}" onclick='startReservationChange(${itemArg})'${changeDisabled}>日時を変更</button>
+                  <button type="button" class="sm-reservation-action sm-reservation-action-danger" onclick='cancelReservation(${idArg})'>キャンセル</button>
+                </div>
+              </article>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderHistoryList(items) {
+      const historyList = document.getElementById('history-list');
+      if (!historyList) return;
+
+      if (items.length === 0) {
+        historyList.innerHTML = `
+          <p class="sm-history-label">過去のご来店</p>
+          <div class="sm-mypage-empty">過去のご来店はありません</div>
+        `;
+        return;
+      }
+
+      historyList.innerHTML = `
+        <p class="sm-history-label">過去のご来店</p>
+        <div class="sm-history-list">
+          ${items.map(item => `
+            <div class="sm-history-row">
+              <div class="sm-history-menu">${escapeHtml(getReservationMenuName(item))}</div>
+              <div class="sm-history-meta">${escapeHtml(item.date || '')}<span aria-hidden="true">　</span>${escapeHtml(getReservationPractitionerName(item))}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderMypageHistory(history) {
+      const reservedItems = history.filter(item => item.status === 'reserved');
+      const historyItems = history.filter(item => item.status !== 'reserved');
+
+      updateMypageCounts(history);
+      renderReservedList(reservedItems);
+      renderHistoryList(historyItems);
+      switchMypageTab('reserved');
+    }
+
     async function loadHistory() {
-      const container = document.getElementById('reservation-history');
-      container.innerHTML = '<div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+      setMypageLoading();
 
       try {
         let history = [];
         if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
           history = [
-            { id: 'mock1', date: '2023/12/01', time: '10:00', menu: 'フェイシャル基本コース' }
+            { id: 'mock1', date: '2026/05/24', time: '11:00', menu: 'シグネチャー カット', status: 'reserved', practitionerName: '佐藤 翔' },
+            { id: 'mock2', date: '2026/05/02', time: '14:00', menu: 'カット + フルカラー', status: 'completed', practitionerName: '田中 美咲' },
+            { id: 'mock3', date: '2026/04/12', time: '16:00', menu: 'ヘッドスパ', status: 'completed', practitionerName: '佐藤 翔' },
+            { id: 'mock4', date: '2026/03/21', time: '10:30', menu: '前髪カット', status: 'completed', practitionerName: '山田 遥' },
+            { id: 'mock5', date: '2026/02/15', time: '13:00', menu: 'トリートメント', status: 'completed', practitionerName: '田中 美咲' },
+            { id: 'mock6', date: '2026/01/28', time: '12:00', menu: 'リタッチカラー', status: 'completed', practitionerName: '佐藤 翔' },
+            { id: 'mock7', date: '2025/12/19', time: '17:00', menu: 'カット', status: 'completed', practitionerName: '山田 遥' }
           ];
         } else {
           const res = await fetch(`${API_BASE_URL}/api/history`, {
@@ -3157,66 +3571,36 @@
           history = await res.json();
         }
 
-        if (history.length === 0) {
-          container.innerHTML = `<div class="text-center text-gray-400 py-8">予約履歴はありません</div>`;
-          return;
-        }
-
-        container.innerHTML = history.map(item => `
-          <div onclick="showReservationDetails(${JSON.stringify(item).replace(/"/g, '&quot;')})" class="bg-white shadow-sm border-l-4 border-enji p-4 rounded-r-lg cursor-pointer active:bg-gray-50 transition-colors">
-            <div class="flex justify-between items-center">
-              <div>
-                <div class="font-bold text-gray-800 mb-1">${item.date} ${item.time}</div>
-                <div class="text-sm text-gray-600">${item.menu}</div>
-              </div>
-              <div class="text-gray-400"><i class="fas fa-chevron-right"></i></div>
-            </div>
-          </div>
-        `).join('');
+        renderMypageHistory(normalizeHistoryItems(history));
       } catch (e) {
-        container.innerHTML = `<div class="text-center text-red-400 py-8">読み込みエラー</div>`;
+        const reservedList = document.getElementById('reserved-list');
+        const historyList = document.getElementById('history-list');
+        if (reservedList) reservedList.innerHTML = '<div class="sm-mypage-error">読み込みエラー</div>';
+        if (historyList) historyList.innerHTML = '';
       }
     }
 
-    window.showReservationDetails = (item) => {
-      document.getElementById('modal-date').innerText = `${item.date} ${item.time}`;
-      document.getElementById('modal-menu').innerText = item.menu;
-      document.getElementById('modal-practitioner').innerText = item.practitionerName || '指名なし';
+    window.switchMypageTab = (tab) => {
+      const reservedTab = document.getElementById('mypage-tab-reserved');
+      const historyTab = document.getElementById('mypage-tab-history');
+      const reservedList = document.getElementById('reserved-list');
+      const historyList = document.getElementById('history-list');
+      const showReserved = tab !== 'history';
 
-      // 24時間前チェック
-      const reservationDateTime = new Date(`${item.date.replace(/\//g, '-')}T${item.time}:00+09:00`);
-      const now = new Date();
-      const hoursUntilReservation = (reservationDateTime - now) / (1000 * 60 * 60);
-      const canChange = hoursUntilReservation >= 24;
-
-      // 変更ボタン
-      const changeBtn = document.getElementById('modal-change-btn');
-      if (canChange) {
-        changeBtn.disabled = false;
-        changeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        changeBtn.onclick = () => {
-          closeModal();
-          showRescheduleModal(item);
-        };
-      } else {
-        changeBtn.disabled = true;
-        changeBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        changeBtn.innerHTML = '<i class="fas fa-calendar-alt mr-2"></i>変更期限を過ぎています（24時間前まで）';
-        changeBtn.onclick = null;
-      }
-
-      // キャンセルボタン
-      const cancelBtn = document.getElementById('modal-cancel-btn');
-      cancelBtn.onclick = () => {
-        cancelReservation(item.id);
-        closeModal();
-      };
-
-      document.getElementById('reservation-modal').classList.remove('hidden');
+      reservedTab.classList.toggle('is-active', showReserved);
+      reservedTab.setAttribute('aria-selected', String(showReserved));
+      historyTab.classList.toggle('is-active', !showReserved);
+      historyTab.setAttribute('aria-selected', String(!showReserved));
+      reservedList.classList.toggle('hidden', !showReserved);
+      historyList.classList.toggle('hidden', showReserved);
     };
 
-    window.closeModal = () => {
-      document.getElementById('reservation-modal').classList.add('hidden');
+    window.startReservationChange = (item) => {
+      if (!canChangeReservation(item)) {
+        showToast('変更期限を過ぎています（24時間前まで）', 'error');
+        return;
+      }
+      showRescheduleModal(item);
     };
 
     window.cancelReservation = async (reservationId) => {
