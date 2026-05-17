@@ -637,6 +637,280 @@
       opacity: 0.78;
     }
 
+    #step-date {
+      color: var(--sm-text);
+    }
+
+    #step-date .sm-date-heading {
+      align-items: flex-start;
+      display: flex;
+      gap: 14px;
+      margin: 2px 0 18px;
+    }
+
+    #step-date .sm-date-heading-number {
+      border-bottom: 1px solid var(--color-enji);
+      color: var(--sm-text);
+      flex: 0 0 auto;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      padding-bottom: 6px;
+    }
+
+    #step-date .sm-date-heading-title {
+      color: var(--sm-text);
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.08;
+      margin: 0;
+    }
+
+    #step-date .sm-date-heading-subtitle {
+      color: var(--sm-text-muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    #step-date .sm-date-section-label {
+      color: var(--sm-text);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    #step-date .sm-date-practitioner-scroll {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 8px;
+      margin: 0 -16px 20px;
+      overflow-x: auto;
+      padding: 0 16px 4px;
+      scrollbar-width: none;
+      white-space: nowrap;
+    }
+
+    #step-date .sm-date-practitioner-pill {
+      align-items: center;
+      appearance: none;
+      background: var(--sm-bg);
+      border: 1px solid var(--sm-border);
+      border-radius: var(--sm-radius);
+      color: var(--sm-text);
+      cursor: pointer;
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      gap: 7px;
+      min-height: 36px;
+      padding: 5px 10px;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    #step-date .sm-date-practitioner-pill.is-selected {
+      background: var(--sm-text);
+      border-color: var(--sm-text);
+      color: var(--sm-bg);
+    }
+
+    #step-date .sm-date-practitioner-initial {
+      align-items: center;
+      background: #f4f2f0;
+      border-radius: 50%;
+      color: var(--sm-text);
+      display: inline-flex;
+      flex: 0 0 24px;
+      font-size: 10px;
+      font-weight: 900;
+      height: 24px;
+      justify-content: center;
+      line-height: 1;
+      width: 24px;
+    }
+
+    #step-date .sm-date-practitioner-pill.is-selected .sm-date-practitioner-initial {
+      background: var(--sm-bg);
+      color: var(--sm-text);
+    }
+
+    #step-date .sm-date-practitioner-dash,
+    #step-date .sm-date-practitioner-fee {
+      color: var(--sm-text-muted);
+      font-weight: 700;
+    }
+
+    #step-date .sm-date-practitioner-pill.is-selected .sm-date-practitioner-dash,
+    #step-date .sm-date-practitioner-pill.is-selected .sm-date-practitioner-fee {
+      color: var(--sm-bg);
+    }
+
+    #step-date .sm-date-calendar {
+      margin-top: 4px;
+    }
+
+    #step-date .sm-date-week-nav {
+      align-items: center;
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 36px minmax(0, 1fr) 36px;
+      margin-bottom: 12px;
+    }
+
+    #step-date .sm-date-week-button {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      color: var(--sm-text);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 24px;
+      font-weight: 400;
+      height: 36px;
+      line-height: 1;
+      padding: 0;
+      text-align: center;
+    }
+
+    #step-date .sm-date-week-button:active {
+      opacity: 0.55;
+    }
+
+    #step-date .sm-date-week-title {
+      color: var(--sm-text);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      margin: 0;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    #step-date .sm-date-table-wrap {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    #step-date .sm-date-table {
+      border-collapse: collapse;
+      table-layout: fixed;
+      width: 100%;
+    }
+
+    #step-date .sm-date-table th,
+    #step-date .sm-date-table td {
+      border: 1px solid var(--sm-border);
+      height: 38px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    #step-date .sm-date-time-head,
+    #step-date .sm-date-time-cell {
+      background: var(--sm-bg);
+      color: var(--sm-text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      width: 52px;
+    }
+
+    #step-date .sm-date-day-head {
+      background: var(--sm-bg);
+      color: var(--sm-text);
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      padding: 0 2px;
+    }
+
+    #step-date .sm-date-day-head.is-saturday {
+      background: #f4f9ff;
+      color: #446b9b;
+    }
+
+    #step-date .sm-date-day-head.is-sunday {
+      background: #fff5f5;
+      color: #9b4a4a;
+    }
+
+    #step-date .sm-date-day-name {
+      margin-right: 3px;
+    }
+
+    #step-date .sm-date-slot {
+      color: var(--sm-text);
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1;
+      padding: 0;
+    }
+
+    #step-date .sm-date-slot-button {
+      align-items: center;
+      appearance: none;
+      background: transparent;
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+      display: flex;
+      font: inherit;
+      height: 100%;
+      justify-content: center;
+      line-height: 1;
+      padding: 0;
+      width: 100%;
+    }
+
+    #step-date .sm-date-slot.is-available {
+      color: var(--sm-text);
+    }
+
+    #step-date .sm-date-slot.is-limited {
+      color: var(--sm-text-muted);
+    }
+
+    #step-date .sm-date-slot.is-unavailable,
+    #step-date .sm-date-slot.is-closed {
+      background: #faf9f7;
+      color: #aaa49b;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    #step-date .sm-date-slot.is-selected {
+      background: var(--sm-text);
+      color: var(--sm-bg);
+    }
+
+    #step-date .sm-date-slot.is-available .sm-date-slot-button:active,
+    #step-date .sm-date-slot.is-limited .sm-date-slot-button:active {
+      background: #f4f2f0;
+    }
+
+    #step-date .sm-date-legend {
+      align-items: center;
+      color: var(--sm-text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      font-size: 11px;
+      font-weight: 600;
+      gap: 14px;
+      line-height: 1.3;
+      margin-top: 12px;
+    }
+
+    #step-date .sm-date-empty {
+      color: var(--sm-text-muted);
+      font-size: 13px;
+      padding: 22px 0;
+      text-align: center;
+    }
+
     @media (max-width: 380px) {
       .sm-header-main {
         grid-template-columns: minmax(62px, 1fr) minmax(0, 1.25fr) minmax(64px, 1fr);
@@ -676,6 +950,15 @@
 
       #step-options .sm-options-total-price {
         font-size: 20px;
+      }
+
+      #step-date .sm-date-heading-title {
+        font-size: 20px;
+      }
+
+      #step-date .sm-date-time-head,
+      #step-date .sm-date-time-cell {
+        width: 48px;
       }
     }
 
@@ -875,66 +1158,36 @@
 
         <!-- Step 3: Date Selection with Practitioner Pills -->
         <div id="step-date" class="hidden animate-fade-in">
-          <button onclick="goBackFromDate()" class="btn-ghost mb-2 text-gray-500 text-sm flex items-center gap-1">
-            <i class="fas fa-arrow-left"></i> 戻る
-          </button>
-          <h2 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-enji pl-3">日時選択</h2>
-
-          <!-- Practitioner Pills (Inline) -->
-          <div class="mb-4">
-            <p class="text-sm text-gray-500 mb-2">施術者を指名</p>
-            <div id="practitioner-pills" class="flex flex-wrap gap-2 mb-3">
-              <!-- Pills will be injected here -->
-            </div>
-            <!-- Selected Practitioner Card -->
-            <div id="selected-practitioner-card"
-              class="hidden bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-              <div class="flex gap-4">
-                <div id="selected-practitioner-image-container" class="flex-shrink-0 hidden">
-                  <img id="selected-practitioner-image" src="" alt=""
-                    class="w-16 h-16 rounded-full object-cover border-2 border-enji">
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <h4 id="selected-practitioner-name" class="font-bold text-gray-800"></h4>
-                    <span id="selected-practitioner-fee" class="hidden text-sm text-enji font-bold"></span>
-                  </div>
-                  <p id="selected-practitioner-title" class="text-xs text-gray-500 hidden"></p>
-                  <div class="flex items-center gap-2 text-xs text-gray-400 mt-1">
-                    <span id="selected-practitioner-sns" class="hidden"></span>
-                    <span id="selected-practitioner-experience" class="hidden"></span>
-                  </div>
-                </div>
-              </div>
-              <div id="selected-practitioner-pr" class="mt-3 pt-3 border-t border-gray-100 hidden">
-                <p id="selected-practitioner-prTitle" class="font-bold text-gray-700 text-sm mb-1"></p>
-                <p id="selected-practitioner-description" class="text-xs text-gray-500 leading-relaxed line-clamp-3">
-                </p>
-                <button id="toggle-description-btn" class="hidden text-xs text-enji mt-1 hover:underline">詳細を見る</button>
-              </div>
+          <div class="sm-date-heading">
+            <div class="sm-date-heading-number">03</div>
+            <div>
+              <h2 class="sm-date-heading-title">日時を選ぶ</h2>
+              <p class="sm-date-heading-subtitle">スタイリストと日時をお選びください</p>
             </div>
           </div>
 
+          <div>
+            <p class="sm-date-section-label">スタイリストを指名</p>
+            <div id="practitioner-pills" class="sm-date-practitioner-scroll">
+              <!-- Pills will be injected here -->
+            </div>
+          </div>
 
-          <!-- Weekly Calendar Controls -->
-          <div class="bg-white rounded-xl shadow-sm p-2 mb-4">
-            <div class="flex justify-between items-center mb-2 px-2">
-              <button id="prev-week"
-                class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600 hover:bg-gray-200 transition-colors">
-                <i class="fas fa-chevron-left"></i> 前の週へ
+          <div class="sm-date-calendar">
+            <div class="sm-date-week-nav">
+              <button id="prev-week" class="sm-date-week-button" type="button" aria-label="前の週へ">
+                ‹
               </button>
-              <h3 id="calendar-title" class="font-bold text-gray-700"></h3>
-              <button id="next-week"
-                class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600 hover:bg-gray-200 transition-colors">
-                次の週へ <i class="fas fa-chevron-right"></i>
+              <h3 id="calendar-title" class="sm-date-week-title"></h3>
+              <button id="next-week" class="sm-date-week-button" type="button" aria-label="次の週へ">
+                ›
               </button>
             </div>
 
-            <!-- Weekly Grid -->
-            <div class="overflow-x-auto">
-              <table class="w-full text-center text-sm border-collapse">
+            <div class="sm-date-table-wrap">
+              <table class="sm-date-table">
                 <thead>
-                  <tr id="weekly-header" class="text-gray-500 border-b border-gray-100">
+                  <tr id="weekly-header">
                     <!-- Header cells will be injected here -->
                   </tr>
                 </thead>
@@ -942,6 +1195,11 @@
                   <!-- Time slots will be injected here -->
                 </tbody>
               </table>
+            </div>
+            <div class="sm-date-legend" aria-label="空き状況の凡例">
+              <span>○ 空きあり</span>
+              <span>△ 残りわずか</span>
+              <span>× 満席</span>
             </div>
             <div id="weekly-loading" class="hidden py-8 text-center text-enji">
               <i class="fas fa-spinner fa-spin fa-2x"></i>
@@ -2375,8 +2633,9 @@
         if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
           // Mock Data
           allPractitioners = [
-            { id: '1', name: '田中 花子', calendarId: 'ichibi2025@gmail.com', imageUrl: '' },
-            { id: '2', name: '山田 太郎', calendarId: 'satellite0712@gmail.com', imageUrl: '' }
+            { id: '1', name: '佐藤 翔', calendarId: 'ichibi2025@gmail.com', imageUrl: '', nominationFee: 1100 },
+            { id: '2', name: '田中 美咲', calendarId: 'satellite0712@gmail.com', imageUrl: '', nominationFee: 550 },
+            { id: '3', name: '鈴木 健太', calendarId: 'satellite0712@gmail.com', imageUrl: '', nominationFee: 0 }
           ];
         } else {
           const res = await fetch(`${API_BASE_URL}/api/practitioners`);
@@ -2390,153 +2649,75 @@
       }
     }
 
+    function getNoPreferencePractitioner() {
+      return {
+        id: null,
+        name: '指名なし',
+        calendarId: allPractitioners[0]?.calendarId || ''
+      };
+    }
+
+    function getPractitionerInitial(name) {
+      const normalized = String(name || '').replace(/\s+/g, '');
+      return Array.from(normalized)[0] || '?';
+    }
+
+    function getNominationFeeLabel(value) {
+      const fee = toMenuNumber(value);
+      return fee > 0 ? `+¥${fee}` : '';
+    }
+
+    function isSelectedPractitioner(option) {
+      if (!state.practitioner && option.id === null) return true;
+      return String(state.practitioner?.id ?? '') === String(option.id ?? '');
+    }
+
     function renderPractitionerPills(practitioners) {
       const container = document.getElementById('practitioner-pills');
+      const normalizedPractitioners = Array.isArray(practitioners) ? practitioners : [];
+      const noPreference = getNoPreferencePractitioner();
 
-      if (practitioners.length === 0) {
-        container.innerHTML = '<span class="text-gray-400 text-sm">施術者が登録されていません</span>';
-        document.getElementById('selected-practitioner-card').classList.add('hidden');
-        return;
-      }
-
-      // 「指名なし」を先頭に追加（IDがnullのダミー施術者）
-      const noPreference = { id: null, name: '指名なし', calendarId: practitioners[0].calendarId };
-
-      // Set "指名なし" as default if not already selected
-      if (state.practitioner === undefined || state.practitioner === null) {
+      if (!state.practitioner || state.practitioner.id === null) {
         state.practitioner = noPreference;
+      } else {
+        state.practitioner = normalizedPractitioners.find(p => String(p.id) === String(state.practitioner.id)) || noPreference;
       }
 
-      // 「指名なし」+ 施術者リスト
-      const allOptions = [noPreference, ...practitioners];
+      const allOptions = [noPreference, ...normalizedPractitioners];
 
       container.innerHTML = allOptions.map(p => {
-        const isSelected = (state.practitioner && state.practitioner.id === p.id) ||
-          (state.practitioner === null && p.id === null) ||
-          (state.practitioner && state.practitioner.id === null && p.id === null);
-        const selectedClass = isSelected
-          ? 'bg-enji text-white border-enji'
-          : 'bg-white text-gray-700 border-gray-300 hover:border-enji';
-        const checkIcon = isSelected ? '<i class="fas fa-check mr-1"></i>' : '';
+        const isSelected = isSelectedPractitioner(p);
+        const selectedClass = isSelected ? ' is-selected' : '';
+        const idArg = p.id === null ? 'null' : escapeHtml(JSON.stringify(p.id));
+        const feeLabel = getNominationFeeLabel(p.nominationFee);
+        const content = p.id === null
+          ? `<span class="sm-date-practitioner-dash">—</span><span>${escapeHtml(p.name)}</span>`
+          : `<span class="sm-date-practitioner-initial">${escapeHtml(getPractitionerInitial(p.name))}</span><span>${escapeHtml(p.name)}</span>${feeLabel ? `<span class="sm-date-practitioner-fee">${escapeHtml(feeLabel)}</span>` : ''}`;
 
         return `
-        <button onclick="selectPractitionerPill(${JSON.stringify(p).replace(/"/g, '&quot;')})"
-          class="flex items-center px-3 py-2 rounded-full border text-sm font-medium transition-all ${selectedClass}">
-          ${checkIcon}${p.name}
-        </button>
-      `}).join('');
-
-      // Update the selected practitioner card
-      updateSelectedPractitionerCard(state.practitioner);
+          <button type="button" onclick='selectPractitioner(${idArg})'
+            class="sm-date-practitioner-pill${selectedClass}" aria-pressed="${isSelected ? 'true' : 'false'}">
+            ${content}
+          </button>
+        `;
+      }).join('');
     }
 
-    function updateSelectedPractitionerCard(p) {
-      const card = document.getElementById('selected-practitioner-card');
+    window.selectPractitioner = (id) => {
+      const noPreference = getNoPreferencePractitioner();
+      const practitioner = id === null
+        ? noPreference
+        : allPractitioners.find(p => String(p.id) === String(id));
 
-      // 「指名なし」または施術者がない場合はカードを非表示
-      if (!p || p.id === null) {
-        card.classList.add('hidden');
-        return;
-      }
+      if (!practitioner) return;
 
-      // Check if practitioner has any detail info to show
-      const hasDetails = p.title || p.sns || p.experience || p.nominationFee || p.prTitle || p.description;
-      if (!hasDetails) {
-        card.classList.add('hidden');
-        return;
-      }
-
-      card.classList.remove('hidden');
-
-      // Image (長方形)
-      const imgContainer = document.getElementById('selected-practitioner-image-container');
-      const imgEl = document.getElementById('selected-practitioner-image');
-      if (p.imageUrl) {
-        imgEl.src = p.imageUrl;
-        imgEl.alt = p.name;
-        imgContainer.classList.remove('hidden');
-      } else {
-        imgEl.src = '';
-        imgContainer.classList.add('hidden');
-      }
-
-      // Name
-      document.getElementById('selected-practitioner-name').innerText = p.name;
-
-      // Title
-      const titleEl = document.getElementById('selected-practitioner-title');
-      if (p.title) {
-        titleEl.innerText = p.title;
-        titleEl.classList.remove('hidden');
-      } else {
-        titleEl.classList.add('hidden');
-      }
-
-      // SNS
-      const snsEl = document.getElementById('selected-practitioner-sns');
-      if (p.sns) {
-        const username = p.sns.replace(/^@/, '');
-        snsEl.innerHTML = `<a href="https://www.instagram.com/${username}" target="_blank" class="hover:text-enji transition-colors flex items-center"><i class="fab fa-instagram mr-1"></i>${p.sns}</a>`;
-        snsEl.classList.remove('hidden');
-      } else {
-        snsEl.classList.add('hidden');
-      }
-
-      // Experience
-      const expEl = document.getElementById('selected-practitioner-experience');
-      if (p.experience) {
-        expEl.innerText = `（${p.experience}）`;
-        expEl.classList.remove('hidden');
-      } else {
-        expEl.classList.add('hidden');
-      }
-
-      // Nomination Fee
-      const feeEl = document.getElementById('selected-practitioner-fee');
-      if (p.nominationFee) {
-        feeEl.innerText = `指名料: ¥${Number(p.nominationFee).toLocaleString()}`;
-        feeEl.classList.remove('hidden');
-      } else {
-        feeEl.classList.add('hidden');
-      }
-
-      // PR Section
-      const prSection = document.getElementById('selected-practitioner-pr');
-      const prTitleEl = document.getElementById('selected-practitioner-prTitle');
-      const descEl = document.getElementById('selected-practitioner-description');
-      const toggleBtn = document.getElementById('toggle-description-btn');
-
-      if (p.prTitle || p.description) {
-        prSection.classList.remove('hidden');
-        prTitleEl.innerText = p.prTitle || '';
-        descEl.innerText = p.description || '';
-        descEl.classList.add('line-clamp-2');
-
-        if (p.description && p.description.length > 60) {
-          toggleBtn.classList.remove('hidden');
-          toggleBtn.innerText = '詳細を見る';
-          toggleBtn.onclick = () => {
-            if (descEl.classList.contains('line-clamp-2')) {
-              descEl.classList.remove('line-clamp-2');
-              toggleBtn.innerText = '閉じる';
-            } else {
-              descEl.classList.add('line-clamp-2');
-              toggleBtn.innerText = '詳細を見る';
-            }
-          };
-        } else {
-          toggleBtn.classList.add('hidden');
-        }
-      } else {
-        prSection.classList.add('hidden');
-      }
-    }
-
-    window.selectPractitionerPill = (practitioner) => {
       state.practitioner = practitioner;
       renderPractitionerPills(allPractitioners);
-      // Reload calendar with new practitioner
       renderWeeklyCalendar();
+    };
+
+    window.selectPractitionerPill = (practitioner) => {
+      window.selectPractitioner(practitioner?.id ?? null);
     };
 
     // Weekly Calendar Logic
@@ -2544,15 +2725,14 @@
     let currentWeeklyData = []; // 週間データを保存（指名なし時のavailablePractitioners用）
 
     function initWeeklyCalendar() {
-      // Reset to today/start of week
-      currentWeekStart = new Date();
+      currentWeekStart = getCalendarWeekStart(new Date());
 
       document.getElementById('prev-week').onclick = () => {
-        currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+        currentWeekStart = shiftDate(currentWeekStart, -7);
         renderWeeklyCalendar();
       };
       document.getElementById('next-week').onclick = () => {
-        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+        currentWeekStart = shiftDate(currentWeekStart, 7);
         renderWeeklyCalendar();
       };
 
@@ -2561,8 +2741,7 @@
 
     async function renderWeeklyCalendar() {
       const startDateStr = formatDate(currentWeekStart);
-      const title = `${currentWeekStart.getFullYear()}年 ${currentWeekStart.getMonth() + 1}月`;
-      document.getElementById('calendar-title').innerText = title;
+      document.getElementById('calendar-title').innerText = formatWeekRangeTitle(currentWeekStart);
 
       const headerRow = document.getElementById('weekly-header');
       const body = document.getElementById('weekly-body');
@@ -2578,29 +2757,35 @@
         if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
           // Mock Data
           await new Promise(r => setTimeout(r, 500));
-          weeklyData = generateMockWeeklyData(currentWeekStart);
+          weeklyData = generateMockWeeklyData(currentWeekStart, true);
         } else {
           // 「指名なし」の場合は 'all' を送信して全施術者の統合カレンダーを取得
           const practitionerId = state.practitioner?.id || 'all';
-          const res = await fetch(`${API_BASE_URL}/api/weekly-availability?startDate=${startDateStr}&minutes=${state.menu.minutes}&practitionerId=${practitionerId}`);
+          const minutes = state.totalMinutes || state.menu.minutes;
+          const res = await fetch(`${API_BASE_URL}/api/weekly-availability?startDate=${startDateStr}&minutes=${minutes}&practitionerId=${practitionerId}`);
           weeklyData = await res.json();
         }
 
         // 週間データを保存（スロット選択時に参照）
         currentWeeklyData = weeklyData;
 
+        if (!weeklyData.length || !weeklyData[0].slots?.length) {
+          headerRow.innerHTML = '<th class="sm-date-time-head"></th>';
+          body.innerHTML = '<tr><td colspan="8" class="sm-date-empty">表示できる枠がありません</td></tr>';
+          return;
+        }
+
         // Render Header
-        headerRow.innerHTML = '<th class="py-2 w-12 bg-gray-50 sticky left-0 z-10 border-r border-gray-100">日時</th>';
+        headerRow.innerHTML = '<th class="sm-date-time-head"></th>';
         weeklyData.forEach(day => {
           const isSat = day.day === '土';
           const isSun = day.day === '日';
-          const colorClass = isSat ? 'text-blue-500' : (isSun ? 'text-red-500' : 'text-gray-700');
-          // Extract day number from date string (yyyy/MM/dd)
-          const dayNum = day.date.split('/')[2];
+          const dayClass = isSat ? ' is-saturday' : (isSun ? ' is-sunday' : '');
+          const dayDate = parseCalendarDate(day.date);
+          const dayNum = String(dayDate.getDate()).padStart(2, '0');
           headerRow.innerHTML += `
-            <th class="py-1 px-1">
-              <div class="text-xs ${colorClass}">${dayNum}</div>
-              <div class="text-xs ${colorClass}">(${day.day})</div>
+            <th class="sm-date-day-head${dayClass}">
+              <div><span class="sm-date-day-name">${escapeHtml(day.day)}</span><span>${dayNum}</span></div>
             </th>
           `;
         });
@@ -2611,31 +2796,24 @@
         const timeSlots = weeklyData[0].slots.map(s => s.time);
 
         timeSlots.forEach((time, index) => {
-          let rowHtml = `<tr class="border-b border-gray-50">`;
+          let rowHtml = '<tr>';
           // Time Column
-          rowHtml += `<td class="py-3 text-xs font-bold text-gray-600 bg-gray-50 sticky left-0 z-10 border-r border-gray-100">${time}</td>`;
+          rowHtml += `<td class="sm-date-time-cell">${escapeHtml(time)}</td>`;
 
           // Data Columns
           weeklyData.forEach(day => {
             const slot = day.slots[index];
-            let cellContent = '';
-            let cellClass = '';
+            const slotView = getSlotView(slot?.status);
+            const isSelected = state.date === day.date && state.time === time;
+            const selectedClass = isSelected ? ' is-selected' : '';
+            const dateArg = escapeHtml(JSON.stringify(day.date));
+            const timeArg = escapeHtml(JSON.stringify(time));
+            const statusArg = escapeHtml(JSON.stringify(slot?.status || ''));
+            const content = slotView.selectable
+              ? `<button type="button" class="sm-date-slot-button" onclick='selectTime(${dateArg}, ${timeArg}, ${statusArg})' aria-label="${escapeHtml(`${day.date} ${time} ${slotView.ariaLabel}`)}">${slotView.label}</button>`
+              : `<span aria-label="${escapeHtml(slotView.ariaLabel)}">${slotView.label}</span>`;
 
-            if (slot.status === '○') {
-              cellContent = '<i class="far fa-circle text-enji text-lg"></i>'; // Using FontAwesome circle for better look, or just text
-              cellClass = 'cursor-pointer hover:bg-red-50 transition-colors';
-            } else if (slot.status === '×') {
-              cellContent = '<i class="fas fa-times text-gray-400 text-lg"></i>';
-              cellClass = 'bg-gray-100';
-            } else {
-              cellContent = '<span class="text-gray-300 font-bold">－</span>';
-              cellClass = 'bg-gray-50';
-            }
-
-            // Onclick only for available slots
-            const clickHandler = slot.status === '○' ? `onclick="selectWeeklySlot('${day.date}', '${time}')"` : '';
-
-            rowHtml += `<td class="py-2 ${cellClass}" ${clickHandler}>${cellContent}</td>`;
+            rowHtml += `<td class="sm-date-slot ${slotView.className}${selectedClass}">${content}</td>`;
           });
 
           rowHtml += `</tr>`;
@@ -2644,14 +2822,15 @@
 
       } catch (e) {
         console.error(e);
-        body.innerHTML = '<tr><td colspan="8" class="text-red-500 py-4">読み込みエラー</td></tr>';
+        headerRow.innerHTML = '<th class="sm-date-time-head"></th>';
+        body.innerHTML = '<tr><td colspan="8" class="sm-date-empty">読み込みエラー</td></tr>';
       } finally {
         loading.classList.add('hidden');
         table.classList.remove('hidden');
       }
     }
 
-    function selectWeeklySlot(date, time) {
+    function selectWeeklySlot(date, time, availablePractitioners) {
       state.date = date;
       state.time = time;
 
@@ -2660,7 +2839,9 @@
         const dayData = currentWeeklyData.find(d => d.date === date);
         if (dayData) {
           const slotData = dayData.slots.find(s => s.time === time);
-          state.availablePractitioners = slotData?.availablePractitioners || [];
+          state.availablePractitioners = Array.isArray(availablePractitioners)
+            ? availablePractitioners
+            : (slotData?.availablePractitioners || []);
         }
       } else {
         state.availablePractitioners = null; // 指名ありの場合はnull
@@ -2676,15 +2857,16 @@
       document.getElementById('confirm-date').innerText = state.date;
 
       // Calculate end time
+      const totalMinutes = parseInt(state.totalMinutes || state.menu.minutes, 10);
       console.log('Time calculation debug:', {
         startTime: time,
-        menuMinutes: state.menu.minutes,
-        typeOfMinutes: typeof state.menu.minutes
+        totalMinutes,
+        typeOfMinutes: typeof totalMinutes
       });
 
       const [hours, minutes] = time.split(':').map(Number);
       const endDate = new Date();
-      endDate.setHours(hours, minutes + parseInt(state.menu.minutes));
+      endDate.setHours(hours, minutes + totalMinutes);
       const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
 
       console.log('Calculated endTime:', endTime);
@@ -2697,6 +2879,14 @@
       }
     }
 
+    window.selectTime = (date, time, status, availablePractitioners) => {
+      const slotView = getSlotView(status);
+      if (!slotView.selectable) return;
+      selectWeeklySlot(date, time, availablePractitioners);
+    };
+
+    window.selectWeeklySlot = selectWeeklySlot;
+
     function formatDate(date) {
       const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -2704,7 +2894,79 @@
       return `${y}/${m}/${d}`;
     }
 
-    function generateMockWeeklyData(startDate) {
+    function parseCalendarDate(dateStr) {
+      const [year, month, day] = String(dateStr).split(/[/-]/).map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    function shiftDate(date, days) {
+      const shifted = new Date(date);
+      shifted.setDate(shifted.getDate() + days);
+      shifted.setHours(0, 0, 0, 0);
+      return shifted;
+    }
+
+    function getCalendarWeekStart(date) {
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const day = start.getDay();
+      const diffToMonday = day === 0 ? 1 : 1 - day;
+      start.setDate(start.getDate() + diffToMonday);
+      return start;
+    }
+
+    function formatDateDots(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}.${m}.${d}`;
+    }
+
+    function formatWeekRangeTitle(startDate) {
+      const endDate = shiftDate(startDate, 6);
+      const endDay = String(endDate.getDate()).padStart(2, '0');
+
+      if (startDate.getFullYear() === endDate.getFullYear() && startDate.getMonth() === endDate.getMonth()) {
+        return `${formatDateDots(startDate)} — ${endDay}`;
+      }
+
+      if (startDate.getFullYear() === endDate.getFullYear()) {
+        const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
+        return `${formatDateDots(startDate)} — ${endMonth}.${endDay}`;
+      }
+
+      return `${formatDateDots(startDate)} — ${formatDateDots(endDate)}`;
+    }
+
+    function normalizeSlotStatus(status) {
+      if (status === '○' || status === '⚪︎' || status === '⚪' || status === '〇') return '○';
+      if (status === '-' || status === '－') return '—';
+      return status || '—';
+    }
+
+    function getSlotView(status) {
+      const normalized = normalizeSlotStatus(status);
+
+      if (normalized === '○') {
+        return { label: '○', className: 'is-available', selectable: true, ariaLabel: '空きあり' };
+      }
+      if (normalized === '△') {
+        return { label: '△', className: 'is-limited', selectable: true, ariaLabel: '残りわずか' };
+      }
+      if (normalized === '×') {
+        return { label: '×', className: 'is-unavailable', selectable: false, ariaLabel: '満席' };
+      }
+      if (normalized === '休') {
+        return { label: '休', className: 'is-closed', selectable: false, ariaLabel: '休業' };
+      }
+      return { label: '—', className: 'is-closed', selectable: false, ariaLabel: '受付不可' };
+    }
+
+    function generateMockWeeklyData(startDate, sharpMinimalPattern = false) {
+      if (sharpMinimalPattern) {
+        return generateSharpMinimalMockWeeklyData(startDate);
+      }
+
       const result = [];
       for (let i = 0; i < 7; i++) {
         const d = new Date(startDate);
@@ -2720,7 +2982,6 @@
 
         while (current < end) {
           const time = `${String(current.getHours()).padStart(2, '0')}:${String(current.getMinutes()).padStart(2, '0')}`;
-          // Random status
           const rand = Math.random();
           let status = '○';
           if (rand < 0.3) status = '×';
@@ -2729,6 +2990,46 @@
           slots.push({ time, status });
           current.setMinutes(current.getMinutes() + 30);
         }
+
+        result.push({ date: dateStr, day: dayOfWeek, slots });
+      }
+      return result;
+    }
+
+    function generateSharpMinimalMockWeeklyData(startDate) {
+      const result = [];
+      const times = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
+      const statuses = [
+        ['○', '○', '×', '○', '○', '×', '—'],
+        ['○', '×', '×', '△', '○', '×', '—'],
+        ['×', '○', '○', '×', '△', '○', '—'],
+        ['○', '○', '△', '○', '○', '×', '—'],
+        ['△', '○', '○', '×', '×', '△', '—'],
+        ['×', '○', '○', '○', '○', '○', '—'],
+        ['○', '△', '○', '○', '×', '×', '—']
+      ];
+      const mockAvailablePractitioners = allPractitioners.map(p => ({
+        id: p.id,
+        name: p.name,
+        calendarId: p.calendarId
+      }));
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        const dateStr = formatDate(d);
+        const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
+
+        const slots = times.map((time, timeIndex) => {
+          const status = statuses[timeIndex][i];
+          const selectable = status === '○' || status === '△';
+
+          return {
+            time,
+            status,
+            availablePractitioners: selectable ? mockAvailablePractitioners : []
+          };
+        });
 
         result.push({ date: dateStr, day: dayOfWeek, slots });
       }
