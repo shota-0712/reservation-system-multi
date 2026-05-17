@@ -2334,6 +2334,39 @@
           <div>
             <p class="sm-date-section-label">スタイリストを指名</p>
             <div id="practitioner-pills" class="sm-date-practitioner-scroll">
+              <!-- Cards will be injected here -->
+            </div>
+            <!-- Selected Practitioner Detail Card -->
+            <div id="selected-practitioner-card"
+              class="hidden bg-white border border-[--sm-border] p-4 mt-3" style="border-radius:2px">
+              <div class="flex gap-4">
+                <div id="selected-practitioner-image-container" class="flex-shrink-0 hidden">
+                  <img id="selected-practitioner-image" src="" alt=""
+                    class="w-16 h-16 object-cover" style="border-radius:2px">
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h4 id="selected-practitioner-name" class="font-bold text-gray-800"></h4>
+                    <span id="selected-practitioner-fee" class="hidden text-sm text-enji font-bold"></span>
+                  </div>
+                  <p id="selected-practitioner-title" class="text-xs text-gray-500 hidden"></p>
+                  <div class="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                    <span id="selected-practitioner-sns" class="hidden"></span>
+                    <span id="selected-practitioner-experience" class="hidden"></span>
+                  </div>
+                </div>
+              </div>
+              <div id="selected-practitioner-pr" class="mt-3 pt-3 border-t border-[--sm-border] hidden">
+                <p id="selected-practitioner-prTitle" class="font-bold text-gray-700 text-sm mb-1"></p>
+                <p id="selected-practitioner-description" class="text-xs text-gray-500 leading-relaxed line-clamp-3"></p>
+                <button id="toggle-description-btn" class="hidden text-xs text-enji mt-1 hover:underline">詳細を見る</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="sm-date-section-label">スタイリストを指名</p>
+            <div id="practitioner-pills" class="sm-date-practitioner-scroll">
               <!-- Pills will be injected here -->
             </div>
           </div>
@@ -3937,8 +3970,18 @@
         if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
           // Mock Data
           allPractitioners = [
-            { id: '1', name: '佐藤 翔', calendarId: 'ichibi2025@gmail.com', imageUrl: '', nominationFee: 1100 },
-            { id: '2', name: '田中 美咲', calendarId: 'satellite0712@gmail.com', imageUrl: '', nominationFee: 550 },
+            {
+              id: '1', name: '佐藤 翔', calendarId: 'ichibi2025@gmail.com', imageUrl: '',
+              title: 'クリエイティブディレクター', nominationFee: 1100, experience: '経歴15年',
+              sns: '@sho.atelier', prTitle: '透明感ベージュ × 大人の抜け感カラー',
+              description: 'お一人おひとりの骨格と髪質を見極めて、日々の再現性を大切にしたデザインをご提案します。'
+            },
+            {
+              id: '2', name: '田中 美咲', calendarId: 'satellite0712@gmail.com', imageUrl: '',
+              title: 'シニアアシスタント', nominationFee: 550, experience: '経歴3年',
+              sns: '', prTitle: '',
+              description: ''
+            },
             { id: '3', name: '鈴木 健太', calendarId: 'satellite0712@gmail.com', imageUrl: '', nominationFee: 0 }
           ];
         } else {
@@ -3990,22 +4033,36 @@
 
       const allOptions = [noPreference, ...normalizedPractitioners];
 
+      // Practitioner data originates from the internal /api/practitioners endpoint (server-controlled).
+      container.className = 'flex gap-3 overflow-x-auto pb-2';
       container.innerHTML = allOptions.map(p => {
         const isSelected = isSelectedPractitioner(p);
-        const selectedClass = isSelected ? ' is-selected' : '';
         const idArg = p.id === null ? 'null' : escapeHtml(JSON.stringify(p.id));
+        const overlay = isSelected
+          ? '<div class="absolute inset-0 bg-black/30 flex items-center justify-center"><i class="fas fa-check text-white text-lg"></i></div>'
+          : '';
+        const photoContent = p.imageUrl
+          ? `<img src="${escapeHtml(p.imageUrl)}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover">`
+          : (p.id === null
+              ? `<div class="w-full h-full flex items-center justify-center text-2xl text-gray-400">—</div>`
+              : `<div class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-400">${escapeHtml(getPractitionerInitial(p.name))}</div>`);
+        const titleText = p.title ? `<p class="text-xs text-gray-500 truncate text-center leading-tight">${escapeHtml(p.title)}</p>` : '';
         const feeLabel = getNominationFeeLabel(p.nominationFee);
-        const content = p.id === null
-          ? `<span class="sm-date-practitioner-dash">—</span><span>${escapeHtml(p.name)}</span>`
-          : `<span class="sm-date-practitioner-initial">${escapeHtml(getPractitionerInitial(p.name))}</span><span>${escapeHtml(p.name)}</span>${feeLabel ? `<span class="sm-date-practitioner-fee">${escapeHtml(feeLabel)}</span>` : ''}`;
+        const feeText = feeLabel ? `<p class="text-xs text-enji text-center">${escapeHtml(feeLabel)}</p>` : '';
+        const borderColor = isSelected ? 'var(--color-enji)' : 'var(--sm-border)';
 
         return `
           <button type="button" onclick='selectPractitioner(${idArg})'
-            class="sm-date-practitioner-pill${selectedClass}" aria-pressed="${isSelected ? 'true' : 'false'}">
-            ${content}
-          </button>
-        `;
+            class="w-24 flex-shrink-0 text-left focus:outline-none" aria-pressed="${isSelected}">
+            <div class="w-24 h-24 bg-gray-100 relative overflow-hidden" style="border-radius:2px; border:2px solid ${borderColor}">
+              ${photoContent}${overlay}
+            </div>
+            <p class="text-xs font-bold text-center mt-1 truncate">${escapeHtml(p.name)}</p>
+            ${titleText}${feeText}
+          </button>`;
       }).join('');
+
+      updateSelectedPractitionerCard(state.practitioner);
     }
 
     window.selectPractitioner = (id) => {
@@ -4025,6 +4082,79 @@
       renderPractitionerPills(allPractitioners);
       renderWeeklyCalendar();
     };
+
+    function updateSelectedPractitionerCard(p) {
+      const card = document.getElementById('selected-practitioner-card');
+      if (!p || p.id === null) { card.classList.add('hidden'); return; }
+
+      const hasDetails = p.title || p.sns || p.experience || p.nominationFee || p.prTitle || p.description;
+      if (!hasDetails) { card.classList.add('hidden'); return; }
+
+      card.classList.remove('hidden');
+
+      const imgContainer = document.getElementById('selected-practitioner-image-container');
+      const imgEl = document.getElementById('selected-practitioner-image');
+      if (p.imageUrl) {
+        imgEl.src = p.imageUrl;
+        imgEl.alt = p.name;
+        imgContainer.classList.remove('hidden');
+      } else {
+        imgEl.src = '';
+        imgContainer.classList.add('hidden');
+      }
+
+      document.getElementById('selected-practitioner-name').innerText = p.name;
+
+      const titleEl = document.getElementById('selected-practitioner-title');
+      if (p.title) { titleEl.innerText = p.title; titleEl.classList.remove('hidden'); }
+      else { titleEl.classList.add('hidden'); }
+
+      const snsEl = document.getElementById('selected-practitioner-sns');
+      snsEl.textContent = '';
+      if (p.sns) {
+        const username = p.sns.replace(/^@/, '');
+        const anchor = document.createElement('a');
+        anchor.href = 'https://www.instagram.com/' + encodeURIComponent(username);
+        anchor.target = '_blank';
+        anchor.rel = 'noopener';
+        anchor.className = 'hover:text-enji transition-colors flex items-center';
+        const icon = document.createElement('i');
+        icon.className = 'fab fa-instagram mr-1';
+        anchor.appendChild(icon);
+        anchor.appendChild(document.createTextNode('Instagram · ' + p.sns));
+        snsEl.appendChild(anchor);
+        snsEl.classList.remove('hidden');
+      } else { snsEl.classList.add('hidden'); }
+
+      const expEl = document.getElementById('selected-practitioner-experience');
+      if (p.experience) { expEl.innerText = '（' + p.experience + '）'; expEl.classList.remove('hidden'); }
+      else { expEl.classList.add('hidden'); }
+
+      const feeEl = document.getElementById('selected-practitioner-fee');
+      if (p.nominationFee) { feeEl.innerText = '指名料: ¥' + Number(p.nominationFee).toLocaleString(); feeEl.classList.remove('hidden'); }
+      else { feeEl.classList.add('hidden'); }
+
+      const prSection = document.getElementById('selected-practitioner-pr');
+      const prTitleEl = document.getElementById('selected-practitioner-prTitle');
+      const descEl = document.getElementById('selected-practitioner-description');
+      const toggleBtn = document.getElementById('toggle-description-btn');
+
+      if (p.prTitle || p.description) {
+        prSection.classList.remove('hidden');
+        prTitleEl.innerText = p.prTitle || '';
+        descEl.innerText = p.description || '';
+        descEl.classList.add('line-clamp-2');
+        if (p.description && p.description.length > 60) {
+          toggleBtn.classList.remove('hidden');
+          toggleBtn.innerText = '詳細を見る';
+          toggleBtn.onclick = () => {
+            const collapsed = descEl.classList.contains('line-clamp-2');
+            descEl.classList.toggle('line-clamp-2', !collapsed);
+            toggleBtn.innerText = collapsed ? '閉じる' : '詳細を見る';
+          };
+        } else { toggleBtn.classList.add('hidden'); }
+      } else { prSection.classList.add('hidden'); }
+    }
 
     window.selectPractitionerPill = (practitioner) => {
       window.selectPractitioner(practitioner?.id ?? null);
