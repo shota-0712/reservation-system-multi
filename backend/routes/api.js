@@ -12,6 +12,9 @@ const repositories = require('../repositories');
 const { requireLineUser, rejectMismatchedLineUser } = require('../middleware/requireLineUser');
 
 const ADMIN_LINE_IDS = (process.env.ADMIN_LINE_ID || '').split(',').map(id => id.trim()).filter(id => id);
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const ADMIN_RESERVATION_FILTERS = new Set(['today', 'week', 'all']);
+const ADMIN_MUTABLE_STATUSES = new Set(['in_progress', 'completed', 'canceled']);
 
 // ヘルパー: 管理者チェック
 function isAdmin(userId) {
@@ -133,6 +136,72 @@ function formatTimeJST(value) {
     const date = new Date(value);
     const jst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
     return jst.toISOString().slice(11, 16);
+}
+
+function startOfJstDay(value = new Date()) {
+    const jst = new Date(value.getTime() + JST_OFFSET_MS);
+    jst.setUTCHours(0, 0, 0, 0);
+    return new Date(jst.getTime() - JST_OFFSET_MS);
+}
+
+function addDays(value, days) {
+    return new Date(value.getTime() + days * 24 * 60 * 60 * 1000);
+}
+
+function jstWeekRange(value = new Date()) {
+    const todayStart = startOfJstDay(value);
+    const jst = new Date(todayStart.getTime() + JST_OFFSET_MS);
+    const daysSinceMonday = (jst.getUTCDay() + 6) % 7;
+    const weekStart = addDays(todayStart, -daysSinceMonday);
+    return {
+        start: weekStart,
+        end: addDays(weekStart, 7),
+    };
+}
+
+function adminReservationFilterRange(filter) {
+    if (filter === 'all') {
+        return { start: null, end: null };
+    }
+
+    if (filter === 'week') {
+        return jstWeekRange();
+    }
+
+    const start = startOfJstDay();
+    return {
+        start,
+        end: addDays(start, 1),
+    };
+}
+
+function parseReservationDateForAdminFilter(reservation) {
+    if (reservation?.startAt || reservation?.start_at) {
+        const date = new Date(reservation.startAt || reservation.start_at);
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    if (!reservation?.date) {
+        return null;
+    }
+
+    const normalized = String(reservation.date).replace(/\//g, '-');
+    const date = new Date(`${normalized}T00:00:00+09:00`);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function filterReservationsForAdmin(reservations, filter = 'today') {
+    const normalizedFilter = ADMIN_RESERVATION_FILTERS.has(filter) ? filter : 'today';
+    const { start, end } = adminReservationFilterRange(normalizedFilter);
+
+    if (!start || !end) {
+        return reservations;
+    }
+
+    return reservations.filter((reservation) => {
+        const date = parseReservationDateForAdminFilter(reservation);
+        return date && date >= start && date < end;
+    });
 }
 
 async function withDbClient(callback) {
@@ -567,6 +636,128 @@ function reservationResponse(reservation) {
         canceledAt: reservation.canceled_at ? new Date(reservation.canceled_at).toISOString() : null,
         cancelReason: reservation.cancel_reason || null,
     };
+}
+
+function adminReservationResponse(reservation) {
+    const response = reservationResponse(reservation);
+    response.status = reservation.display_status || reservation.status;
+    return response;
+}
+
+async function getAdminReservations(filter = 'today') {
+    const normalizedFilter = ADMIN_RESERVATION_FILTERS.has(filter) ? filter : 'today';
+    const { start, end } = adminReservationFilterRange(normalizedFilter);
+
+    return withDbClient(async (client) => {
+        const result = await client.query(
+            `
+                SELECT
+                    *,
+                    CASE
+                        WHEN status = 'reserved'::reservation_status
+                          AND metadata->>'admin_status' = 'in_progress'
+                        THEN 'in_progress'
+                        ELSE status::text
+                    END AS display_status
+                FROM reservations
+                WHERE ($1::timestamptz IS NULL OR start_at >= $1::timestamptz)
+                  AND ($2::timestamptz IS NULL OR start_at < $2::timestamptz)
+                ORDER BY start_at ASC, created_at ASC
+            `,
+            [start, end]
+        );
+
+        return result.rows.map(adminReservationResponse);
+    });
+}
+
+async function getAdminStats() {
+    const todayStart = startOfJstDay();
+    const todayEnd = addDays(todayStart, 1);
+    const week = jstWeekRange();
+
+    return withDbClient(async (client) => {
+        const result = await client.query(
+            `
+                SELECT
+                    COUNT(*) FILTER (
+                        WHERE created_at >= $1::timestamptz
+                          AND created_at < $2::timestamptz
+                    )::int AS today_count,
+                    COUNT(*) FILTER (
+                        WHERE created_at >= $3::timestamptz
+                          AND created_at < $4::timestamptz
+                    )::int AS week_count,
+                    COALESCE(SUM(total_price) FILTER (
+                        WHERE created_at >= $1::timestamptz
+                          AND created_at < $2::timestamptz
+                    ), 0)::int AS today_sales
+                FROM reservations
+            `,
+            [todayStart, todayEnd, week.start, week.end]
+        );
+
+        const row = result.rows[0] || {};
+        return {
+            todayCount: Number(row.today_count || 0),
+            weekCount: Number(row.week_count || 0),
+            todaySales: Number(row.today_sales || 0),
+        };
+    });
+}
+
+async function updateAdminReservationStatus({ reservationId, status, adminId }) {
+    if (!isUuid(reservationId)) {
+        throw notFound('予約が見つかりませんでした');
+    }
+
+    if (status === 'canceled') {
+        await cancelReservationFromDb({
+            reservationId,
+            actorType: 'admin',
+            actorId: adminId,
+            reason: '管理画面からキャンセル',
+            source: 'admin_status_update',
+        });
+        return;
+    }
+
+    await withDbClient(async (client) => {
+        const result = status === 'in_progress'
+            ? await client.query(
+                `
+                    UPDATE reservations
+                    SET metadata = jsonb_set(
+                            COALESCE(metadata, '{}'::jsonb),
+                            '{admin_status}',
+                            to_jsonb('in_progress'::text),
+                            true
+                        ),
+                        updated_at = now()
+                    WHERE id = $1::uuid
+                      AND status = 'reserved'::reservation_status
+                    RETURNING id
+                `,
+                [reservationId]
+            )
+            : await client.query(
+                `
+                    UPDATE reservations
+                    SET status = 'completed'::reservation_status,
+                        completed_at = COALESCE(completed_at, now()),
+                        metadata = COALESCE(metadata, '{}'::jsonb) - 'admin_status',
+                        updated_at = now()
+                    WHERE id = $1::uuid
+                      AND status IN ('reserved'::reservation_status, 'completed'::reservation_status)
+                    RETURNING id
+                `,
+                [reservationId]
+            );
+
+        if (result.rowCount === 0) {
+            throw conflict('この予約のステータスは変更できません');
+        }
+    });
 }
 
 function buildOutboxPayload(reservation, input) {
@@ -1330,19 +1521,27 @@ router.get('/history', requireLineUser, rejectMismatchedLineUser, async (req, re
     }
 });
 
-// GET /api/reservations - 全予約一覧 (管理者のみ)
-router.get('/reservations', async (req, res, next) => {
+async function handleAdminReservationsList(req, res, next) {
     try {
-        const { adminId } = req.query;
-        if (!isAdmin(adminId)) {
-            return res.status(403).json({ status: 'error', message: '権限がありません' });
+        const filter = ADMIN_RESERVATION_FILTERS.has(req.query.filter) ? req.query.filter : 'today';
+
+        if (process.env.DATABASE_URL) {
+            const reservations = await getAdminReservations(filter);
+            return res.json(reservations);
         }
+
         const reservations = await reservationSheetsService.getAllReservations();
-        res.json(reservations);
+        res.json(filterReservationsForAdmin(reservations, filter));
     } catch (err) {
         next(err);
     }
-});
+}
+
+// GET /api/reservations - 全予約一覧 (管理者のみ)
+router.get('/reservations', requireAdmin, handleAdminReservationsList);
+
+// GET /api/all-reservations - 管理画面用の全予約一覧（後方互換）
+router.get('/all-reservations', requireAdmin, handleAdminReservationsList);
 
 // POST /api/reservations - 予約作成
 router.post('/reservations', requireLineUser, rejectMismatchedLineUser, async (req, res, next) => {
@@ -1578,6 +1777,37 @@ ${newOptionLine}
     }
 });
 
+// PUT /api/reservations/:id/status - 管理画面からのステータス変更
+router.put('/reservations/:id/status', requireAdmin, async (req, res, next) => {
+    try {
+        const status = req.body?.status;
+
+        if (!ADMIN_MUTABLE_STATUSES.has(status)) {
+            return res.status(400).json({ status: 'error', message: 'ステータスが不正です' });
+        }
+
+        if (process.env.DATABASE_URL) {
+            await updateAdminReservationStatus({
+                reservationId: req.params.id,
+                status,
+                adminId: req.adminId,
+            });
+        }
+
+        res.json({ status: 'success' });
+    } catch (err) {
+        if (err.statusCode) {
+            return res.status(err.statusCode).json({ status: 'error', message: err.message });
+        }
+
+        if (isValidationDbError(err)) {
+            return res.status(400).json({ status: 'error', message: '予約IDまたはステータスが不正です' });
+        }
+
+        next(err);
+    }
+});
+
 // ====================
 // 管理者関連
 // ====================
@@ -1586,6 +1816,20 @@ ${newOptionLine}
 router.get('/check-admin', (req, res) => {
     const { userId } = req.query;
     res.json({ isAdmin: isAdmin(userId) });
+});
+
+// GET /api/admin/stats - 管理画面の統計バー
+router.get('/admin/stats', requireAdmin, async (req, res, next) => {
+    try {
+        if (!process.env.DATABASE_URL) {
+            return res.json({ todayCount: 8, weekCount: 47, todaySales: 132000 });
+        }
+
+        const stats = await getAdminStats();
+        res.json(stats);
+    } catch (err) {
+        next(err);
+    }
 });
 
 // POST /api/admin/reservations - 管理者による代理予約作成

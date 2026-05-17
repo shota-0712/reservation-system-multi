@@ -1350,6 +1350,599 @@
       color: #b42318;
     }
 
+    #admin-view {
+      color: var(--sm-text);
+      margin-left: -16px;
+      margin-right: -16px;
+    }
+
+    #admin-view button {
+      font-family: inherit;
+    }
+
+    #admin-view .sm-admin-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      min-height: 30px;
+      padding: 0 16px 6px;
+    }
+
+    #admin-view .sm-admin-settings-button {
+      align-items: center;
+      appearance: none;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--sm-radius);
+      color: var(--sm-text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      font-size: 16px;
+      height: 28px;
+      justify-content: center;
+      line-height: 1;
+      transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      width: 28px;
+    }
+
+    #admin-view .sm-admin-settings-button:active {
+      background: #f4f2f0;
+      border-color: var(--sm-border);
+      color: var(--color-enji);
+    }
+
+    #admin-view .sm-admin-stats {
+      background: #f9f8f7;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 0;
+    }
+
+    #admin-view .sm-admin-stat {
+      border-right: 1px solid #ece8e3;
+      min-width: 0;
+      padding: 12px 14px;
+    }
+
+    #admin-view .sm-admin-stat:last-child {
+      border-right: 0;
+    }
+
+    #admin-view .sm-admin-stat-label {
+      color: var(--sm-text-muted);
+      display: block;
+      font-size: 9.5px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 5px;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-stat-value {
+      align-items: baseline;
+      color: var(--sm-text);
+      display: flex;
+      font-size: 18px;
+      font-weight: 900;
+      gap: 4px;
+      line-height: 1.1;
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-stat-unit {
+      color: var(--sm-text-muted);
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    #admin-view .sm-admin-tabs {
+      border-bottom: 1px solid var(--sm-border-strong);
+      display: flex;
+      margin-bottom: 0;
+    }
+
+    #admin-view .sm-admin-tab {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      color: var(--sm-text-muted);
+      cursor: pointer;
+      flex: 1 1 0;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      min-height: 40px;
+      padding: 12px 0 10px;
+      text-align: center;
+      transition: border-color 0.18s ease, color 0.18s ease;
+    }
+
+    #admin-view .sm-admin-tab.is-active {
+      border-bottom-color: var(--color-enji);
+      color: var(--sm-text);
+    }
+
+    #admin-view .sm-admin-reservation-heading {
+      align-items: flex-end;
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 20px 9px;
+    }
+
+    #admin-view .sm-admin-date-label {
+      color: var(--sm-text-muted);
+      font-size: 9.5px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin: 0 0 4px;
+    }
+
+    #admin-view .sm-admin-count-label {
+      color: var(--sm-text);
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    #admin-view .sm-admin-reservation-controls {
+      align-items: center;
+      border-bottom: 1px solid var(--sm-border-strong);
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      padding: 10px 20px;
+    }
+
+    #admin-view .sm-admin-filter-tabs {
+      align-items: center;
+      display: flex;
+      flex: 0 0 auto;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    #admin-view .sm-admin-filter,
+    #admin-view .sm-admin-category-tab {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      color: var(--sm-text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      padding: 0 0 3px;
+      transition: border-color 0.18s ease, color 0.18s ease;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-filter.is-active,
+    #admin-view .sm-admin-category-tab.is-active {
+      border-bottom-color: var(--sm-text);
+      color: var(--sm-text);
+    }
+
+    #admin-view .sm-admin-sort-button {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      color: var(--sm-text-muted);
+      cursor: pointer;
+      flex: 1 1 auto;
+      font-size: 10.5px;
+      font-weight: 700;
+      line-height: 1.2;
+      min-width: 0;
+      padding: 0;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-list {
+      border-top: 0;
+    }
+
+    #admin-view .sm-admin-loading,
+    #admin-view .sm-admin-empty,
+    #admin-view .sm-admin-error {
+      border-bottom: 1px solid var(--sm-border);
+      color: var(--sm-text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 22px 20px;
+      text-align: center;
+    }
+
+    #admin-view .sm-admin-error {
+      color: #b42318;
+    }
+
+    #admin-view .sm-admin-reservation-row {
+      align-items: center;
+      border-bottom: 1px solid var(--sm-border-strong);
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 52px minmax(0, 1fr) auto;
+      min-height: 61px;
+      padding: 12px 20px;
+    }
+
+    #admin-view .sm-admin-reservation-time {
+      color: var(--sm-text);
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-reservation-status-inline {
+      border: 1px solid var(--sm-border-strong);
+      border-radius: var(--sm-radius);
+      color: var(--sm-text-muted);
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-top: 4px;
+      padding: 3px 5px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-reservation-status-inline.status-reserved {
+      background: #f6f4f2;
+    }
+
+    #admin-view .sm-admin-reservation-status-inline.status-in_progress {
+      background: #fff7f8;
+      border-color: var(--color-enji);
+      color: var(--color-enji);
+    }
+
+    #admin-view .sm-admin-reservation-status-inline.status-completed {
+      background: #f4f4f4;
+      border-color: #dddddd;
+      color: #77736c;
+    }
+
+    #admin-view .sm-admin-reservation-status-inline.status-canceled {
+      background: #fff5f5;
+      border-color: #d48a80;
+      color: #b42318;
+    }
+
+    #admin-view .sm-admin-reservation-main {
+      min-width: 0;
+    }
+
+    #admin-view .sm-admin-reservation-name {
+      color: var(--sm-text);
+      display: block;
+      font-size: 12.5px;
+      font-weight: 800;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    #admin-view .sm-admin-reservation-menu {
+      color: var(--sm-text-muted);
+      display: block;
+      font-size: 10.5px;
+      font-weight: 600;
+      line-height: 1.35;
+      margin-top: 3px;
+      overflow-wrap: anywhere;
+    }
+
+    #admin-view .sm-admin-row-actions {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+      max-width: 108px;
+    }
+
+    #admin-view .sm-admin-status-pill,
+    #admin-view .sm-admin-row-button,
+    #admin-view .sm-admin-edit-button {
+      background: transparent;
+      border: 1px solid var(--sm-border-strong);
+      border-radius: var(--sm-radius);
+      color: var(--sm-text-muted);
+      font-size: 9.5px;
+      font-weight: 800;
+      line-height: 1;
+      min-height: 22px;
+      padding: 5px 8px;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-row-button,
+    #admin-view .sm-admin-edit-button {
+      cursor: pointer;
+      transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+    }
+
+    #admin-view .sm-admin-row-button:active,
+    #admin-view .sm-admin-edit-button:active {
+      background: #f4f2f0;
+    }
+
+    #admin-view .sm-admin-row-button.is-primary {
+      border-color: var(--color-enji);
+      color: var(--color-enji);
+    }
+
+    #admin-view .sm-admin-row-button.is-danger {
+      border-color: #d48a80;
+      color: #b42318;
+    }
+
+    #admin-view .sm-admin-status-pill.status-reserved {
+      background: #f6f4f2;
+      border-color: var(--sm-border-strong);
+      color: var(--sm-text-muted);
+    }
+
+    #admin-view .sm-admin-status-pill.status-in_progress {
+      background: #fff7f8;
+      border-color: var(--color-enji);
+      color: var(--color-enji);
+    }
+
+    #admin-view .sm-admin-status-pill.status-completed {
+      background: #f4f4f4;
+      border-color: #dddddd;
+      color: #77736c;
+    }
+
+    #admin-view .sm-admin-status-pill.status-canceled {
+      background: #fff5f5;
+      border-color: #d48a80;
+      color: #b42318;
+    }
+
+    #admin-view .sm-admin-other-link {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      color: var(--sm-text-muted);
+      cursor: pointer;
+      display: block;
+      font-size: 10.5px;
+      font-weight: 700;
+      line-height: 1.2;
+      padding: 14px 20px;
+      text-align: left;
+      width: 100%;
+    }
+
+    #admin-view .sm-admin-other-link.hidden {
+      display: none;
+    }
+
+    #admin-view .sm-admin-add-button {
+      align-items: center;
+      appearance: none;
+      background: var(--color-enji);
+      border: 1px solid var(--color-enji);
+      border-radius: var(--sm-radius);
+      color: var(--sm-bg);
+      cursor: pointer;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 800;
+      gap: 7px;
+      justify-content: center;
+      line-height: 1;
+      margin: 14px 20px 12px;
+      min-height: 36px;
+      padding: 11px 14px;
+      transition: background 0.18s ease, opacity 0.18s ease;
+      width: calc(100% - 40px);
+    }
+
+    #admin-view .sm-admin-add-button:active {
+      opacity: 0.78;
+    }
+
+    #admin-view .sm-admin-category-tabs {
+      border-bottom: 1px solid var(--sm-border-strong);
+      display: flex;
+      gap: 14px;
+      margin: 0;
+      overflow-x: auto;
+      padding: 0 20px 10px;
+      scrollbar-width: none;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-master-row {
+      align-items: center;
+      border-bottom: 1px solid var(--sm-border);
+      color: inherit;
+      cursor: pointer;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 48px minmax(0, 1fr) auto auto;
+      min-height: 68px;
+      padding: 13px 20px;
+      transition: color 0.18s ease, opacity 0.18s ease;
+    }
+
+    #admin-view .sm-admin-master-row:active {
+      opacity: 0.7;
+    }
+
+    #admin-view .sm-admin-master-code {
+      color: var(--sm-text-muted);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-master-meta {
+      color: var(--sm-text-muted);
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.35;
+      margin-bottom: 4px;
+      min-width: 0;
+    }
+
+    #admin-view .sm-admin-master-name {
+      color: var(--sm-text);
+      display: block;
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.35;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    #admin-view .sm-admin-master-price {
+      color: var(--sm-text);
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-option-row {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+    }
+
+    #admin-view .sm-admin-option-desc {
+      color: var(--sm-text-muted);
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-top: 4px;
+      overflow-wrap: anywhere;
+    }
+
+    #admin-view .sm-admin-option-time {
+      color: var(--sm-text-muted);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-practitioner-row {
+      align-items: center;
+      border-bottom: 1px solid var(--sm-border);
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      min-height: 72px;
+      padding: 13px 20px;
+    }
+
+    #admin-view .sm-admin-practitioner-initial {
+      align-items: center;
+      background: var(--sm-text);
+      border-radius: 50%;
+      color: var(--sm-bg);
+      display: flex;
+      font-size: 12px;
+      font-weight: 900;
+      height: 36px;
+      justify-content: center;
+      line-height: 1;
+      overflow: hidden;
+      width: 36px;
+    }
+
+    #admin-view .sm-admin-practitioner-initial img {
+      height: 100%;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    #admin-view .sm-admin-practitioner-name {
+      color: var(--sm-text);
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.35;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    #admin-view .sm-admin-practitioner-fee {
+      color: var(--sm-text-muted);
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-top: 3px;
+    }
+
+    #admin-view .sm-admin-practitioner-meta {
+      align-items: center;
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    #admin-view .sm-admin-state-badge {
+      border: 1px solid var(--sm-border-strong);
+      border-radius: var(--sm-radius);
+      color: var(--sm-text-muted);
+      font-size: 9.5px;
+      font-weight: 800;
+      line-height: 1;
+      padding: 4px 7px;
+      white-space: nowrap;
+    }
+
+    #admin-view .sm-admin-state-badge.is-active {
+      border-color: var(--color-enji);
+      color: var(--color-enji);
+    }
+
+    #settings-modal .rounded-t-3xl,
+    #settings-modal .rounded-lg,
+    #menu-modal .rounded-t-3xl,
+    #menu-modal .rounded-lg,
+    #option-modal .rounded-t-3xl,
+    #option-modal .rounded-lg,
+    #practitioner-modal .rounded-t-3xl,
+    #practitioner-modal .rounded-lg {
+      border-radius: var(--sm-radius) !important;
+    }
+
+    #settings-modal input,
+    #settings-modal textarea,
+    #settings-modal select,
+    #menu-modal input,
+    #menu-modal textarea,
+    #menu-modal select,
+    #option-modal input,
+    #option-modal textarea,
+    #practitioner-modal input,
+    #practitioner-modal textarea {
+      border-color: var(--sm-border) !important;
+      border-radius: var(--sm-radius) !important;
+      box-shadow: none !important;
+    }
+
+    #settings-modal button,
+    #menu-modal button,
+    #option-modal button,
+    #practitioner-modal button {
+      border-radius: var(--sm-radius) !important;
+      box-shadow: none !important;
+    }
+
     @media (max-width: 380px) {
       .sm-header-main {
         grid-template-columns: minmax(62px, 1fr) minmax(0, 1.25fr) minmax(64px, 1fr);
@@ -1427,6 +2020,40 @@
 
       #mypage-view .sm-history-meta {
         text-align: left;
+      }
+
+      #admin-view .sm-admin-stat {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      #admin-view .sm-admin-reservation-row {
+        gap: 10px;
+        grid-template-columns: 50px minmax(0, 1fr);
+      }
+
+      #admin-view .sm-admin-row-actions {
+        grid-column: 2;
+        justify-content: flex-start;
+        max-width: none;
+      }
+
+      #admin-view .sm-admin-master-row {
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+      }
+
+      #admin-view .sm-admin-master-row .sm-admin-edit-button {
+        grid-column: 2 / 4;
+        justify-self: start;
+      }
+
+      #admin-view .sm-admin-option-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      #admin-view .sm-admin-option-row .sm-admin-edit-button {
+        grid-column: 1 / 3;
+        justify-self: start;
       }
     }
 
@@ -1843,68 +2470,103 @@
 
       <!-- ADMIN VIEW (管理者のみ表示) -->
       <div id="admin-view" class="hidden animate-fade-in">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-bold text-gray-800 border-l-4 border-enji pl-3">管理ダッシュボード</h2>
-          <button onclick="showSettingsModal()" class="text-gray-500 hover:text-enji transition-colors p-2">
-            <i class="fas fa-cog text-xl"></i>
+        <div class="sm-admin-toolbar">
+          <button onclick="showSettingsModal()" class="sm-admin-settings-button" type="button" aria-label="設定">
+            <i class="fas fa-cog"></i>
           </button>
         </div>
 
+        <section id="admin-stats-bar" class="sm-admin-stats" aria-label="管理統計">
+          <div class="sm-admin-stat">
+            <span class="sm-admin-stat-label">本日</span>
+            <span class="sm-admin-stat-value"><span id="admin-stat-today">--</span><span class="sm-admin-stat-unit">件</span></span>
+          </div>
+          <div class="sm-admin-stat">
+            <span class="sm-admin-stat-label">今週</span>
+            <span class="sm-admin-stat-value"><span id="admin-stat-week">--</span><span class="sm-admin-stat-unit">件</span></span>
+          </div>
+          <div class="sm-admin-stat">
+            <span class="sm-admin-stat-label">売上 (本日)</span>
+            <span id="admin-stat-sales" class="sm-admin-stat-value">--</span>
+          </div>
+        </section>
+
         <!-- Tab Switcher for Admin -->
-        <div class="flex mb-4 bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="sm-admin-tabs" role="tablist" aria-label="管理メニュー">
           <button onclick="switchAdminTab('reservations')" id="admin-tab-reservations"
-            class="flex-1 py-2 text-xs font-bold text-white bg-enji transition-colors">予約一覧</button>
+            class="sm-admin-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="admin-reservations">予約一覧</button>
           <button onclick="switchAdminTab('menus')" id="admin-tab-menus"
-            class="flex-1 py-2 text-xs font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors">メニュー</button>
+            class="sm-admin-tab" type="button" role="tab" aria-selected="false" aria-controls="admin-menus">メニュー</button>
           <button onclick="switchAdminTab('options')" id="admin-tab-options"
-            class="flex-1 py-2 text-xs font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors">オプション</button>
+            class="sm-admin-tab" type="button" role="tab" aria-selected="false" aria-controls="admin-options">オプション</button>
           <button onclick="switchAdminTab('practitioners')" id="admin-tab-practitioners"
-            class="flex-1 py-2 text-xs font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors">施術者</button>
+            class="sm-admin-tab" type="button" role="tab" aria-selected="false" aria-controls="admin-practitioners">施術者</button>
         </div>
 
         <!-- Admin: Reservations List -->
-        <div id="admin-reservations" class="block">
-          <div id="admin-reservation-list" class="space-y-3">
-            <div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+        <div id="admin-reservations" class="block" role="tabpanel" aria-labelledby="admin-tab-reservations">
+          <div class="sm-admin-reservation-heading">
+            <div>
+              <p id="admin-reservation-date-label" class="sm-admin-date-label">--</p>
+              <p id="admin-reservation-count-label" class="sm-admin-count-label">ご予約 0件</p>
+            </div>
           </div>
+          <div class="sm-admin-reservation-controls">
+            <div class="sm-admin-filter-tabs" aria-label="予約日付フィルタ">
+              <button id="admin-filter-today" class="sm-admin-filter is-active" type="button"
+                onclick="setAdminReservationFilter('today')">本日</button>
+              <button id="admin-filter-week" class="sm-admin-filter" type="button"
+                onclick="setAdminReservationFilter('week')">今週</button>
+              <button id="admin-filter-all" class="sm-admin-filter" type="button"
+                onclick="setAdminReservationFilter('all')">すべて</button>
+            </div>
+            <button id="admin-sort-toggle" class="sm-admin-sort-button" type="button" onclick="toggleAdminReservationSort()">
+              並べ替え ・ 時刻 ↑
+            </button>
+          </div>
+          <div id="admin-reservation-list" class="sm-admin-list">
+            <div class="sm-admin-loading"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+          <button id="admin-other-reservations-link" class="sm-admin-other-link" type="button"
+            onclick="setAdminReservationFilter('all')">他の日付の予約を見る ›</button>
         </div>
 
         <!-- Admin: Menu Management -->
-        <div id="admin-menus" class="hidden">
+        <div id="admin-menus" class="hidden" role="tabpanel" aria-labelledby="admin-tab-menus">
           <button onclick="showAddMenuModal()"
-            class="w-full mb-4 bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg shadow-md transition-colors">
-            <i class="fas fa-plus mr-2"></i>新しいメニューを追加
+            class="sm-admin-add-button" type="button">
+            <i class="fas fa-plus"></i>追加
           </button>
           <!-- Category Filter Tabs for Admin Menu -->
-          <div id="admin-category-tabs" class="flex flex-wrap gap-2 mb-4">
+          <div id="admin-category-tabs" class="sm-admin-category-tabs">
             <button onclick="filterAdminMenuByCategory('all')"
-              class="admin-category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji bg-enji text-white transition-colors"
+              class="admin-category-tab sm-admin-category-tab is-active"
               data-category="all">すべて</button>
           </div>
-          <div id="admin-menu-list" class="space-y-3">
-            <div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+          <div id="admin-menu-list" class="sm-admin-list">
+            <div class="sm-admin-loading"><i class="fas fa-spinner fa-spin"></i></div>
           </div>
         </div>
 
         <!-- Admin: Options Management (NEW) -->
-        <div id="admin-options" class="hidden">
+        <div id="admin-options" class="hidden" role="tabpanel" aria-labelledby="admin-tab-options">
           <button onclick="showAddOptionModal()"
-            class="w-full mb-4 bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg shadow-md transition-colors">
-            <i class="fas fa-plus mr-2"></i>新しいオプションを追加
+            class="sm-admin-add-button" type="button">
+            <i class="fas fa-plus"></i>追加
           </button>
-          <div id="admin-option-list" class="space-y-3">
-            <div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+          <div id="admin-option-list" class="sm-admin-list">
+            <div class="sm-admin-loading"><i class="fas fa-spinner fa-spin"></i></div>
           </div>
         </div>
 
         <!-- Admin: Practitioner Management -->
-        <div id="admin-practitioners" class="hidden">
+        <div id="admin-practitioners" class="hidden" role="tabpanel" aria-labelledby="admin-tab-practitioners">
           <button onclick="showAddPractitionerModal()"
-            class="w-full mb-4 bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg shadow-md transition-colors">
-            <i class="fas fa-plus mr-2"></i>新しい施術者を追加
+            class="sm-admin-add-button" type="button">
+            <i class="fas fa-plus"></i>追加
           </button>
-          <div id="admin-practitioner-list" class="space-y-3">
-            <div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+          <div id="admin-practitioner-list" class="sm-admin-list">
+            <div class="sm-admin-loading"><i class="fas fa-spinner fa-spin"></i></div>
           </div>
         </div>
       </div>
@@ -2806,6 +3468,7 @@
         navAdmin.classList.add('text-enji');
         navAdmin.classList.remove('text-gray-400');
         navAdmin.setAttribute('aria-current', 'page');
+        loadAdminStats();
         loadAdminReservations();
       }
     };
@@ -4408,6 +5071,272 @@
     // 管理者機能
     // ==============================================
 
+    let allAdminReservations = [];
+    let currentAdminReservationFilter = 'today';
+    let adminReservationSortAsc = true;
+
+    function isLocalMockHost() {
+      return location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    }
+
+    function formatCurrency(value) {
+      return `¥${Number(value || 0).toLocaleString()}`;
+    }
+
+    function parseAdminDate(dateValue) {
+      if (!dateValue) return null;
+      const normalized = String(dateValue).replace(/\//g, '-');
+      const date = new Date(`${normalized}T00:00:00+09:00`);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function formatAdminApiDate(date) {
+      const jst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+      return jst.toISOString().slice(0, 10).replace(/-/g, '/');
+    }
+
+    function formatAdminDisplayDate(date) {
+      const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+      const jst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+      const year = jst.getUTCFullYear();
+      const month = String(jst.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(jst.getUTCDate()).padStart(2, '0');
+      return `${year}.${month}.${day} (${weekdays[jst.getUTCDay()]})`;
+    }
+
+    function getAdminTodayStart() {
+      const now = new Date();
+      const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+      jst.setUTCHours(0, 0, 0, 0);
+      return new Date(jst.getTime() - 9 * 60 * 60 * 1000);
+    }
+
+    function getAdminWeekRange() {
+      const today = getAdminTodayStart();
+      const jst = new Date(today.getTime() + 9 * 60 * 60 * 1000);
+      const daysSinceMonday = (jst.getUTCDay() + 6) % 7;
+      const start = new Date(today.getTime() - daysSinceMonday * 24 * 60 * 60 * 1000);
+      const end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+      return { start, end };
+    }
+
+    function getAdminReservationDate(item) {
+      return parseAdminDate(item.date || (item.startAt ? formatAdminApiDate(new Date(item.startAt)) : ''));
+    }
+
+    function getAdminReservationMenu(item) {
+      return item.menuName || item.menu || 'メニュー未設定';
+    }
+
+    function getAdminReservationPractitioner(item) {
+      return item.practitionerName || item.practitioner?.name || '指名なし';
+    }
+
+    function getAdminReservationStatusView(status) {
+      const views = {
+        reserved: { label: '受付済', className: 'status-reserved' },
+        in_progress: { label: '進行中', className: 'status-in_progress' },
+        completed: { label: '完了', className: 'status-completed' },
+        canceled: { label: 'キャンセル', className: 'status-canceled' },
+        no_show: { label: '無断キャンセル', className: 'status-canceled' },
+      };
+      return views[status] || views.reserved;
+    }
+
+    function createMockAdminReservations() {
+      const today = getAdminTodayStart();
+      const oneDay = 24 * 60 * 60 * 1000;
+      const todayText = formatAdminApiDate(today);
+      const tomorrowText = formatAdminApiDate(new Date(today.getTime() + oneDay));
+      const nextWeekText = formatAdminApiDate(new Date(today.getTime() + 8 * oneDay));
+
+      return [
+        { id: '1', name: '山田 さくら', menu: 'カット', date: todayText, time: '10:00', status: 'reserved', totalPrice: 6600, practitionerName: '田中 美咲' },
+        { id: '2', name: '佐藤 由香', menu: 'カット + フルカラー', date: todayText, time: '11:30', status: 'reserved', totalPrice: 15400, practitionerName: '佐藤 翔' },
+        { id: '3', name: '高橋 ゆうこ', menu: 'シグネチャー カット', date: todayText, time: '13:00', status: 'reserved', totalPrice: 8800, practitionerName: '田中 美咲' },
+        { id: '4', name: '中村 玲', menu: 'デジタルパーマ', date: todayText, time: '14:30', status: 'in_progress', totalPrice: 18700, practitionerName: '鈴木 健太' },
+        { id: '5', name: '伊藤 麻衣', menu: 'ヘッドスパ', date: todayText, time: '16:00', status: 'completed', totalPrice: 5500, practitionerName: '田中 美咲' },
+        { id: '6', name: '渡辺 真奈', menu: 'カット + フルカラー', date: todayText, time: '17:30', status: 'reserved', totalPrice: 15400, practitionerName: '佐藤 翔' },
+        { id: '7', name: '小林 里奈', menu: '前髪カット', date: tomorrowText, time: '12:00', status: 'reserved', totalPrice: 2200, practitionerName: '田中 美咲' },
+        { id: '8', name: '森 亜紀', menu: 'トリートメント', date: nextWeekText, time: '15:00', status: 'reserved', totalPrice: 7700, practitionerName: '鈴木 健太' },
+      ];
+    }
+
+    function filterAdminReservationsForView(reservations) {
+      const today = getAdminTodayStart();
+      const todayEnd = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+      const week = getAdminWeekRange();
+
+      return reservations.filter(item => {
+        if (currentAdminReservationFilter === 'all') return true;
+        const reservationDate = getAdminReservationDate(item);
+        if (!reservationDate) return false;
+        if (currentAdminReservationFilter === 'week') {
+          return reservationDate >= week.start && reservationDate < week.end;
+        }
+        return reservationDate >= today && reservationDate < todayEnd;
+      });
+    }
+
+    function sortAdminReservationsForView(reservations) {
+      return [...reservations].sort((a, b) => {
+        const aDate = getAdminReservationDate(a)?.getTime() || 0;
+        const bDate = getAdminReservationDate(b)?.getTime() || 0;
+        const aKey = `${aDate}-${a.time || '00:00'}`;
+        const bKey = `${bDate}-${b.time || '00:00'}`;
+        return adminReservationSortAsc ? aKey.localeCompare(bKey) : bKey.localeCompare(aKey);
+      });
+    }
+
+    function updateAdminFilterButtons() {
+      ['today', 'week', 'all'].forEach(filter => {
+        const button = document.getElementById(`admin-filter-${filter}`);
+        if (!button) return;
+        const isActive = filter === currentAdminReservationFilter;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+      });
+
+      const sortButton = document.getElementById('admin-sort-toggle');
+      if (sortButton) {
+        sortButton.textContent = `並べ替え ・ 時刻 ${adminReservationSortAsc ? '↑' : '↓'}`;
+      }
+    }
+
+    function updateAdminReservationHeader(count) {
+      const dateLabel = document.getElementById('admin-reservation-date-label');
+      const countLabel = document.getElementById('admin-reservation-count-label');
+      const today = getAdminTodayStart();
+
+      if (!dateLabel || !countLabel) return;
+
+      if (currentAdminReservationFilter === 'all') {
+        dateLabel.textContent = 'すべての予約';
+        countLabel.textContent = `${count}件`;
+        return;
+      }
+
+      if (currentAdminReservationFilter === 'week') {
+        const week = getAdminWeekRange();
+        const startJst = new Date(week.start.getTime() + 9 * 60 * 60 * 1000);
+        const endJst = new Date(week.end.getTime() - 24 * 60 * 60 * 1000 + 9 * 60 * 60 * 1000);
+        dateLabel.textContent = `${startJst.getUTCFullYear()}.${String(startJst.getUTCMonth() + 1).padStart(2, '0')}.${String(startJst.getUTCDate()).padStart(2, '0')} — ${String(endJst.getUTCDate()).padStart(2, '0')}`;
+      } else {
+        dateLabel.textContent = formatAdminDisplayDate(today);
+      }
+
+      countLabel.textContent = `ご予約 ${count}件`;
+    }
+
+    function renderAdminReservations() {
+      const container = document.getElementById('admin-reservation-list');
+      const otherLink = document.getElementById('admin-other-reservations-link');
+      if (!container) return;
+
+      updateAdminFilterButtons();
+      const visibleReservations = sortAdminReservationsForView(filterAdminReservationsForView(allAdminReservations));
+      updateAdminReservationHeader(visibleReservations.length);
+      if (otherLink) otherLink.classList.toggle('hidden', currentAdminReservationFilter === 'all');
+
+      if (visibleReservations.length === 0) {
+        container.innerHTML = '<div class="sm-admin-empty">予約がありません</div>';
+        return;
+      }
+
+      container.innerHTML = visibleReservations.map(item => {
+        const statusView = getAdminReservationStatusView(item.status);
+        const name = `${item.name || item.customerName || 'お客様'} 様`;
+        const menuLine = `${getAdminReservationMenu(item)} ・ ${getAdminReservationPractitioner(item)}`;
+        const idArg = escapeHtml(JSON.stringify(item.id));
+        const nameArg = escapeHtml(JSON.stringify(item.name || item.customerName || 'お客様'));
+
+        let actionHtml = `<span class="sm-admin-status-pill ${statusView.className}">${escapeHtml(statusView.label)}</span>`;
+        if (item.status === 'reserved') {
+          actionHtml = `
+            <button class="sm-admin-row-button is-primary" type="button" onclick='event.stopPropagation(); updateAdminReservationStatus(${idArg}, "in_progress")'>進行中にする</button>
+            <button class="sm-admin-row-button is-danger" type="button" onclick='event.stopPropagation(); updateAdminReservationStatus(${idArg}, "canceled", ${nameArg})'>キャンセル</button>
+          `;
+        } else if (item.status === 'in_progress') {
+          actionHtml = `
+            <button class="sm-admin-row-button is-primary" type="button" onclick='event.stopPropagation(); updateAdminReservationStatus(${idArg}, "completed")'>完了にする</button>
+            <button class="sm-admin-row-button is-danger" type="button" onclick='event.stopPropagation(); updateAdminReservationStatus(${idArg}, "canceled", ${nameArg})'>キャンセル</button>
+          `;
+        }
+
+        return `
+          <div class="sm-admin-reservation-row">
+            <div>
+              <span class="sm-admin-reservation-time">${escapeHtml(item.time || '--:--')}</span>
+              <span class="sm-admin-reservation-status-inline ${statusView.className}">${escapeHtml(statusView.label)}</span>
+            </div>
+            <div class="sm-admin-reservation-main">
+              <span class="sm-admin-reservation-name">${escapeHtml(name)}</span>
+              <span class="sm-admin-reservation-menu">${escapeHtml(menuLine)}</span>
+            </div>
+            <div class="sm-admin-row-actions">${actionHtml}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadAdminStats() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/stats?adminId=${encodeURIComponent(state.user?.userId || '')}`);
+        const stats = await response.json();
+        document.getElementById('admin-stat-today').textContent = Number(stats.todayCount || 0).toLocaleString();
+        document.getElementById('admin-stat-week').textContent = Number(stats.weekCount || 0).toLocaleString();
+        document.getElementById('admin-stat-sales').textContent = formatCurrency(stats.todaySales || 0);
+      } catch (err) {
+        console.error('Failed to load admin stats:', err);
+        document.getElementById('admin-stat-today').textContent = '8';
+        document.getElementById('admin-stat-week').textContent = '47';
+        document.getElementById('admin-stat-sales').textContent = '¥132,000';
+      }
+    }
+
+    window.setAdminReservationFilter = (filter) => {
+      currentAdminReservationFilter = filter;
+      loadAdminReservations();
+    };
+
+    window.toggleAdminReservationSort = () => {
+      adminReservationSortAsc = !adminReservationSortAsc;
+      renderAdminReservations();
+    };
+
+    window.updateAdminReservationStatus = async (reservationId, status, customerName = '') => {
+      if (status === 'canceled') {
+        const confirmed = await showConfirm(`${customerName || 'このお客様'}様の予約をキャンセルしますか？`);
+        if (!confirmed) return;
+      }
+
+      try {
+        if (isLocalMockHost()) {
+          const item = allAdminReservations.find(reservation => String(reservation.id) === String(reservationId));
+          if (item) item.status = status;
+          alert('変更しました');
+          renderAdminReservations();
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/reservations/${reservationId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ adminId: state.user?.userId, status })
+        });
+        const result = await response.json();
+        if (result.status !== 'success') {
+          throw new Error(result.message || 'ステータス変更に失敗しました');
+        }
+        showToast('変更しました');
+        await loadAdminReservations();
+        await loadAdminStats();
+      } catch (err) {
+        console.error('Failed to update reservation status:', err);
+        showToast(err.message || '変更に失敗しました', 'error');
+      }
+    };
+
     window.switchAdminTab = (tab) => {
       const tabReservations = document.getElementById('admin-tab-reservations');
       const tabMenus = document.getElementById('admin-tab-menus');
@@ -4418,28 +5347,25 @@
       const sectionOptions = document.getElementById('admin-options');
       const sectionPractitioners = document.getElementById('admin-practitioners');
 
-      const activeClasses = 'flex-1 py-2 text-xs font-bold text-white bg-enji transition-colors';
-      const inactiveClasses = 'flex-1 py-2 text-xs font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors';
-
-      // Reset all tabs
-      [tabReservations, tabMenus, tabOptions, tabPractitioners].forEach(t => t.className = inactiveClasses);
-      [sectionReservations, sectionMenus, sectionOptions, sectionPractitioners].forEach(s => s.classList.add('hidden'));
+      [
+        [tabReservations, sectionReservations, tab === 'reservations'],
+        [tabMenus, sectionMenus, tab === 'menus'],
+        [tabOptions, sectionOptions, tab === 'options'],
+        [tabPractitioners, sectionPractitioners, tab === 'practitioners'],
+      ].forEach(([tabButton, section, isActive]) => {
+        tabButton.classList.toggle('is-active', isActive);
+        tabButton.setAttribute('aria-selected', String(isActive));
+        section.classList.toggle('hidden', !isActive);
+      });
 
       if (tab === 'reservations') {
-        tabReservations.className = activeClasses;
-        sectionReservations.classList.remove('hidden');
+        loadAdminStats();
         loadAdminReservations();
       } else if (tab === 'menus') {
-        tabMenus.className = activeClasses;
-        sectionMenus.classList.remove('hidden');
         loadAdminMenus();
       } else if (tab === 'options') {
-        tabOptions.className = activeClasses;
-        sectionOptions.classList.remove('hidden');
         loadAdminOptions();
       } else if (tab === 'practitioners') {
-        tabPractitioners.className = activeClasses;
-        sectionPractitioners.classList.remove('hidden');
         loadAdminPractitioners();
       }
     };
@@ -4452,10 +5378,10 @@
 
     async function loadAdminOptions() {
       const container = document.getElementById('admin-option-list');
-      container.innerHTML = '<div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+      container.innerHTML = '<div class="sm-admin-loading"><i class="fas fa-spinner fa-spin"></i></div>';
 
       try {
-        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        if (isLocalMockHost()) {
           await new Promise(r => setTimeout(r, 500));
           allAdminOptions = [
             { id: '1', name: 'ヘッドスパ', minutes: 15, price: 2000, description: 'リラックス効果抜群', isActive: true },
@@ -4468,27 +5394,23 @@
         }
 
         if (allAdminOptions.length === 0) {
-          container.innerHTML = '<div class="text-center text-gray-400 py-8">オプションが登録されていません</div>';
+          container.innerHTML = '<div class="sm-admin-empty">オプションが登録されていません</div>';
           return;
         }
 
         container.innerHTML = allAdminOptions.map(opt => `
-          <div onclick="showEditOptionModal('${opt.id}')" class="bg-white shadow-sm border border-gray-100 rounded-xl p-4 cursor-pointer hover:border-enji transition-all">
-            <div class="flex justify-between items-start">
-              <div class="flex-1">
-                <h4 class="font-bold text-gray-800">${opt.name}</h4>
-                <p class="text-xs text-gray-500 mt-1">${opt.description || ''}</p>
-              </div>
-              <div class="text-right ml-4">
-                <p class="text-xs text-gray-400">+${opt.minutes}分</p>
-                <p class="text-enji font-bold">+¥${opt.price.toLocaleString()}</p>
-              </div>
+          <div onclick="showEditOptionModal('${escapeHtml(opt.id)}')" class="sm-admin-master-row sm-admin-option-row">
+            <div>
+              <span class="sm-admin-master-name">${escapeHtml(opt.name)}</span>
+              <span class="sm-admin-option-desc">${escapeHtml(opt.description || '')} / +${formatCurrency(opt.price)}</span>
             </div>
+            <span class="sm-admin-option-time">+${Number(opt.minutes || opt.additionalMinutes || 0)}分</span>
+            <button type="button" onclick="event.stopPropagation(); showEditOptionModal('${escapeHtml(opt.id)}')" class="sm-admin-edit-button">編集</button>
           </div>
         `).join('');
       } catch (err) {
         console.error('Failed to load admin options:', err);
-        container.innerHTML = '<div class="text-center text-red-500 py-8">読み込みエラー</div>';
+        container.innerHTML = '<div class="sm-admin-error">読み込みエラー</div>';
       }
     }
 
@@ -4594,15 +5516,16 @@
 
     async function loadAdminPractitioners() {
       const container = document.getElementById('admin-practitioner-list');
-      container.innerHTML = '<div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+      container.innerHTML = '<div class="sm-admin-loading"><i class="fas fa-spinner fa-spin"></i></div>';
 
       try {
         let practitioners = [];
-        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        if (isLocalMockHost()) {
           await new Promise(r => setTimeout(r, 500));
           practitioners = [
-            { id: '1', name: '田中 花子', calendarId: 'ichibi2025@gmail.com' },
-            { id: '2', name: '山田 太郎', calendarId: 'satellite0712@gmail.com' }
+            { id: '1', name: '田中 美咲', calendarId: 'ichibi2025@gmail.com', nominationFee: 1000, isActive: true },
+            { id: '2', name: '佐藤 翔', calendarId: 'satellite0712@gmail.com', nominationFee: 1500, isActive: true },
+            { id: '3', name: '鈴木 健太', calendarId: 'kenta@example.com', nominationFee: 0, isActive: false }
           ];
         } else {
           const res = await fetch(`${API_BASE_URL}/api/practitioners`);
@@ -4610,45 +5533,34 @@
         }
 
         if (practitioners.length === 0) {
-          container.innerHTML = '<div class="text-center text-gray-400 py-8">施術者が登録されていません</div>';
+          container.innerHTML = '<div class="sm-admin-empty">施術者が登録されていません</div>';
           return;
         }
 
         container.innerHTML = practitioners.map(p => {
+          const practitionerArg = escapeHtml(JSON.stringify(p));
+          const active = p.isActive ?? p.active ?? true;
+          const fee = Number(p.nominationFee || 0);
           const avatarHtml = p.imageUrl
-            ? `<img src="${p.imageUrl}" alt="${p.name}" class="w-12 h-12 rounded-full object-cover border-2 border-gray-100">`
-            : `<div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center"><i class="fas fa-user text-gray-400"></i></div>`;
-
-          const titleHtml = p.title ? `<span class="text-xs text-gray-400">${p.title}</span>` : '';
-          const expHtml = p.experience ? `<span class="text-xs text-gray-400">（${p.experience}）</span>` : '';
-          const feeHtml = p.nominationFee ? `<span class="text-xs text-enji font-bold ml-2">指名料 ¥${Number(p.nominationFee).toLocaleString()}</span>` : '';
+            ? `<img src="${escapeHtml(p.imageUrl)}" alt="${escapeHtml(p.name)}">`
+            : escapeHtml(getPractitionerInitial(p.name));
 
           return `
-          <div class="bg-white shadow-sm border border-gray-100 rounded-xl p-4">
-            <div class="flex justify-between items-start">
-              <div class="flex items-start gap-3">
-                ${avatarHtml}
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <h3 class="font-bold text-gray-800">${p.name}</h3>
-                    ${feeHtml}
-                  </div>
-                  <div class="flex items-center gap-1 flex-wrap">
-                    ${titleHtml}${expHtml}
-                  </div>
-                  <p class="text-xs text-gray-400 mt-1 truncate">${p.calendarId}</p>
-                  ${p.prTitle ? `<p class="text-xs text-gray-500 mt-1 truncate">${p.prTitle}</p>` : ''}
-                </div>
+          <div class="sm-admin-practitioner-row">
+            <div class="sm-admin-practitioner-initial">${avatarHtml}</div>
+            <div class="min-w-0">
+              <h3 class="sm-admin-practitioner-name">${escapeHtml(p.name)}</h3>
+              <p class="sm-admin-practitioner-fee">指名料 +${formatCurrency(fee)}</p>
+              <div class="sm-admin-practitioner-meta">
+                <span class="sm-admin-state-badge${active ? ' is-active' : ''}">${active ? '公開中' : '停止中'}</span>
               </div>
-              <button onclick="showEditPractitionerModal(${JSON.stringify(p).replace(/"/g, '&quot;')})" class="text-enji hover:text-enji-dark flex-shrink-0 ml-2">
-                <i class="fas fa-edit"></i>
-              </button>
             </div>
+            <button onclick="showEditPractitionerModal(${practitionerArg})" class="sm-admin-edit-button" type="button">編集</button>
           </div>
         `}).join('');
       } catch (e) {
         console.error(e);
-        container.innerHTML = '<div class="text-center text-red-400 py-8">読み込みエラー</div>';
+        container.innerHTML = '<div class="sm-admin-error">読み込みエラー</div>';
       }
     }
 
@@ -5047,78 +5959,27 @@
 
     async function loadAdminReservations() {
       const container = document.getElementById('admin-reservation-list');
-      container.innerHTML = '<div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+      container.innerHTML = '<div class="sm-admin-loading"><i class="fas fa-spinner fa-spin"></i></div>';
 
       try {
-        let reservations = [];
-        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-          // Mock data
+        if (isLocalMockHost()) {
           await new Promise(r => setTimeout(r, 500));
-          reservations = [
-            { id: '1', name: '堀江祥汰', menu: 'フォトフェイシャル', date: '2025/12/15', time: '10:00', status: 'reserved', optionNames: 'ヘッドスパ,トリートメント', totalMinutes: 75, totalPrice: 12800, practitionerName: '田中花子' },
-            { id: '2', name: '山田花子', menu: 'フォト+イオン導入', date: '2025/12/14', time: '14:00', status: 'reserved', optionNames: '', totalMinutes: 60, totalPrice: 11000, practitionerName: '山田太郎' },
-            { id: '3', name: '田中太郎', menu: '美肌ケア', date: '2025/12/13', time: '11:30', status: 'canceled', optionNames: '', totalMinutes: 45, totalPrice: 8800, practitionerName: '田中花子' },
-          ];
-        } else {
-          const res = await fetch(`${API_BASE_URL}/api/reservations?adminId=${state.user.userId}`);
-          reservations = await res.json();
-        }
-
-        if (reservations.length === 0) {
-          container.innerHTML = '<div class="text-center text-gray-400 py-8">予約がありません</div>';
-          return;
-        }
-
-        container.innerHTML = reservations.map(item => {
-          // 予約日時が過去かどうかを判定
-          const now = new Date();
-          const reservationDateTime = new Date(`${item.date.replace(/\//g, '-')}T${item.time}:00+09:00`);
-          const isPast = reservationDateTime < now;
-
-          // ステータス判定: キャンセル済み / 来店済み（過去の予約中） / 予約中（未来の予約中）
-          let statusColor, statusText;
-          if (item.status === 'canceled') {
-            statusColor = 'bg-gray-100 text-gray-500';
-            statusText = 'キャンセル';
-          } else if (isPast && item.status === 'reserved') {
-            statusColor = 'bg-blue-100 text-blue-700';
-            statusText = '来店済';
-          } else {
-            statusColor = 'bg-green-100 text-green-700';
-            statusText = '予約中';
+          if (allAdminReservations.length === 0) {
+            allAdminReservations = createMockAdminReservations();
           }
+        } else {
+          const query = new URLSearchParams({
+            adminId: state.user.userId,
+            filter: currentAdminReservationFilter
+          });
+          const res = await fetch(`${API_BASE_URL}/api/reservations?${query.toString()}`);
+          allAdminReservations = await res.json();
+        }
 
-          const optionInfo = item.optionNames ? `<div class="text-xs text-enji mt-1">+ ${item.optionNames.replace(/,/g, '、')}</div>` : '';
-          const totalInfo = item.totalMinutes ? `<div class="text-xs text-gray-500 mt-1">${item.totalMinutes}分 / ¥${Number(item.totalPrice).toLocaleString()}</div>` : '';
-          const practitionerInfo = item.practitionerName ? `<div class="text-xs text-gray-400">担当: ${item.practitionerName}</div>` : '';
-
-          // キャンセルボタンは未来の予約中のみ表示
-          const cancelBtn = (!isPast && item.status === 'reserved') ? `
-            <button onclick="event.stopPropagation(); adminCancelReservation('${item.id}', '${item.name}')"
-              class="mt-2 px-3 py-1.5 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium flex items-center gap-1">
-              <i class="fas fa-times-circle"></i> キャンセル
-            </button>` : '';
-
-          return `
-          <div class="bg-white shadow-sm border border-gray-100 p-4 rounded-xl">
-            <div class="flex justify-between items-start gap-2">
-              <div class="min-w-0 flex-1">
-                <div class="font-bold text-gray-800">${item.name} 様</div>
-                <div class="text-sm text-gray-600 mt-1">${item.date} ${item.time}</div>
-                <div class="text-xs text-gray-500 mt-1">${item.menu}</div>
-                ${optionInfo}
-                ${totalInfo}
-                ${practitionerInfo}
-                ${cancelBtn}
-              </div>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap flex-shrink-0 ${statusColor}">${statusText}</span>
-            </div>
-          </div>
-        `;
-        }).join('');
+        renderAdminReservations();
       } catch (e) {
         console.error(e);
-        container.innerHTML = '<div class="text-center text-red-400 py-8">読み込みエラー</div>';
+        container.innerHTML = '<div class="sm-admin-error">読み込みエラー</div>';
       }
     }
 
@@ -5161,15 +6022,16 @@
 
     async function loadAdminMenus() {
       const container = document.getElementById('admin-menu-list');
-      container.innerHTML = '<div class="flex justify-center py-8 text-enji"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+      container.innerHTML = '<div class="sm-admin-loading"><i class="fas fa-spinner fa-spin"></i></div>';
 
       try {
         let menus = [];
-        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        if (isLocalMockHost()) {
           await new Promise(r => setTimeout(r, 500));
           menus = [
-            { id: 1, category: '全員', name: 'フォトフェイシャル', minutes: 45, price: 8800, description: 'クレンジング・洗顔・鎮静美容パック付き', optionIds: '1,3' },
-            { id: 2, category: '初回限定', name: 'フォト+イオン導入', minutes: 60, price: 11000, description: 'クレンジング・洗顔・ビタミンパック', optionIds: '2' },
+            { id: 1, category: 'カット', name: 'シグネチャー カット', minutes: 60, price: 8800, description: '骨格に合わせたカット', optionIds: '1,3' },
+            { id: 2, category: 'カラー', name: 'カット + フルカラー', minutes: 120, price: 15400, description: 'ケア込みのフルカラー', optionIds: '2' },
+            { id: 3, category: 'パーマ', name: 'デジタルパーマ', minutes: 150, price: 18700, description: '再現性の高いパーマ', optionIds: '' },
           ];
         } else {
           const res = await fetch(`${API_BASE_URL}/api/menus`);
@@ -5193,10 +6055,12 @@
       const tabsContainer = document.getElementById('admin-category-tabs');
       const categories = [...new Set(menus.map(m => m.category).filter(c => c))];
 
-      let tabsHtml = `<button onclick="filterAdminMenuByCategory('all')" class="admin-category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji bg-enji text-white transition-colors" data-category="all">すべて</button>`;
+      let tabsHtml = `<button onclick="filterAdminMenuByCategory('all')" class="admin-category-tab sm-admin-category-tab${currentAdminCategory === 'all' ? ' is-active' : ''}" data-category="all">すべて</button>`;
 
       categories.forEach(cat => {
-        tabsHtml += `<button onclick="filterAdminMenuByCategory('${cat}')" class="admin-category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji bg-white text-enji hover:bg-pink-50 transition-colors" data-category="${cat}">${cat}</button>`;
+        const categoryArg = escapeHtml(JSON.stringify(cat));
+        const active = currentAdminCategory === cat ? ' is-active' : '';
+        tabsHtml += `<button onclick="filterAdminMenuByCategory(${categoryArg})" class="admin-category-tab sm-admin-category-tab${active}" data-category="${escapeHtml(cat)}">${escapeHtml(cat)}</button>`;
       });
 
       tabsContainer.innerHTML = tabsHtml;
@@ -5207,12 +6071,7 @@
 
       // Update tab styles
       document.querySelectorAll('.admin-category-tab').forEach(tab => {
-        const baseClasses = 'admin-category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji transition-colors';
-        if (tab.dataset.category === category) {
-          tab.className = `${baseClasses} bg-enji text-white`;
-        } else {
-          tab.className = `${baseClasses} bg-white text-enji hover:bg-pink-50`;
-        }
+        tab.classList.toggle('is-active', tab.dataset.category === category);
       });
 
       // Filter and render menus
@@ -5226,47 +6085,23 @@
       const container = document.getElementById('admin-menu-list');
 
       if (menus.length === 0) {
-        container.innerHTML = '<div class="text-center text-gray-400 py-8">メニューがありません</div>';
+        container.innerHTML = '<div class="sm-admin-empty">メニューがありません</div>';
         return;
       }
 
-      const isAllCategory = currentAdminCategory === 'all';
-
       container.innerHTML = menus.map((menu, index) => {
-        const categoryBadge = menu.category
-          ? `<span class="inline-block px-2 py-0.5 bg-pink-100 text-pink-600 text-xs rounded-full mb-1">${menu.category}</span>`
-          : '';
-
-        // Arrows HTML
-        let arrowsHtml = '';
-        if (isAllCategory) {
-          arrowsHtml = `
-            <div class="flex flex-col gap-2 ml-2">
-              <button onclick="event.stopPropagation(); moveMenu('${menu.id}', -1)" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center transition-colors">
-                <i class="fas fa-chevron-up"></i>
-              </button>
-              <button onclick="event.stopPropagation(); moveMenu('${menu.id}', 1)" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center transition-colors">
-                <i class="fas fa-chevron-down"></i>
-              </button>
-            </div>
-          `;
-        }
+        const code = `M${String(index + 1).padStart(1, '0')}`;
+        const menuArg = escapeHtml(JSON.stringify(menu));
 
         return `
-          <div onclick="showEditMenuModal(${JSON.stringify(menu).replace(/"/g, '&quot;')})" class="bg-white shadow-sm border border-gray-100 p-4 rounded-xl cursor-pointer hover:border-enji transition-all active:scale-95">
-            <div class="flex items-center gap-4">
-              ${menu.imageUrl ? `<img src="${menu.imageUrl}" class="w-16 h-16 rounded-lg object-cover bg-gray-100 shrink-0">` : ''}
-              <div class="flex-1 min-w-0">
-                ${categoryBadge}
-                <h3 class="font-bold text-gray-800 truncate">${menu.name}</h3>
-                <p class="text-xs text-gray-500 mt-1 mb-1 truncate">${menu.description || ''}</p>
-                <p class="text-sm text-gray-400 mt-1"><i class="far fa-clock"></i> ${menu.minutes}分</p>
-              </div>
-              <div class="flex items-center">
-                <span class="font-bold text-enji">¥${parseInt(menu.price).toLocaleString()}</span>
-                ${arrowsHtml}
-              </div>
+          <div onclick="showEditMenuModal(${menuArg})" class="sm-admin-master-row">
+            <span class="sm-admin-master-code">/ ${escapeHtml(code)}</span>
+            <div>
+              <span class="sm-admin-master-meta">${escapeHtml(menu.category || '未分類')} ・ ${Number(menu.minutes || 0)}分</span>
+              <span class="sm-admin-master-name">${escapeHtml(menu.name || '名称未設定')}</span>
             </div>
+            <span class="sm-admin-master-price">${formatCurrency(menu.price)}</span>
+            <button type="button" onclick="event.stopPropagation(); showEditMenuModal(${menuArg})" class="sm-admin-edit-button">編集</button>
           </div>
         `;
       }).join('');
