@@ -1208,53 +1208,69 @@
         </div>
 
         <!-- Step 4: Confirmation -->
-        <div id="step-confirm" class="hidden animate-fade-in">
-          <button onclick="goBack('step-date')" class="btn-ghost mb-2 text-gray-500 text-sm flex items-center gap-1">
-            <i class="fas fa-arrow-left"></i> 戻る
-          </button>
-          <h2 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-enji pl-3">予約確認</h2>
-
-          <div class="bg-white shadow-lg border border-gray-100 rounded-xl overflow-hidden">
-            <div class="bg-enji text-white p-4">
-              <h3 class="font-bold text-lg">ご予約内容</h3>
-            </div>
-            <div class="p-6 space-y-4">
-              <div>
-                <label class="text-xs text-gray-400 block">メニュー</label>
-                <p id="confirm-menu" class="font-bold text-gray-800 text-lg"></p>
-              </div>
-              <div>
-                <label class="text-xs text-gray-400 block">担当施術者</label>
-                <p id="confirm-practitioner" class="font-bold text-gray-800"></p>
-              </div>
-              <div class="flex gap-4">
-                <div>
-                  <label class="text-xs text-gray-400 block">日付</label>
-                  <p id="confirm-date" class="font-bold text-gray-800"></p>
-                </div>
-                <div>
-                  <label class="text-xs text-gray-400 block">時間</label>
-                  <p id="confirm-time" class="font-bold text-gray-800"></p>
-                </div>
-              </div>
-              <div>
-                <label class="text-xs text-gray-400 block">お名前</label>
-                <input type="text" id="user-name-input"
-                  class="w-full mt-1 p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
-                  placeholder="お名前を入力">
-              </div>
-              <div>
-                <label class="text-xs text-gray-400 block">電話番号</label>
-                <input type="tel" id="user-phone-input"
-                  class="w-full mt-1 p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
-                  placeholder="090-1234-5678">
-              </div>
-            </div>
-            <div class="p-4 bg-gray-50">
-              <button onclick="submitReservation()"
-                class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg shadow-md transition-colors">予約を確定する</button>
+        <div id="step-confirm" class="hidden animate-fade-in text-[var(--sm-text)]">
+          <div class="flex items-start gap-[14px] mt-0.5 mb-[18px]">
+            <div class="shrink-0 border-b border-[var(--color-enji)] pb-1.5 text-xs font-bold leading-none">04</div>
+            <div class="min-w-0">
+              <h2 class="m-0 text-[22px] font-black leading-[1.08] text-[var(--sm-text)]">予約内容の確認</h2>
+              <p class="mt-1.5 text-xs leading-6 text-[var(--sm-text-muted)]">以下の内容でよろしいでしょうか</p>
             </div>
           </div>
+
+          <section class="bg-white border-t border-[var(--sm-border)]" aria-label="予約内容">
+            <div class="confirm-row grid grid-cols-[88px_minmax(0,1fr)] gap-3 border-b border-[var(--sm-border)] py-3">
+              <span class="text-[11px] font-bold text-[var(--sm-text-muted)]">日付</span>
+              <p id="confirm-date" class="min-w-0 text-right text-sm font-bold leading-5 text-[var(--sm-text)]"></p>
+            </div>
+            <div class="confirm-row grid grid-cols-[88px_minmax(0,1fr)] gap-3 border-b border-[var(--sm-border)] py-3">
+              <span class="text-[11px] font-bold text-[var(--sm-text-muted)]">時間</span>
+              <p id="confirm-time" class="min-w-0 text-right text-sm font-bold leading-5 text-[var(--sm-text)]"></p>
+            </div>
+            <div class="confirm-row grid grid-cols-[88px_minmax(0,1fr)] gap-3 border-b border-[var(--sm-border)] py-3">
+              <span class="text-[11px] font-bold text-[var(--sm-text-muted)]">メニュー</span>
+              <p id="confirm-menu" class="min-w-0 break-words text-right text-sm font-bold leading-5 text-[var(--sm-text)]"></p>
+            </div>
+            <div class="confirm-row hidden grid grid-cols-[88px_minmax(0,1fr)] gap-3 border-b border-[var(--sm-border)] py-3">
+              <span class="text-[11px] font-bold text-[var(--sm-text-muted)]">オプション</span>
+              <p id="confirm-options" class="min-w-0 break-words text-right text-sm font-bold leading-5 text-[var(--sm-text)]"></p>
+            </div>
+            <div class="confirm-row grid grid-cols-[88px_minmax(0,1fr)] gap-3 border-b border-[var(--sm-border)] py-3">
+              <span class="text-[11px] font-bold text-[var(--sm-text-muted)]">スタイリスト</span>
+              <p id="confirm-practitioner" class="min-w-0 break-words text-right text-sm font-bold leading-5 text-[var(--sm-text)]"></p>
+            </div>
+            <div class="confirm-row grid grid-cols-[88px_minmax(0,1fr)] items-baseline gap-3 border-b border-[var(--sm-border)] py-3.5">
+              <span class="text-[11px] font-bold text-[var(--sm-text-muted)]">ご請求金額</span>
+              <p id="confirm-total" class="min-w-0 text-right text-xl font-black leading-none text-[var(--sm-text)]"></p>
+            </div>
+          </section>
+
+          <section class="mt-6" aria-label="お客様情報">
+            <h3 class="mb-3 text-sm font-black leading-none text-[var(--sm-text)]">お客様情報</h3>
+            <div class="border-t border-[var(--sm-border)] bg-white">
+              <label class="grid grid-cols-[88px_minmax(0,1fr)] items-center gap-3 border-b border-[var(--sm-border)] py-3">
+                <span class="text-[11px] font-bold text-[var(--sm-text-muted)]">お名前</span>
+                <input type="text" id="user-name-input"
+                  class="min-w-0 rounded-[2px] border border-[var(--sm-border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--sm-text)] outline-none transition-colors placeholder:text-[var(--sm-text-faint)] focus:border-[var(--color-enji)] focus:ring-1 focus:ring-[var(--color-enji)]"
+                  placeholder="お名前を入力">
+              </label>
+              <label class="grid grid-cols-[88px_minmax(0,1fr)] items-center gap-3 border-b border-[var(--sm-border)] py-3">
+                <span class="text-[11px] font-bold text-[var(--sm-text-muted)]">電話番号</span>
+                <input type="tel" id="user-phone-input"
+                  class="min-w-0 rounded-[2px] border border-[var(--sm-border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--sm-text)] outline-none transition-colors placeholder:text-[var(--sm-text-faint)] focus:border-[var(--color-enji)] focus:ring-1 focus:ring-[var(--color-enji)]"
+                  placeholder="090-1234-5678">
+              </label>
+            </div>
+          </section>
+
+          <button type="button" onclick="submitReservation()"
+            class="mt-6 w-full rounded-[2px] bg-[var(--color-enji)] px-4 py-4 text-sm font-black text-white transition-colors hover:bg-[var(--color-enji-dark)] active:opacity-80">
+            予約を確定する
+          </button>
+
+          <p class="mt-4 text-[11px] font-medium leading-5 text-[var(--sm-text-muted)]">
+            キャンセルは前日18時までにお願いします。<br>
+            当日キャンセルはキャンセル料が発生します。
+          </p>
         </div>
       </div>
 
@@ -2830,6 +2846,13 @@
       }
     }
 
+    function formatDateJa(dateStr) {
+      const [y, m, d] = dateStr.split('/').map(Number);
+      const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+      const dow = weekDays[new Date(y, m - 1, d).getDay()];
+      return `${y} 年 ${m} 月 ${d} 日 (${dow})`;
+    }
+
     function selectWeeklySlot(date, time, availablePractitioners) {
       state.date = date;
       state.time = time;
@@ -2851,10 +2874,22 @@
       updateProgressSteps(4);
 
       document.getElementById('confirm-menu').innerText = state.menu.name;
+      const optionsEl = document.getElementById('confirm-options');
+      if (optionsEl) {
+        const optionsRow = optionsEl.closest('.confirm-row');
+        if (state.selectedOptions && state.selectedOptions.length > 0) {
+          optionsRow?.classList.remove('hidden');
+          optionsEl.innerText = state.selectedOptions.map(o => o.name).join(' / ');
+        } else {
+          optionsRow?.classList.add('hidden');
+          optionsEl.innerText = '';
+        }
+      }
       // 「指名なし」の場合は自動割り当てと表示
-      const practitionerDisplay = state.practitioner?.id ? state.practitioner.name : '指名なし（自動割り当て）';
+      const practitionerDisplay = state.practitioner?.id ? `${state.practitioner.name} (指名)` : '指名なし（自動割り当て）';
       document.getElementById('confirm-practitioner').innerText = practitionerDisplay;
-      document.getElementById('confirm-date').innerText = state.date;
+      document.getElementById('confirm-date').innerText = formatDateJa(state.date);
+      document.getElementById('confirm-total').innerText = `¥${Number(state.totalPrice || state.menu.price || 0).toLocaleString()}`;
 
       // Calculate end time
       const totalMinutes = parseInt(state.totalMinutes || state.menu.minutes, 10);
@@ -2871,7 +2906,7 @@
 
       console.log('Calculated endTime:', endTime);
 
-      document.getElementById('confirm-time').innerText = `${state.time} 〜 ${endTime}`;
+      document.getElementById('confirm-time').innerText = `${state.time} — ${endTime} (${totalMinutes} 分)`;
 
       const nameInput = document.getElementById('user-name-input');
       if (nameInput && state.user?.displayName && !nameInput.value) {
