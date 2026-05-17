@@ -26,7 +26,7 @@
             },
           },
           fontFamily: {
-            sans: ['"Helvetica Neue"', 'Arial', 'sans-serif'],
+            sans: ['var(--sm-font)'],
           },
           animation: {
             'scale-in': 'scaleIn 0.2s ease-out forwards',
@@ -52,11 +52,207 @@
       --color-enji: #9b1c2c;
       --color-enji-light: #b92b3d;
       --color-enji-dark: #7a1522;
+      --sm-font: -apple-system, "system-ui", "Segoe UI", system-ui, sans-serif;
+      --sm-bg: #ffffff;
+      --sm-text: #1a1612;
+      --sm-text-muted: #6e6a63;
+      --sm-text-faint: #cfcabf;
+      --sm-border: #e0dcd8;
+      --sm-border-strong: #d9d4c8;
+      --sm-radius: 2px;
+      --sm-shadow: none;
     }
 
     body {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: var(--sm-bg);
+      color: var(--sm-text);
+      font-family: var(--sm-font);
       -webkit-font-smoothing: antialiased;
+      font-variant-numeric: tabular-nums;
+      text-rendering: geometricPrecision;
+    }
+
+    .sm-radius {
+      border-radius: var(--sm-radius) !important;
+    }
+
+    .sm-surface {
+      background: var(--sm-bg);
+      border: 1px solid var(--sm-border);
+      border-radius: var(--sm-radius);
+      box-shadow: var(--sm-shadow);
+    }
+
+    .sm-header {
+      background: var(--sm-bg);
+      border-bottom: 1px solid var(--sm-border);
+      box-shadow: none;
+    }
+
+    .sm-status-bar {
+      align-items: center;
+      border-bottom: 1px solid #f4f2f0;
+      color: var(--sm-text-muted);
+      display: flex;
+      font-size: 10px;
+      font-weight: 600;
+      height: 20px;
+      justify-content: space-between;
+      letter-spacing: 0.12em;
+      padding: 0 16px;
+      text-transform: uppercase;
+    }
+
+    .sm-header-main {
+      align-items: center;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: minmax(72px, 1fr) minmax(0, 1.35fr) minmax(72px, 1fr);
+      min-height: 52px;
+      padding: 10px 16px 11px;
+    }
+
+    .sm-header-kicker,
+    .sm-header-hours {
+      color: var(--sm-text-muted);
+      font-size: 9px;
+      font-weight: 600;
+      line-height: 1.2;
+      min-width: 0;
+    }
+
+    .sm-header-kicker {
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .sm-header-hours {
+      font-weight: 400;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .sm-header-title {
+      color: var(--sm-text);
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.05;
+      min-width: 0;
+      overflow: hidden;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sm-progress {
+      background: var(--sm-bg);
+      border: 1px solid var(--sm-border);
+      border-radius: var(--sm-radius);
+      box-shadow: var(--sm-shadow);
+      margin-bottom: 16px;
+      padding: 10px 10px 9px;
+    }
+
+    .sm-progress-list {
+      display: grid;
+      gap: 4px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .sm-step {
+      align-items: center;
+      border-bottom: 1px solid transparent;
+      color: var(--sm-text-faint);
+      display: flex;
+      flex-direction: column;
+      font-size: 10px;
+      font-weight: 600;
+      gap: 3px;
+      line-height: 1.2;
+      min-width: 0;
+      padding: 0 1px 7px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .sm-step-number {
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .sm-step.is-complete {
+      border-bottom-color: var(--sm-border-strong);
+      color: var(--sm-text-muted);
+    }
+
+    .sm-step.is-active {
+      border-bottom-color: var(--color-enji);
+      color: var(--sm-text);
+    }
+
+    .sm-bottom-nav {
+      background: var(--sm-bg);
+      border-top: 1px solid var(--sm-border);
+      box-shadow: none;
+    }
+
+    .sm-bottom-tabs {
+      align-items: stretch;
+      display: flex;
+      height: 56px;
+      justify-content: space-around;
+    }
+
+    .sm-nav-tab {
+      align-items: center;
+      color: var(--sm-text-faint) !important;
+      flex: 1 1 0;
+      font-size: 11px;
+      font-weight: 600;
+      justify-content: center;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      min-width: 0;
+      position: relative;
+      text-align: center;
+      transition: color 0.18s ease;
+    }
+
+    .sm-nav-tab.is-active {
+      color: var(--sm-text) !important;
+    }
+
+    .sm-nav-tab.is-active::after {
+      background: var(--color-enji);
+      bottom: 11px;
+      content: "";
+      height: 1px;
+      left: 50%;
+      position: absolute;
+      transform: translateX(-50%);
+      width: 26px;
+    }
+
+    @media (max-width: 380px) {
+      .sm-header-main {
+        grid-template-columns: minmax(62px, 1fr) minmax(0, 1.25fr) minmax(64px, 1fr);
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .sm-status-bar {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .sm-header-title {
+        font-size: 15px;
+      }
+
+      .sm-step {
+        font-size: 9px;
+      }
     }
 
     .pb-safe {
@@ -122,29 +318,28 @@
   </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800 select-none">
+<body class="bg-white text-gray-800 select-none">
 
   <!-- App Container -->
   <div id="app" class="min-h-screen pb-24 hidden">
     <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-40">
-      <div class="max-w-md mx-auto px-4 py-3 flex items-center gap-4">
-        <div id="header-logo-container">
-          <div id="header-logo-placeholder"
-            class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-store text-gray-400 text-xl"></i>
-          </div>
-          <img id="header-logo" src="" alt="Salon Logo"
-            class="h-12 w-12 rounded-full object-cover flex-shrink-0 hidden">
+    <header class="sm-header sticky top-0 z-40">
+      <div class="max-w-md mx-auto">
+        <div class="sm-status-bar" aria-label="status">
+          <span id="header-clock"></span>
+          <span>Reservation</span>
         </div>
-        <div class="flex-1 min-w-0">
-          <h1 id="header-salon-name" class="font-bold text-gray-800 text-sm truncate"></h1>
-          <p id="header-address" class="text-xs text-gray-500 truncate"></p>
-          <p class="text-xs text-gray-400 flex items-center gap-1">
-            <i class="fas fa-train text-xs"></i>
-            <span id="header-station"></span>
-          </p>
+        <div class="sm-header-main">
+          <div class="sm-header-kicker">EST. 2018</div>
+          <h1 id="header-salon-name" class="sm-header-title">ATELIER EN</h1>
+          <div id="header-hours" class="sm-header-hours">11:00 — 21:00</div>
         </div>
+        <div id="header-logo-container" class="hidden" aria-hidden="true">
+          <div id="header-logo-placeholder"></div>
+          <img id="header-logo" src="" alt="Salon Logo" class="hidden">
+        </div>
+        <p id="header-address" class="hidden"></p>
+        <span id="header-station" class="hidden"></span>
       </div>
     </header>
 
@@ -155,41 +350,27 @@
       <div id="home-view" class="block">
 
         <!-- Progress Steps Indicator (Compact) - 5 Steps -->
-        <div id="progress-steps" class="bg-white rounded-xl shadow-sm p-3 mb-4">
-          <div class="flex items-center justify-between">
-            <div class="flex flex-col items-center">
-              <div id="step-icon-1"
-                class="w-6 h-6 rounded-full bg-enji text-white flex items-center justify-center text-xs font-bold">1
-              </div>
-              <span class="text-[10px] text-gray-600 mt-1 whitespace-nowrap">メニュー</span>
+        <div id="progress-steps" class="sm-progress" aria-label="予約ステップ">
+          <div class="sm-progress-list" role="list">
+            <div id="step-icon-1" class="sm-step is-active" role="listitem" aria-current="step">
+              <span class="sm-step-number">01</span>
+              <span>メニュー</span>
             </div>
-            <div class="flex-1 h-0.5 bg-gray-200 mx-1" id="step-line-1"></div>
-            <div class="flex flex-col items-center">
-              <div id="step-icon-2"
-                class="w-6 h-6 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">
-                2</div>
-              <span class="text-[10px] text-gray-400 mt-1 whitespace-nowrap">オプション</span>
+            <div id="step-icon-2" class="sm-step" role="listitem">
+              <span class="sm-step-number">02</span>
+              <span>オプション</span>
             </div>
-            <div class="flex-1 h-0.5 bg-gray-200 mx-1" id="step-line-2"></div>
-            <div class="flex flex-col items-center">
-              <div id="step-icon-3"
-                class="w-6 h-6 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">
-                3</div>
-              <span class="text-[10px] text-gray-400 mt-1 whitespace-nowrap">日時選択</span>
+            <div id="step-icon-3" class="sm-step" role="listitem">
+              <span class="sm-step-number">03</span>
+              <span>日時</span>
             </div>
-            <div class="flex-1 h-0.5 bg-gray-200 mx-1" id="step-line-3"></div>
-            <div class="flex flex-col items-center">
-              <div id="step-icon-4"
-                class="w-6 h-6 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">
-                4</div>
-              <span class="text-[10px] text-gray-400 mt-1 whitespace-nowrap">確認</span>
+            <div id="step-icon-4" class="sm-step" role="listitem">
+              <span class="sm-step-number">04</span>
+              <span>確認</span>
             </div>
-            <div class="flex-1 h-0.5 bg-gray-200 mx-1" id="step-line-4"></div>
-            <div class="flex flex-col items-center">
-              <div id="step-icon-5"
-                class="w-6 h-6 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">
-                5</div>
-              <span class="text-[10px] text-gray-400 mt-1 whitespace-nowrap">完了</span>
+            <div id="step-icon-5" class="sm-step" role="listitem">
+              <span class="sm-step-number">05</span>
+              <span>完了</span>
             </div>
           </div>
         </div>
@@ -499,22 +680,19 @@
     </main>
 
     <!-- Bottom Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-50">
-      <div class="max-w-md mx-auto flex justify-around items-center h-16">
+    <nav class="sm-bottom-nav fixed bottom-0 left-0 right-0 pb-safe z-50">
+      <div class="sm-bottom-tabs max-w-md mx-auto">
         <button onclick="switchTab('home')" id="nav-home"
-          class="flex flex-col items-center justify-center w-full h-full text-enji transition-colors">
-          <i class="fas fa-calendar-plus text-xl mb-1"></i>
-          <span class="text-xs font-medium">予約する</span>
+          class="sm-nav-tab flex is-active text-enji" aria-current="page">
+          <span>予約する</span>
         </button>
         <button onclick="switchTab('mypage')" id="nav-mypage"
-          class="flex flex-col items-center justify-center w-full h-full text-gray-400 transition-colors">
-          <i class="fas fa-clipboard-list text-xl mb-1"></i>
-          <span class="text-xs font-medium">確認/キャンセル</span>
+          class="sm-nav-tab flex text-gray-400">
+          <span>予約履歴</span>
         </button>
         <button onclick="switchTab('admin')" id="nav-admin"
-          class="hidden flex-col items-center justify-center w-full h-full text-gray-400 transition-colors">
-          <i class="fas fa-cog text-xl mb-1"></i>
-          <span class="text-xs font-medium">管理</span>
+          class="sm-nav-tab hidden text-gray-400">
+          <span>管理</span>
         </button>
       </div>
     </nav>
@@ -1109,6 +1287,36 @@
       reservationIdempotencyKey: null
     };
 
+    function updateHeaderClock() {
+      const clock = document.getElementById('header-clock');
+      if (!clock) return;
+
+      clock.textContent = new Intl.DateTimeFormat('ja-JP', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).format(new Date());
+    }
+
+    updateHeaderClock();
+    setInterval(updateHeaderClock, 60 * 1000);
+
+    function formatBusinessHour(value) {
+      const hour = parseInt(value, 10);
+      if (Number.isNaN(hour)) return null;
+      return `${String(hour).padStart(2, '0')}:00`;
+    }
+
+    function formatSalonHours(settings = {}) {
+      if (settings.salonHours) return settings.salonHours;
+
+      const start = formatBusinessHour(settings.businessStartHour ?? settings.startHour);
+      const end = formatBusinessHour(settings.businessEndHour ?? settings.endHour);
+      if (start && end) return `${start} — ${end}`;
+
+      return '11:00 — 21:00';
+    }
+
     // ==============================================
     // UI Helper Functions (Toast, Loading)
     // ==============================================
@@ -1252,7 +1460,7 @@
         if (config.siteTitle) {
           document.title = config.siteTitle;
           const headerName = document.getElementById('header-salon-name');
-          if (headerName) headerName.textContent = config.siteTitle;
+          if (headerName) headerName.textContent = config.siteTitle.replace(/-予約サイト$/, '');
         }
 
         console.log('[DEBUG] Starting LIFF init with ID:', LIFF_ID);
@@ -1335,20 +1543,29 @@
 
       // Reset all nav buttons
       [navHome, navMypage, navAdmin].forEach(btn => {
+        if (!btn) return;
+        btn.classList.remove('is-active');
         btn.classList.add('text-gray-400');
         btn.classList.remove('text-enji');
+        btn.removeAttribute('aria-current');
       });
 
       if (tab === 'home') {
+        navHome.classList.add('is-active');
         navHome.classList.add('text-enji');
         navHome.classList.remove('text-gray-400');
+        navHome.setAttribute('aria-current', 'page');
       } else if (tab === 'mypage') {
+        navMypage.classList.add('is-active');
         navMypage.classList.add('text-enji');
         navMypage.classList.remove('text-gray-400');
+        navMypage.setAttribute('aria-current', 'page');
         loadHistory();
       } else if (tab === 'admin') {
+        navAdmin.classList.add('is-active');
         navAdmin.classList.add('text-enji');
         navAdmin.classList.remove('text-gray-400');
+        navAdmin.setAttribute('aria-current', 'page');
         loadAdminReservations();
       }
     };
@@ -1480,35 +1697,29 @@
     // Update progress steps indicator (now 5 steps)
     function updateProgressSteps(currentStep) {
       for (let i = 1; i <= 5; i++) {
-        const icon = document.getElementById(`step-icon-${i}`);
-        const line = document.getElementById(`step-line-${i}`);
+        const step = document.getElementById(`step-icon-${i}`);
+        if (!step) continue;
 
         if (i < currentStep) {
-          // Completed step
-          icon.classList.remove('bg-gray-200', 'text-gray-400');
-          icon.classList.add('bg-enji', 'text-white');
-          icon.innerHTML = '<i class="fas fa-check text-xs"></i>';
-          if (line) {
-            line.classList.remove('bg-gray-200');
-            line.classList.add('bg-enji');
-          }
+          step.classList.add('is-complete');
+          step.classList.remove('is-active');
+          step.removeAttribute('aria-current');
         } else if (i === currentStep) {
-          // Current step
-          icon.classList.remove('bg-gray-200', 'text-gray-400');
-          icon.classList.add('bg-enji', 'text-white');
-          icon.innerHTML = i;
+          step.classList.add('is-active');
+          step.classList.remove('is-complete');
+          step.setAttribute('aria-current', 'step');
         } else {
-          // Future step
-          icon.classList.remove('bg-enji', 'text-white');
-          icon.classList.add('bg-gray-200', 'text-gray-400');
-          icon.innerHTML = i;
-          if (line) {
-            line.classList.remove('bg-enji');
-            line.classList.add('bg-gray-200');
-          }
+          step.classList.remove('is-complete', 'is-active');
+          step.removeAttribute('aria-current');
         }
       }
     }
+
+    function updateStepIndicator(currentStep) {
+      updateProgressSteps(currentStep);
+    }
+
+    window.updateStepIndicator = updateStepIndicator;
 
     window.selectMenu = async (menu) => {
       state.menu = menu;
@@ -1956,7 +2167,7 @@
       }
       document.getElementById('step-date').classList.add('hidden');
       document.getElementById('step-confirm').classList.remove('hidden');
-      updateProgressSteps(3);  // Confirmation is step 3
+      updateProgressSteps(4);
 
       document.getElementById('confirm-menu').innerText = state.menu.name;
       // 「指名なし」の場合は自動割り当てと表示
@@ -2080,6 +2291,7 @@
 
         if (result.status === 'success') {
           state.reservationIdempotencyKey = null;
+          updateProgressSteps(5);
           showToast('予約が完了しました！');
           switchTab('mypage');
         } else {
@@ -3034,13 +3246,18 @@
         document.getElementById('header-logo-placeholder').classList.add('hidden');
       }
       if (settings.salonName) {
-        document.getElementById('header-salon-name').innerText = settings.salonName;
+        document.getElementById('header-salon-name').textContent = settings.salonName;
       }
       if (settings.address) {
-        document.getElementById('header-address').innerText = settings.address;
+        document.getElementById('header-address').textContent = settings.address;
       }
       if (settings.station) {
-        document.getElementById('header-station').innerText = settings.station;
+        document.getElementById('header-station').textContent = settings.station;
+      }
+
+      const headerHours = document.getElementById('header-hours');
+      if (headerHours) {
+        headerHours.textContent = formatSalonHours(settings);
       }
     }
 
@@ -3204,7 +3421,7 @@
         });
 
         // Apply changes to header immediately
-        applySettingsToHeader({ salonName, address, station, logoUrl });
+        applySettingsToHeader({ salonName, address, station, logoUrl, businessStartHour, businessEndHour });
 
         closeSettingsModal();
         showToast('設定を保存しました');
