@@ -30,7 +30,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Serve index.html for root path
+// Serve the customer frontend from backend/public for root path
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

@@ -392,6 +392,12 @@
                   class="w-full mt-1 p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
                   placeholder="お名前を入力">
               </div>
+              <div>
+                <label class="text-xs text-gray-400 block">電話番号</label>
+                <input type="tel" id="user-phone-input"
+                  class="w-full mt-1 p-2 border border-gray-300 rounded focus:outline-none focus:border-enji focus:ring-1 focus:ring-enji"
+                  placeholder="090-1234-5678">
+              </div>
             </div>
             <div class="p-4 bg-gray-50">
               <button onclick="submitReservation()"
@@ -1973,6 +1979,11 @@
       console.log('Calculated endTime:', endTime);
 
       document.getElementById('confirm-time').innerText = `${state.time} 〜 ${endTime}`;
+
+      const nameInput = document.getElementById('user-name-input');
+      if (nameInput && state.user?.displayName && !nameInput.value) {
+        nameInput.value = state.user.displayName;
+      }
     }
 
     function formatDate(date) {
@@ -2014,8 +2025,13 @@
     }
 
     window.submitReservation = async () => {
-      const name = document.getElementById('user-name-input').value;
+      const name = document.getElementById('user-name-input').value.trim();
+      const phone = document.getElementById('user-phone-input')?.value.trim() || '';
       if (!name) { showToast('お名前を入力してください'); return; }
+      if (phone && !/^[0-9-]{10,13}$/.test(phone)) {
+        showToast('電話番号を正しい形式で入力してください');
+        return;
+      }
 
       document.getElementById('loading').classList.remove('hidden');
       try {
@@ -2027,7 +2043,7 @@
             minutes: state.menu.minutes,
             price: state.menu.price
           },
-          phone: document.getElementById('user-phone-input')?.value || '',
+          phone,
           date: state.date,
           time: state.time,
           // オプション情報
