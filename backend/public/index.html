@@ -619,27 +619,59 @@
       white-space: nowrap;
     }
 
-    #step-options .sm-options-cta {
+    .sm-flow-actions {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+      margin-top: 20px;
+    }
+
+    .sm-flow-action {
+      align-items: center;
       appearance: none;
-      background: var(--sm-text);
-      border: 0;
       border-radius: var(--sm-radius);
-      color: var(--sm-bg);
       cursor: pointer;
-      display: block;
+      display: inline-flex;
       font-family: inherit;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 800;
+      justify-content: center;
       letter-spacing: 0.08em;
       line-height: 1;
-      padding: 16px 12px;
+      min-height: 48px;
+      padding: 14px 10px;
       text-align: center;
-      transition: opacity 0.18s ease;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
       width: 100%;
     }
 
-    #step-options .sm-options-cta:active {
+    .sm-flow-action:active {
       opacity: 0.78;
+    }
+
+    .sm-flow-action-outline {
+      background: var(--sm-bg);
+      border: 1px solid var(--sm-border-strong);
+      color: var(--sm-text);
+    }
+
+    .sm-flow-action-outline:active {
+      background: #f4f2f0;
+    }
+
+    .sm-flow-action-primary {
+      background: var(--color-enji);
+      border: 1px solid var(--color-enji);
+      color: var(--sm-bg);
+    }
+
+    .sm-flow-action-primary:disabled {
+      cursor: default;
+      opacity: 0.34;
+    }
+
+    .sm-flow-action-primary:disabled:active {
+      opacity: 0.34;
     }
 
     #step-date {
@@ -914,6 +946,166 @@
       font-size: 13px;
       padding: 22px 0;
       text-align: center;
+    }
+
+    #step-date .sm-date-selected {
+      border-bottom: 1px solid var(--sm-border-strong);
+      border-top: 1px solid var(--sm-border-strong);
+      margin-top: 16px;
+      padding: 12px 0;
+    }
+
+    #step-date .sm-date-selected-label {
+      color: var(--sm-text-muted);
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      line-height: 1.2;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    #step-date .sm-date-selected-value {
+      color: var(--sm-text);
+      display: block;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    #step-complete {
+      color: var(--sm-text);
+    }
+
+    #step-complete .sm-complete-panel {
+      padding-top: 22px;
+    }
+
+    #step-complete .sm-complete-kicker {
+      color: var(--sm-text-muted);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      line-height: 1.2;
+      margin: 0 0 10px;
+      text-transform: uppercase;
+    }
+
+    #step-complete .sm-complete-title {
+      color: var(--sm-text);
+      font-size: 26px;
+      font-weight: 300;
+      letter-spacing: 0;
+      line-height: 1.18;
+      margin: 0;
+    }
+
+    #step-complete .sm-complete-message {
+      color: var(--sm-text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.7;
+      margin: 18px 0 0;
+      max-width: 260px;
+    }
+
+    #step-complete .sm-complete-card {
+      border: 1px solid var(--sm-text);
+      border-radius: var(--sm-radius);
+      margin-top: 24px;
+      overflow: hidden;
+    }
+
+    #step-complete .sm-complete-number {
+      align-items: center;
+      background: var(--sm-text);
+      color: var(--sm-bg);
+      display: grid;
+      gap: 10px;
+      grid-template-columns: auto minmax(0, 1fr);
+      min-height: 38px;
+      padding: 10px 14px;
+    }
+
+    #step-complete .sm-complete-number-label {
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    #step-complete .sm-complete-number-value {
+      color: var(--sm-bg);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    #step-complete .sm-complete-detail {
+      padding: 18px 14px 20px;
+    }
+
+    #step-complete .sm-complete-datetime {
+      color: var(--sm-text);
+      font-size: 20px;
+      font-weight: 900;
+      line-height: 1.2;
+      margin: 0 0 8px;
+    }
+
+    #step-complete .sm-complete-menu {
+      color: var(--sm-text);
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.45;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    #step-complete .sm-complete-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 214px;
+    }
+
+    #step-complete .sm-complete-action {
+      align-items: center;
+      appearance: none;
+      border-radius: var(--sm-radius);
+      cursor: pointer;
+      display: inline-flex;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      justify-content: center;
+      letter-spacing: 0.12em;
+      line-height: 1;
+      min-height: 50px;
+      padding: 15px 12px;
+      text-align: center;
+      transition: background 0.18s ease, opacity 0.18s ease;
+      width: 100%;
+    }
+
+    #step-complete .sm-complete-action-primary {
+      background: var(--color-enji);
+      border: 1px solid var(--color-enji);
+      color: var(--sm-bg);
+    }
+
+    #step-complete .sm-complete-action-secondary {
+      background: var(--sm-bg);
+      border: 1px solid var(--sm-text);
+      color: var(--sm-text);
+    }
+
+    #step-complete .sm-complete-action:active {
+      opacity: 0.78;
     }
 
     #mypage-view {
@@ -1208,6 +1400,18 @@
         width: 48px;
       }
 
+      .sm-flow-actions {
+        grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+      }
+
+      #step-complete .sm-complete-title {
+        font-size: 24px;
+      }
+
+      #step-complete .sm-complete-actions {
+        margin-top: 172px;
+      }
+
       #mypage-view .sm-mypage-heading-title {
         font-size: 20px;
       }
@@ -1417,9 +1621,14 @@
             <span id="total-price" class="sm-options-total-price"></span>
           </div>
 
-          <button onclick="proceedWithOptions()" class="sm-options-cta">
-            <span id="options-button-text">次へ進む</span>
-          </button>
+          <div class="sm-flow-actions" aria-label="オプション画面の操作">
+            <button type="button" onclick="goBack('step-menu')" class="sm-flow-action sm-flow-action-outline">
+              戻る
+            </button>
+            <button type="button" onclick="proceedWithOptions()" class="sm-flow-action sm-flow-action-primary">
+              <span id="options-button-text">次へ進む</span>
+            </button>
+          </div>
         </div>
 
         <!-- Step 3: Date Selection with Practitioner Pills -->
@@ -1466,6 +1675,19 @@
               <span>○ 空きあり</span>
               <span>△ 残りわずか</span>
               <span>× 満席</span>
+            </div>
+            <div id="selected-datetime-display" class="sm-date-selected hidden" aria-live="polite">
+              <span class="sm-date-selected-label">選択中の日時</span>
+              <span id="selected-datetime-text" class="sm-date-selected-value"></span>
+            </div>
+            <div class="sm-flow-actions" aria-label="日時選択画面の操作">
+              <button type="button" onclick="goBackFromDate()" class="sm-flow-action sm-flow-action-outline">
+                戻る
+              </button>
+              <button id="date-next-button" type="button" onclick="proceedFromDate()"
+                class="sm-flow-action sm-flow-action-primary" disabled>
+                次へ進む
+              </button>
             </div>
             <div id="weekly-loading" class="hidden py-8 text-center text-enji">
               <i class="fas fa-spinner fa-spin fa-2x"></i>
@@ -1528,15 +1750,52 @@
             </div>
           </section>
 
-          <button type="button" onclick="submitReservation()"
-            class="mt-6 w-full rounded-[2px] bg-[var(--color-enji)] px-4 py-4 text-sm font-black text-white transition-colors hover:bg-[var(--color-enji-dark)] active:opacity-80">
-            予約を確定する
-          </button>
+          <div class="sm-flow-actions" aria-label="確認画面の操作">
+            <button type="button" onclick="goBack('step-date')" class="sm-flow-action sm-flow-action-outline">
+              戻る
+            </button>
+            <button type="button" onclick="submitReservation()" class="sm-flow-action sm-flow-action-primary">
+              予約を確定する
+            </button>
+          </div>
 
           <p class="mt-4 text-[11px] font-medium leading-5 text-[var(--sm-text-muted)]">
             キャンセルは前日18時までにお願いします。<br>
             当日キャンセルはキャンセル料が発生します。
           </p>
+        </div>
+
+        <!-- Step 5: Complete -->
+        <div id="step-complete" class="hidden animate-fade-in">
+          <section class="sm-complete-panel" aria-labelledby="complete-title">
+            <p class="sm-complete-kicker">RESERVATION CONFIRMED</p>
+            <h2 id="complete-title" class="sm-complete-title">
+              ご予約が<br>確定いたしました
+            </h2>
+            <p class="sm-complete-message">
+              ご登録の電話番号宛にSMSで確認メッセージをお送りしました。
+            </p>
+
+            <div class="sm-complete-card" aria-label="予約確定内容">
+              <div class="sm-complete-number">
+                <span class="sm-complete-number-label">予約番号</span>
+                <span id="complete-reservation-number" class="sm-complete-number-value"></span>
+              </div>
+              <div class="sm-complete-detail">
+                <p id="complete-datetime" class="sm-complete-datetime"></p>
+                <p id="complete-menu" class="sm-complete-menu"></p>
+              </div>
+            </div>
+
+            <div class="sm-complete-actions" aria-label="予約完了後の操作">
+              <button type="button" onclick="viewReservationHistory()" class="sm-complete-action sm-complete-action-primary">
+                予約履歴を見る
+              </button>
+              <button type="button" onclick="continueBooking()" class="sm-complete-action sm-complete-action-secondary">
+                続けて予約する
+              </button>
+            </div>
+          </section>
         </div>
       </div>
 
@@ -2214,6 +2473,7 @@
       idToken: null,
       menu: null,
       practitioner: null,  // 施術者情報
+      selectedPractitioner: null,
       date: null,
       time: null,
       currentTab: 'home',
@@ -2554,6 +2814,7 @@
       document.getElementById('step-options').classList.add('hidden');
       document.getElementById('step-date').classList.add('hidden');
       document.getElementById('step-confirm').classList.add('hidden');
+      document.getElementById('step-complete').classList.add('hidden');
       document.getElementById('step-menu').classList.add('hidden');
       document.getElementById(stepId).classList.remove('hidden');
 
@@ -2566,6 +2827,8 @@
         updateProgressSteps(3);
       } else if (stepId === 'step-confirm') {
         updateProgressSteps(4);
+      } else if (stepId === 'step-complete') {
+        updateProgressSteps(5);
       }
     };
 
@@ -2780,11 +3043,13 @@
     window.selectMenu = async (menu) => {
       state.menu = menu;
       state.practitioner = null;
+      state.selectedPractitioner = null;
       state.date = null;
       state.time = null;
       state.selectedOptions = [];
       state.totalMinutes = menu.minutes;
       state.totalPrice = parseInt(menu.price) || 0;
+      updateSelectedDateTimeDisplay();
 
       // オプションを読み込む
       await loadOptions();
@@ -2918,6 +3183,10 @@
     }
 
     window.proceedWithOptions = async () => {
+      state.date = null;
+      state.time = null;
+      state.availablePractitioners = null;
+      updateSelectedDateTimeDisplay();
       document.getElementById('step-options').classList.add('hidden');
       document.getElementById('step-date').classList.remove('hidden');
       updateProgressSteps(3);
@@ -2990,6 +3259,7 @@
       } else {
         state.practitioner = normalizedPractitioners.find(p => String(p.id) === String(state.practitioner.id)) || noPreference;
       }
+      state.selectedPractitioner = state.practitioner;
 
       const allOptions = [noPreference, ...normalizedPractitioners];
 
@@ -3020,6 +3290,11 @@
       if (!practitioner) return;
 
       state.practitioner = practitioner;
+      state.selectedPractitioner = practitioner;
+      state.date = null;
+      state.time = null;
+      state.availablePractitioners = null;
+      updateSelectedDateTimeDisplay();
       renderPractitionerPills(allPractitioners);
       renderWeeklyCalendar();
     };
@@ -3121,7 +3396,7 @@
               ? `<button type="button" class="sm-date-slot-button" onclick='selectTime(${dateArg}, ${timeArg}, ${statusArg})' aria-label="${escapeHtml(`${day.date} ${time} ${slotView.ariaLabel}`)}">${slotView.label}</button>`
               : `<span aria-label="${escapeHtml(slotView.ariaLabel)}">${slotView.label}</span>`;
 
-            rowHtml += `<td class="sm-date-slot ${slotView.className}${selectedClass}">${content}</td>`;
+            rowHtml += `<td class="sm-date-slot ${slotView.className}${selectedClass}" data-date="${escapeHtml(day.date)}" data-time="${escapeHtml(time)}">${content}</td>`;
           });
 
           rowHtml += `</tr>`;
@@ -3135,6 +3410,8 @@
       } finally {
         loading.classList.add('hidden');
         table.classList.remove('hidden');
+        updateSelectedSlotStyles();
+        updateSelectedDateTimeDisplay();
       }
     }
 
@@ -3145,7 +3422,41 @@
       return `${y} 年 ${m} 月 ${d} 日 (${dow})`;
     }
 
-    function selectWeeklySlot(date, time, availablePractitioners) {
+    function formatCompactDateTime(dateStr, time) {
+      const parsed = parseCalendarDate(dateStr);
+      if (Number.isNaN(parsed.getTime())) {
+        return `${dateStr || ''} ${time || ''}`.trim();
+      }
+      const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+      return `${parsed.getDate()}日 (${weekDays[parsed.getDay()]}) ${time}`;
+    }
+
+    function updateSelectedDateTimeDisplay() {
+      const display = document.getElementById('selected-datetime-display');
+      const text = document.getElementById('selected-datetime-text');
+      const nextButton = document.getElementById('date-next-button');
+      const hasDateTime = Boolean(state.date && state.time);
+
+      if (display) {
+        display.classList.toggle('hidden', !hasDateTime);
+      }
+      if (text) {
+        text.textContent = hasDateTime ? formatCompactDateTime(state.date, state.time) : '';
+      }
+      if (nextButton) {
+        nextButton.disabled = !hasDateTime;
+        nextButton.setAttribute('aria-disabled', hasDateTime ? 'false' : 'true');
+      }
+    }
+
+    function updateSelectedSlotStyles() {
+      document.querySelectorAll('#weekly-body .sm-date-slot').forEach(cell => {
+        const isSelected = cell.dataset.date === state.date && cell.dataset.time === state.time;
+        cell.classList.toggle('is-selected', isSelected);
+      });
+    }
+
+    function setSelectedWeeklySlot(date, time, availablePractitioners) {
       state.date = date;
       state.time = time;
 
@@ -3161,10 +3472,10 @@
       } else {
         state.availablePractitioners = null; // 指名ありの場合はnull
       }
-      document.getElementById('step-date').classList.add('hidden');
-      document.getElementById('step-confirm').classList.remove('hidden');
-      updateProgressSteps(4);
+    }
 
+    function populateConfirmDetails() {
+      if (!state.menu || !state.date || !state.time) return false;
       document.getElementById('confirm-menu').innerText = state.menu.name;
       const optionsEl = document.getElementById('confirm-options');
       if (optionsEl) {
@@ -3185,18 +3496,10 @@
 
       // Calculate end time
       const totalMinutes = parseInt(state.totalMinutes || state.menu.minutes, 10);
-      console.log('Time calculation debug:', {
-        startTime: time,
-        totalMinutes,
-        typeOfMinutes: typeof totalMinutes
-      });
-
-      const [hours, minutes] = time.split(':').map(Number);
+      const [hours, minutes] = state.time.split(':').map(Number);
       const endDate = new Date();
       endDate.setHours(hours, minutes + totalMinutes);
       const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-
-      console.log('Calculated endTime:', endTime);
 
       document.getElementById('confirm-time').innerText = `${state.time} — ${endTime} (${totalMinutes} 分)`;
 
@@ -3204,12 +3507,31 @@
       if (nameInput && state.user?.displayName && !nameInput.value) {
         nameInput.value = state.user.displayName;
       }
+
+      return true;
+    }
+
+    function selectWeeklySlot(date, time, availablePractitioners) {
+      setSelectedWeeklySlot(date, time, availablePractitioners);
+      updateSelectedSlotStyles();
+      updateSelectedDateTimeDisplay();
     }
 
     window.selectTime = (date, time, status, availablePractitioners) => {
       const slotView = getSlotView(status);
       if (!slotView.selectable) return;
       selectWeeklySlot(date, time, availablePractitioners);
+    };
+
+    window.proceedFromDate = () => {
+      if (!state.date || !state.time) {
+        updateSelectedDateTimeDisplay();
+        return;
+      }
+      if (!populateConfirmDetails()) return;
+      document.getElementById('step-date').classList.add('hidden');
+      document.getElementById('step-confirm').classList.remove('hidden');
+      updateProgressSteps(4);
     };
 
     window.selectWeeklySlot = selectWeeklySlot;
@@ -3363,6 +3685,71 @@
       return result;
     }
 
+    function getReservationResultId(result) {
+      return result?.id
+        || result?.reservationId
+        || result?.reservation?.id
+        || result?.data?.id
+        || '';
+    }
+
+    function buildReservationNumber(result) {
+      let datePart = String(state.date || '').replace(/\D/g, '');
+      if (datePart.length !== 8) {
+        datePart = formatDate(new Date()).replace(/\D/g, '');
+      }
+
+      const resultDigits = String(getReservationResultId(result)).replace(/\D/g, '');
+      const suffix = (resultDigits.slice(-4) || String(Math.floor(Math.random() * 10000))).padStart(4, '0');
+      return `EN-${datePart}-${suffix}`;
+    }
+
+    function showCompleteScreen(result) {
+      const reservationNumber = document.getElementById('complete-reservation-number');
+      const dateTime = document.getElementById('complete-datetime');
+      const menu = document.getElementById('complete-menu');
+
+      if (reservationNumber) reservationNumber.textContent = buildReservationNumber(result);
+      if (dateTime) dateTime.textContent = formatCompactDateTime(state.date, state.time);
+      if (menu) menu.textContent = state.menu?.name || '';
+
+      document.getElementById('step-menu').classList.add('hidden');
+      document.getElementById('step-options').classList.add('hidden');
+      document.getElementById('step-date').classList.add('hidden');
+      document.getElementById('step-confirm').classList.add('hidden');
+      document.getElementById('step-complete').classList.remove('hidden');
+      updateStepIndicator(5);
+    }
+
+    function resetBookingFlowState() {
+      state.menu = null;
+      state.date = null;
+      state.time = null;
+      state.selectedOptions = [];
+      state.practitioner = null;
+      state.selectedPractitioner = null;
+      state.availablePractitioners = null;
+      state.totalMinutes = 0;
+      state.totalPrice = 0;
+      state.reservationIdempotencyKey = null;
+      updateSelectedSlotStyles();
+      updateSelectedDateTimeDisplay();
+    }
+
+    window.viewReservationHistory = () => {
+      resetBookingFlowState();
+      goBack('step-menu');
+      updateStepIndicator(1);
+      switchTab('mypage');
+    };
+
+    window.continueBooking = () => {
+      resetBookingFlowState();
+      switchTab('home');
+      goBack('step-menu');
+      updateStepIndicator(1);
+    };
+
     window.submitReservation = async () => {
       const name = document.getElementById('user-name-input').value.trim();
       const phone = document.getElementById('user-phone-input')?.value.trim() || '';
@@ -3419,9 +3806,7 @@
 
         if (result.status === 'success') {
           state.reservationIdempotencyKey = null;
-          updateProgressSteps(5);
-          showToast('予約が完了しました！');
-          switchTab('mypage');
+          showCompleteScreen(result);
         } else {
           showToast('エラー: ' + (result.message || JSON.stringify(result)));
         }
