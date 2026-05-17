@@ -104,31 +104,36 @@
     }
 
     .sm-header-main {
-      align-items: center;
-      display: grid;
-      gap: 8px;
-      grid-template-columns: minmax(72px, 1fr) minmax(0, 1.35fr) minmax(72px, 1fr);
+      align-items: flex-end;
+      display: flex;
+      justify-content: space-between;
       min-height: 52px;
       padding: 10px 16px 11px;
     }
 
-    .sm-header-kicker,
-    .sm-header-hours {
-      color: var(--sm-text-muted);
-      font-size: 9px;
-      font-weight: 600;
-      line-height: 1.2;
+    .sm-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
       min-width: 0;
     }
 
     .sm-header-kicker {
+      color: var(--sm-text-muted);
+      font-size: 9px;
+      font-weight: 600;
       letter-spacing: 0.2em;
+      line-height: 1.2;
       text-transform: uppercase;
     }
 
     .sm-header-hours {
+      color: var(--sm-text-muted);
+      flex-shrink: 0;
+      font-size: 9px;
       font-weight: 400;
-      text-align: right;
+      line-height: 1.2;
+      padding-bottom: 2px;
       white-space: nowrap;
     }
 
@@ -139,7 +144,7 @@
       line-height: 1.05;
       min-width: 0;
       overflow: hidden;
-      text-align: center;
+      text-align: left;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -1296,8 +1301,10 @@
           <span>Reservation</span>
         </div>
         <div class="sm-header-main">
-          <div class="sm-header-kicker">EST. 2018</div>
-          <h1 id="header-salon-name" class="sm-header-title">ATELIER EN</h1>
+          <div class="sm-header-left">
+            <div class="sm-header-kicker">EST. 2018</div>
+            <h1 id="header-salon-name" class="sm-header-title">ATELIER EN</h1>
+          </div>
           <div id="header-hours" class="sm-header-hours">11:00 — 21:00</div>
         </div>
         <div id="header-logo-container" class="hidden" aria-hidden="true">
