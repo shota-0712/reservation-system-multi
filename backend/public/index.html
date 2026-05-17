@@ -427,6 +427,216 @@
       text-align: center;
     }
 
+    #step-options {
+      color: var(--sm-text);
+    }
+
+    #step-options .sm-options-heading {
+      align-items: flex-start;
+      display: flex;
+      gap: 14px;
+      margin: 2px 0 18px;
+    }
+
+    #step-options .sm-options-heading-number {
+      border-bottom: 1px solid var(--color-enji);
+      color: var(--sm-text);
+      flex: 0 0 auto;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      padding-bottom: 6px;
+    }
+
+    #step-options .sm-options-heading-title {
+      color: var(--sm-text);
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.08;
+      margin: 0;
+    }
+
+    #step-options .sm-options-heading-subtitle {
+      color: var(--sm-text-muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    #step-options .sm-options-selected {
+      border-top: 1px solid var(--sm-border);
+      border-bottom: 1px solid var(--sm-border);
+      padding: 12px 0 14px;
+      margin-bottom: 4px;
+    }
+
+    #step-options .sm-options-selected-label {
+      color: var(--sm-text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      line-height: 1.2;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    #step-options .sm-options-selected-row {
+      align-items: baseline;
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    #step-options .sm-options-selected-name {
+      color: var(--sm-text);
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    #step-options .sm-options-selected-price {
+      color: var(--sm-text);
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    #step-options .sm-options-list {
+      margin: 0 0 4px;
+    }
+
+    #step-options .sm-option-row {
+      align-items: center;
+      appearance: none;
+      background: transparent;
+      border-bottom: 1px solid var(--sm-border);
+      border-left: 3px solid transparent;
+      border-right: 0;
+      border-top: 0;
+      color: inherit;
+      cursor: pointer;
+      display: grid;
+      font: inherit;
+      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding: 14px 4px 14px 11px;
+      text-align: left;
+      transition: background 0.18s ease, border-color 0.18s ease;
+      width: 100%;
+    }
+
+    #step-options .sm-option-row:active {
+      opacity: 0.7;
+    }
+
+    #step-options .sm-option-row.is-selected {
+      background: #faf7f3;
+      border-left-color: var(--color-enji);
+    }
+
+    #step-options .sm-option-name {
+      color: var(--sm-text);
+      display: block;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.35;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    #step-options .sm-option-desc {
+      color: var(--sm-text-muted);
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.4;
+      margin-top: 3px;
+      min-width: 0;
+    }
+
+    #step-options .sm-option-meta {
+      align-items: flex-end;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    #step-options .sm-option-price {
+      color: var(--sm-text);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    #step-options .sm-option-minutes {
+      color: var(--sm-text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    #step-options .sm-options-empty {
+      border-bottom: 1px solid var(--sm-border);
+      color: var(--sm-text-muted);
+      font-size: 13px;
+      padding: 22px 0;
+      text-align: center;
+    }
+
+    #step-options .sm-options-total {
+      align-items: baseline;
+      border-bottom: 1px solid var(--sm-border-strong);
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      padding: 16px 0 18px;
+      margin-bottom: 20px;
+    }
+
+    #step-options .sm-options-total-label {
+      color: var(--sm-text);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    #step-options .sm-options-total-price {
+      color: var(--sm-text);
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    #step-options .sm-options-cta {
+      appearance: none;
+      background: var(--sm-text);
+      border: 0;
+      border-radius: var(--sm-radius);
+      color: var(--sm-bg);
+      cursor: pointer;
+      display: block;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      padding: 16px 12px;
+      text-align: center;
+      transition: opacity 0.18s ease;
+      width: 100%;
+    }
+
+    #step-options .sm-options-cta:active {
+      opacity: 0.78;
+    }
+
     @media (max-width: 380px) {
       .sm-header-main {
         grid-template-columns: minmax(62px, 1fr) minmax(0, 1.25fr) minmax(64px, 1fr);
@@ -458,6 +668,14 @@
 
       #step-menu .sm-menu-price {
         font-size: 13px;
+      }
+
+      #step-options .sm-options-heading-title {
+        font-size: 20px;
+      }
+
+      #step-options .sm-options-total-price {
+        font-size: 20px;
       }
     }
 
@@ -622,64 +840,37 @@
 
         <!-- Step 2: Option Selection -->
         <div id="step-options" class="hidden animate-fade-in">
-          <button onclick="goBack('step-menu')" class="btn-ghost mb-2 text-gray-500 text-sm flex items-center gap-1">
-            <i class="fas fa-arrow-left"></i> 戻る
+          <div class="sm-options-heading">
+            <div class="sm-options-heading-number">02</div>
+            <div>
+              <h2 class="sm-options-heading-title">オプションを追加</h2>
+              <p class="sm-options-heading-subtitle">仕上がりをさらに高める追加メニュー</p>
+            </div>
+          </div>
+
+          <div class="sm-options-selected">
+            <p class="sm-options-selected-label">選択中のメニュー</p>
+            <div class="sm-options-selected-row">
+              <p id="options-selected-menu" class="sm-options-selected-name"></p>
+              <p id="options-selected-price" class="sm-options-selected-price"></p>
+            </div>
+          </div>
+
+          <div id="option-list" class="sm-options-list">
+            <div class="sm-menu-loading animate-pulse">
+              <div class="sm-menu-loading-line"></div>
+              <div class="sm-menu-loading-line"></div>
+            </div>
+          </div>
+
+          <div class="sm-options-total">
+            <span id="total-time" class="sm-options-total-label"></span>
+            <span id="total-price" class="sm-options-total-price"></span>
+          </div>
+
+          <button onclick="proceedWithOptions()" class="sm-options-cta">
+            <span id="options-button-text">次へ進む</span>
           </button>
-          <h2 class="text-lg font-bold text-gray-800 mb-4 border-l-4 border-enji pl-3">オプション選択</h2>
-
-          <!-- Selected Menu Info -->
-          <div class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-gray-100">
-            <p class="text-xs text-gray-400 mb-1">選択中のメニュー</p>
-            <p id="options-selected-menu" class="font-bold text-gray-800"></p>
-          </div>
-
-          <!-- Option List -->
-          <div id="option-list" class="space-y-3 mb-4">
-            <div class="animate-pulse space-y-3">
-              <div class="h-16 bg-gray-200 rounded-lg"></div>
-              <div class="h-16 bg-gray-200 rounded-lg"></div>
-            </div>
-          </div>
-
-          <!-- Selected Options Summary -->
-          <div id="options-summary" class="bg-enji/10 rounded-xl p-4 mb-4 hidden">
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="text-xs text-gray-500">追加オプション</p>
-                <p id="options-summary-names" class="font-medium text-gray-800 text-sm"></p>
-              </div>
-              <div class="text-right">
-                <p class="text-xs text-gray-500">追加時間・料金</p>
-                <p id="options-summary-info" class="font-bold text-enji"></p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Total Summary -->
-          <div class="bg-white rounded-xl shadow-sm p-4 mb-4 border-2 border-enji">
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="text-xs text-gray-500">合計</p>
-                <p id="total-summary-menu" class="font-bold text-gray-800"></p>
-              </div>
-              <div class="text-right">
-                <p id="total-time" class="text-sm text-gray-600"></p>
-                <p id="total-price" class="font-bold text-enji text-xl"></p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="space-y-2">
-            <button onclick="proceedWithOptions()"
-              class="w-full bg-enji hover:bg-enji-dark text-white font-bold py-3 rounded-lg shadow-md transition-colors">
-              <span id="options-button-text">日時選択へ進む</span>
-            </button>
-            <button onclick="skipOptions()"
-              class="w-full bg-white border border-gray-300 text-gray-600 font-medium py-3 rounded-lg hover:bg-gray-50 transition-colors">
-              オプションなしで進む
-            </button>
-          </div>
         </div>
 
         <!-- Step 3: Date Selection with Practitioner Pills -->
@@ -2036,7 +2227,8 @@
         // オプションがある場合はstep-optionsに遷移
         document.getElementById('step-menu').classList.add('hidden');
         document.getElementById('step-options').classList.remove('hidden');
-        document.getElementById('options-selected-menu').textContent = `${menu.name} (${menu.minutes}分 / ¥${parseInt(menu.price).toLocaleString()})`;
+        document.getElementById('options-selected-menu').textContent = menu.name;
+        document.getElementById('options-selected-price').textContent = `¥${parseInt(menu.price).toLocaleString()}`;
         updateOptionsSummary();
         updateProgressSteps(2);
       } else {
@@ -2085,31 +2277,52 @@
 
     function renderOptionList() {
       const container = document.getElementById('option-list');
+      container.replaceChildren();
+
       if (state.allOptions.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center py-4">オプションがありません</p>';
+        const empty = document.createElement('div');
+        empty.className = 'sm-options-empty';
+        empty.textContent = 'オプションがありません';
+        container.appendChild(empty);
         return;
       }
 
-      container.innerHTML = state.allOptions.map(opt => {
+      state.allOptions.forEach(opt => {
         const isSelected = state.selectedOptions.some(o => o.id === opt.id);
-        return `
-          <div onclick="toggleOption('${opt.id}')" class="bg-white shadow-sm border ${isSelected ? 'border-enji border-2' : 'border-gray-100'} rounded-xl cursor-pointer hover:border-enji transition-all active:scale-95 p-4">
-            <div class="flex items-center gap-3">
-              <div class="w-6 h-6 rounded-full border-2 ${isSelected ? 'border-enji bg-enji' : 'border-gray-300'} flex items-center justify-center flex-shrink-0">
-                ${isSelected ? '<i class="fas fa-check text-white text-xs"></i>' : ''}
-              </div>
-              <div class="flex-1">
-                <h4 class="font-bold text-gray-800">${opt.name}</h4>
-                <p class="text-xs text-gray-500">${opt.description || ''}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-xs text-gray-400">+${opt.minutes}分</p>
-                <p class="text-enji font-bold">+¥${opt.price.toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
+
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'sm-option-row' + (isSelected ? ' is-selected' : '');
+        row.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+        row.addEventListener('click', () => toggleOption(opt.id));
+
+        const left = document.createElement('span');
+        const name = document.createElement('span');
+        name.className = 'sm-option-name';
+        name.textContent = opt.name;
+        left.appendChild(name);
+        if (opt.description) {
+          const desc = document.createElement('span');
+          desc.className = 'sm-option-desc';
+          desc.textContent = opt.description;
+          left.appendChild(desc);
+        }
+
+        const meta = document.createElement('span');
+        meta.className = 'sm-option-meta';
+        const price = document.createElement('span');
+        price.className = 'sm-option-price';
+        price.textContent = `+ ¥${opt.price.toLocaleString()}`;
+        const minutes = document.createElement('span');
+        minutes.className = 'sm-option-minutes';
+        minutes.textContent = `+ ${opt.minutes} 分`;
+        meta.appendChild(price);
+        meta.appendChild(minutes);
+
+        row.appendChild(left);
+        row.appendChild(meta);
+        container.appendChild(row);
+      });
     }
 
     window.toggleOption = (optionId) => {
@@ -2134,19 +2347,7 @@
       state.totalMinutes = state.menu.minutes + optionMinutes;
       state.totalPrice = (parseInt(state.menu.price) || 0) + optionPrice;
 
-      // オプションサマリー表示
-      const summaryEl = document.getElementById('options-summary');
-      if (state.selectedOptions.length > 0) {
-        summaryEl.classList.remove('hidden');
-        document.getElementById('options-summary-names').textContent = state.selectedOptions.map(o => o.name).join(', ');
-        document.getElementById('options-summary-info').textContent = `+${optionMinutes}分 / +¥${optionPrice.toLocaleString()}`;
-      } else {
-        summaryEl.classList.add('hidden');
-      }
-
-      // 合計表示
-      document.getElementById('total-summary-menu').textContent = state.menu.name;
-      document.getElementById('total-time').textContent = `${state.totalMinutes}分`;
+      document.getElementById('total-time').textContent = `合計 ・ 所要 ${state.totalMinutes} 分`;
       document.getElementById('total-price').textContent = `¥${state.totalPrice.toLocaleString()}`;
     }
 
