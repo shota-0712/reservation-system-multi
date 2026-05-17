@@ -234,6 +234,199 @@
       width: 26px;
     }
 
+    #step-menu {
+      color: var(--sm-text);
+    }
+
+    #step-menu .sm-menu-heading {
+      align-items: flex-start;
+      display: flex;
+      gap: 14px;
+      margin: 2px 0 18px;
+    }
+
+    #step-menu .sm-menu-heading-number {
+      border-bottom: 1px solid var(--color-enji);
+      color: var(--sm-text);
+      flex: 0 0 auto;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      padding-bottom: 6px;
+    }
+
+    #step-menu .sm-menu-heading-title {
+      color: var(--sm-text);
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.08;
+      margin: 0;
+    }
+
+    #step-menu .sm-menu-heading-subtitle {
+      color: var(--sm-text-muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    #step-menu .sm-category-tabs {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 8px;
+      margin: 0 -16px 14px;
+      overflow-x: auto;
+      padding: 0 16px 4px;
+      scrollbar-width: none;
+      white-space: nowrap;
+    }
+
+    #step-menu .category-tab {
+      background: var(--sm-bg);
+      border: 1px solid var(--sm-border);
+      border-radius: var(--sm-radius);
+      color: var(--sm-text-muted);
+      flex: 0 0 auto;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      padding: 8px 12px;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    #step-menu .category-tab.is-active {
+      background: var(--sm-text);
+      border-color: var(--sm-text);
+      color: var(--sm-bg);
+    }
+
+    #step-menu .sm-menu-list {
+      border-top: 1px solid var(--sm-border);
+      margin-top: 2px;
+    }
+
+    #step-menu .sm-menu-row {
+      align-items: center;
+      appearance: none;
+      background: transparent;
+      border-bottom: 1px solid var(--sm-border);
+      border-left: 0;
+      border-right: 0;
+      border-top: 0;
+      color: inherit;
+      cursor: pointer;
+      display: grid;
+      font: inherit;
+      gap: 12px;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      min-height: 76px;
+      padding: 15px 0;
+      text-align: left;
+      transition: color 0.18s ease, opacity 0.18s ease;
+      width: 100%;
+    }
+
+    #step-menu .sm-menu-row:active {
+      opacity: 0.62;
+    }
+
+    #step-menu .sm-menu-row:hover .sm-menu-name,
+    #step-menu .sm-menu-row:focus-visible .sm-menu-name {
+      color: var(--color-enji);
+    }
+
+    #step-menu .sm-menu-code {
+      color: var(--sm-text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    #step-menu .sm-menu-meta {
+      color: var(--sm-text-muted);
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.35;
+      margin-bottom: 4px;
+      min-width: 0;
+    }
+
+    #step-menu .sm-menu-name {
+      color: var(--sm-text);
+      display: block;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      transition: color 0.18s ease;
+    }
+
+    #step-menu .sm-menu-price {
+      color: var(--sm-text);
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    #step-menu .sm-menu-sort-bar {
+      align-items: center;
+      color: var(--sm-text-muted);
+      display: flex;
+      font-size: 11px;
+      font-weight: 600;
+      gap: 10px;
+      justify-content: space-between;
+      line-height: 1.4;
+      padding-top: 12px;
+    }
+
+    #step-menu .sm-menu-sort-control {
+      align-items: center;
+      display: inline-flex;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    #step-menu .sm-menu-sort-select {
+      appearance: auto;
+      background: transparent;
+      border: 0;
+      border-radius: var(--sm-radius);
+      color: var(--sm-text-muted);
+      font: inherit;
+      max-width: 142px;
+      padding: 2px 0;
+    }
+
+    #step-menu .sm-menu-loading {
+      border-bottom: 1px solid var(--sm-border);
+      padding: 16px 0;
+    }
+
+    #step-menu .sm-menu-loading-line {
+      background: #f4f2f0;
+      height: 12px;
+      margin-bottom: 10px;
+    }
+
+    #step-menu .sm-menu-loading-line:last-child {
+      margin-bottom: 0;
+      width: 62%;
+    }
+
+    #step-menu .sm-menu-empty {
+      border-bottom: 1px solid var(--sm-border);
+      color: var(--sm-text-muted);
+      font-size: 13px;
+      padding: 22px 0;
+      text-align: center;
+    }
+
     @media (max-width: 380px) {
       .sm-header-main {
         grid-template-columns: minmax(62px, 1fr) minmax(0, 1.25fr) minmax(64px, 1fr);
@@ -252,6 +445,19 @@
 
       .sm-step {
         font-size: 9px;
+      }
+
+      #step-menu .sm-menu-heading-title {
+        font-size: 20px;
+      }
+
+      #step-menu .sm-menu-row {
+        gap: 10px;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+      }
+
+      #step-menu .sm-menu-price {
+        font-size: 13px;
       }
     }
 
@@ -377,25 +583,40 @@
 
         <!-- Step 1: Menu Selection -->
         <div id="step-menu" class="animate-fade-in">
+          <div class="sm-menu-heading">
+            <div class="sm-menu-heading-number">01</div>
+            <div>
+              <h2 class="sm-menu-heading-title">メニューを選ぶ</h2>
+              <p class="sm-menu-heading-subtitle">ご希望の施術をお選びください</p>
+            </div>
+          </div>
+
           <!-- Category Tabs -->
-          <div id="category-tabs" class="flex flex-wrap gap-2 mb-4">
+          <div id="category-tabs" class="sm-category-tabs" role="tablist" aria-label="メニューカテゴリ">
             <button onclick="filterByCategory('all')"
-              class="category-tab px-3 py-1.5 rounded-full text-sm font-medium bg-enji text-white transition-colors"
-              data-category="all">すべて</button>
+              class="category-tab is-active"
+              data-category="all" role="tab" aria-selected="true">すべて</button>
             <!-- Other category tabs will be dynamically added -->
           </div>
 
-          <!-- Menu Count -->
-          <div class="flex items-center mb-4">
-            <h2 class="text-lg font-bold text-gray-800 border-l-4 border-enji pl-3">メニュー選択</h2>
-            <span id="menu-count" class="ml-2 text-sm text-gray-500"></span>
+          <div id="menu-list" class="sm-menu-list">
+            <div class="sm-menu-loading animate-pulse">
+              <div class="sm-menu-loading-line"></div>
+              <div class="sm-menu-loading-line"></div>
+            </div>
           </div>
 
-          <div id="menu-list" class="space-y-4">
-            <div class="animate-pulse space-y-4">
-              <div class="h-24 bg-gray-200 rounded-lg"></div>
-              <div class="h-24 bg-gray-200 rounded-lg"></div>
-            </div>
+          <div class="sm-menu-sort-bar">
+            <span id="menu-count">全 0 件</span>
+            <label class="sm-menu-sort-control" for="menu-sort-select">
+              <span>並べ替え ・</span>
+              <select id="menu-sort-select" class="sm-menu-sort-select" onchange="setMenuSort(this.value)"
+                aria-label="メニューの並べ替え">
+                <option value="price-asc">価格の低い順 ↑</option>
+                <option value="price-desc">価格の高い順 ↓</option>
+                <option value="minutes-asc">所要時間の短い順 ↑</option>
+              </select>
+            </label>
           </div>
         </div>
 
@@ -1281,6 +1502,8 @@
       // オプション関連
       selectedOptions: [],  // 選択されたオプション配列
       allOptions: [],       // 全オプション一覧
+      menus: [],            // メニュー一覧
+      menuSort: 'price-asc',
       totalMinutes: 0,      // 合計時間
       totalPrice: 0,        // 合計料金
       availablePractitioners: null,  // 指名なし時の空き施術者リスト
@@ -1603,6 +1826,51 @@
     // Store all menus for filtering
     let allMenus = [];
     let currentCategory = 'all';
+    let currentMenuSort = 'price-asc';
+    const menuSortOptions = new Set(['price-asc', 'price-desc', 'minutes-asc']);
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char]));
+    }
+
+    function toMenuNumber(value) {
+      const normalized = String(value ?? '').replace(/[^\d.-]/g, '');
+      const number = Number(normalized);
+      return Number.isFinite(number) ? number : 0;
+    }
+
+    function getMenuOrdinal(menu) {
+      const match = String(menu.code || '').match(/^M(\d+)$/);
+      return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
+    }
+
+    function getFilteredMenus() {
+      return currentCategory === 'all'
+        ? allMenus
+        : allMenus.filter(menu => menu.category === currentCategory);
+    }
+
+    function sortMenus(menus) {
+      return [...menus].sort((a, b) => {
+        let result = 0;
+
+        if (currentMenuSort === 'price-desc') {
+          result = toMenuNumber(b.price) - toMenuNumber(a.price);
+        } else if (currentMenuSort === 'minutes-asc') {
+          result = toMenuNumber(a.minutes) - toMenuNumber(b.minutes);
+        } else {
+          result = toMenuNumber(a.price) - toMenuNumber(b.price);
+        }
+
+        return result || getMenuOrdinal(a) - getMenuOrdinal(b);
+      });
+    }
 
     // Logic
     async function loadMenus() {
@@ -1610,20 +1878,31 @@
       try {
         if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
           allMenus = [
-            { id: '1', category: '【初回カウンセ】', name: 'フェイシャル基本コース', minutes: 60, price: 8000, description: '基本のフェイシャルコースです。' },
-            { id: '2', category: '全員', name: '全身アロマオイル', minutes: 90, price: 12000, description: '全身のリラックス効果が高いアロマオイルマッサージです。' },
-            { id: '3', category: '全員', name: 'クイックマッサージ', minutes: 30, price: 4000, description: 'お急ぎの方におすすめのクイックコース。' }
+            { id: '1', category: '【初回カウンセ】', name: 'フェイシャル基本コース', minutes: 60, price: 8000, description: '基本のフェイシャルコースです。', optionIds: '1,3' },
+            { id: '2', category: '全員', name: '全身アロマオイル', minutes: 90, price: 12000, description: '全身のリラックス効果が高いアロマオイルマッサージです。', optionIds: '1,2' },
+            { id: '3', category: '全員', name: 'クイックマッサージ', minutes: 30, price: 4000, description: 'お急ぎの方におすすめのクイックコース。', optionIds: '3' }
           ];
         } else {
           const res = await fetch(`${API_BASE_URL}/api/menus`);
           allMenus = await res.json();
         }
 
+        allMenus = (Array.isArray(allMenus) ? allMenus : []).map((menu, index) => ({
+          ...menu,
+          code: `M${index + 1}`
+        }));
+        state.menus = allMenus;
+
+        const categories = new Set(allMenus.map(menu => menu.category).filter(Boolean));
+        if (currentCategory !== 'all' && !categories.has(currentCategory)) {
+          currentCategory = 'all';
+        }
+
         // Generate category tabs
         generateCategoryTabs(allMenus);
 
         // Render menus
-        renderMenus(allMenus);
+        renderMenus(getFilteredMenus());
       } catch (e) {
         console.error(e);
         container.innerHTML = '<div class="text-center text-red-400">メニュー読み込みエラー</div>';
@@ -1634,10 +1913,15 @@
       const tabsContainer = document.getElementById('category-tabs');
       const categories = [...new Set(menus.map(m => m.category).filter(c => c))];
 
-      let tabsHtml = `<button onclick="filterByCategory('all')" class="category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji !bg-enji !text-white transition-colors" data-category="all">すべて</button>`;
+      const categoryButton = (category, label) => {
+        const isActive = currentCategory === category;
+        return `<button onclick="filterByCategory(${escapeHtml(JSON.stringify(category))})" class="category-tab${isActive ? ' is-active' : ''}" data-category="${escapeHtml(category)}" role="tab" aria-selected="${isActive ? 'true' : 'false'}">${escapeHtml(label)}</button>`;
+      };
+
+      let tabsHtml = categoryButton('all', 'すべて');
 
       categories.forEach(cat => {
-        tabsHtml += `<button onclick="filterByCategory('${cat}')" class="category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji bg-white text-enji hover:bg-gray-50 transition-colors" data-category="${cat}">${cat}</button>`;
+        tabsHtml += categoryButton(cat, cat);
       });
 
       tabsContainer.innerHTML = tabsHtml;
@@ -1646,52 +1930,67 @@
     window.filterByCategory = (category) => {
       currentCategory = category;
 
-      // Update tab styles - use className replacement for reliable styling
       document.querySelectorAll('.category-tab').forEach(tab => {
-        const baseClasses = 'category-tab px-3 py-1.5 rounded-full text-sm font-medium border border-enji transition-colors';
-        if (tab.dataset.category === category) {
-          tab.className = `${baseClasses} bg-enji text-white`;
-        } else {
-          tab.className = `${baseClasses} bg-white text-enji hover:bg-pink-50`;
-        }
+        const isActive = tab.dataset.category === category;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
 
-      // Filter and render menus
-      const filteredMenus = category === 'all'
-        ? allMenus
-        : allMenus.filter(m => m.category === category);
-      renderMenus(filteredMenus);
+      renderMenus(getFilteredMenus());
+    };
+
+    window.setMenuSort = (key) => {
+      currentMenuSort = menuSortOptions.has(key) ? key : 'price-asc';
+      state.menuSort = currentMenuSort;
+      renderMenus(getFilteredMenus());
+    };
+
+    window.selectMenuByCode = (code) => {
+      const menu = allMenus.find(item => item.code === code);
+      if (menu) {
+        window.selectMenu(menu);
+      }
     };
 
     function renderMenus(menus) {
       const container = document.getElementById('menu-list');
+      const sortedMenus = sortMenus(menus);
+      const count = sortedMenus.length;
+      const countEl = document.getElementById('menu-count');
+      const sortSelect = document.getElementById('menu-sort-select');
 
-      // Update menu count
-      document.getElementById('menu-count').innerText = `${menus.length}件`;
+      if (countEl) {
+        countEl.innerText = `全 ${count} 件`;
+      }
+      if (sortSelect) {
+        sortSelect.value = currentMenuSort;
+      }
 
-      container.innerHTML = menus.map(menu => {
-        const imageHtml = menu.imageUrl
-          ? `<div class="w-20 h-20 flex-shrink-0"><img src="${menu.imageUrl}" alt="${menu.name}" class="w-20 h-20 object-cover rounded-lg"></div>`
-          : '';
-        const categoryBadge = menu.category
-          ? `<span class="inline-block px-2 py-0.5 bg-pink-100 text-pink-600 text-xs rounded-full mb-1">${menu.category}</span>`
-          : '';
+      if (count === 0) {
+        container.innerHTML = '<div class="sm-menu-empty">該当するメニューがありません</div>';
+        return;
+      }
+
+      container.innerHTML = sortedMenus.map(menu => {
+        const minutes = toMenuNumber(menu.minutes);
+        const metaParts = [
+          menu.category ? escapeHtml(menu.category) : '',
+          minutes > 0 ? `${minutes} 分` : ''
+        ].filter(Boolean);
+        const meta = metaParts.length > 0 ? metaParts.join(' ・ ') : 'メニュー';
+        const code = menu.code || '';
+
         return `
-      <div onclick="selectMenu(${JSON.stringify(menu).replace(/"/g, '&quot;')})" class="bg-white shadow-sm border border-gray-100 rounded-xl cursor-pointer hover:border-enji transition-all active:scale-95 overflow-hidden">
-      <div class="p-4 flex gap-4">
-        ${imageHtml}
-        <div class="flex-1 flex flex-col">
-          ${categoryBadge}
-          <h3 class="font-bold text-gray-800">${menu.name}</h3>
-          <p class="text-xs text-gray-500 mt-1 flex-1">${menu.description || ''}</p>
-          <div class="flex justify-between items-center mt-2">
-            <p class="text-sm text-gray-400"><i class="far fa-clock"></i> ${menu.minutes}分</p>
-            <div class="text-enji font-bold text-lg">¥${menu.price.toLocaleString()}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    `}).join('');
+          <button type="button" onclick="selectMenuByCode('${escapeHtml(code)}')" class="sm-menu-row">
+            <span class="sm-menu-code">/ ${escapeHtml(code)}</span>
+            <span>
+              <span class="sm-menu-meta">${meta}</span>
+              <span class="sm-menu-name">${escapeHtml(menu.name || '名称未設定')}</span>
+            </span>
+            <span class="sm-menu-price">¥${toMenuNumber(menu.price).toLocaleString()}</span>
+          </button>
+        `;
+      }).join('');
     }
 
     // Update progress steps indicator (now 5 steps)
